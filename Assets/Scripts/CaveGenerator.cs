@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Geometry;
 
 public class CaveGenerator : MonoBehaviour {
 
@@ -22,64 +23,61 @@ public class CaveGenerator : MonoBehaviour {
 
 	/** Makes the triangulation between two polyline, checking they
 	 * have the same size **/
-	void triangulatePolylines(int[] pol1, int[] pol2) {
-		if (pol1.Length != pol2.Length)
+	void triangulatePolylines(Polyline pol1, Polyline pol2) {
+		if (pol1.getSize() != pol2.getSize())
 			Debug.Log ("The two polylines do not have the same length!");
 
-		for (int i = 0; i < pol1.Length-1; ++i) {
-			triangulateQuad (pol1 [i], pol1 [i + 1], pol2 [i], pol2 [i + 1]);
+		for (int i = 0; i < pol1.getSize()-1; ++i) {
+			triangulateQuad (pol1.getIndex(i), pol1.getIndex(i + 1), pol2.getIndex(i), pol2.getIndex(i + 1));
 		}
-		triangulateQuad (pol1 [pol1.Length - 1], pol1 [0], pol2 [pol2.Length - 1], pol2 [0]);	
+		triangulateQuad (pol1.getIndex(pol1.getSize() - 1), pol1.getIndex(0), 
+			pol2.getIndex(pol2.getSize() - 1), pol2.getIndex(0));	
 	}
 
 
 	/** From the vertices of an existing polyline, it creates a new new one
 	 * with the same number of vertices and following some direction and at some distance**/
-	Vector3[] extrude(Vector3[] originPolyPos, int[] originPolyIndex,  Vector3 direction, int distance) {
-		//TODO: create polyline data structure
-
+	Polyline extrude(Polyline originPoly,  Vector3 direction, int distance) {
 		//Create the new polyline
-		Vector3[] newPolyPos = new Vector3[originPolyPos.Length];
-		int[] newPolyIndex = new int[originPolyIndex.Length];
-		for (int i = 0; i < originPolyPos.Length; ++i) {//Generate the new vertices
+		Polyline newPoly = new Polyline(originPoly.getSize());
+		for (int i = 0; i < originPoly.getSize(); ++i) {//Generate the new vertices
 			//Add vertex to polyline
-			newPolyPos [i] = originPolyPos [i] + direction*distance;
+			newPoly.extrudeVertex(i, originPoly.getPosition(i),direction,distance);
 			//Add index vertex to polyline
-			newPolyIndex [i] = mVertices.Count;//assign new index
-			Debug.Log(mVertices.Count);
-			//Add new vertex
-			mVertices.Add(newPolyPos[i]);
+			newPoly.setIndex(i,mVertices.Count);
+			//Add the new vertex to the set of vertices
+			mVertices.Add(newPoly.getPosition(i));
 		}
 
 		//Triangulate from origin to new polyline as a tube/cave shape
-		triangulatePolylines (originPolyIndex, newPolyIndex);
+		triangulatePolylines (originPoly, newPoly);
 
-		return newPolyPos;//TODO: return poly position + indices
+		return newPoly;
 	}
 
-	/** Transforms the polylines list to a vertex array**/
-	/*Vector3[] polylinesToVertices (List<Vector3[]> polylines,int verticesNum) {
-		Vector3[] vertices = new Vector3[verticesNum];
-		int index = 0;
-		foreach (Vector3[] polyline in polylines) {
-			foreach (Vector3 vertex in polyline) {
-				vertices[index] = vertex;
-				++index;
-			}
-		}
-		return vertices;
-	}*/
+	void Awake() {
+
+	}
 
 	void Start () {
 		Mesh mesh = new Mesh ();
 		mVertices = new List<Vector3>();
 		mTriangles = new List<int>();
 
-		Vector3[] iniPolyPos = new Vector3[4] {new Vector3 (0.0f, 0.0f, 0.0f),new Vector3 (0.0f, 1.0f, 0.0f),
-								new Vector3 (1.0f, 1.0f, 0.0f), new Vector3 (1.0f, 0.0f, 0.0f)};
-		int[] iniPolyIndex = new int[4] { 0, 1, 2, 3 };
+		Polyline iniPol = new Polyline (4);
+		iniPol.setPosition (0,new Vector3 (0.0f, 0.0f, 0.0f));
+		iniPol.setPosition (1,new Vector3 (0.0f, 1.0f, 0.0f));
+		iniPol.setPosition (2,new Vector3 (1.0f, 1.0f, 0.0f));
+		iniPol.setPosition (3,new Vector3 (1.0f, 0.0f, 0.0f));
 
-		foreach (Vector3 v in iniPolyPos) {
+		iniPol.setIndex (0, 0); iniPol.setIndex (1, 1); iniPol.setIndex (2, 2); iniPol.setIndex (3, 3);
+
+		/*Vector3[] iniPolyPos = new Vector3[4] {new Vector3 (0.0f, 0.0f, 0.0f),new Vector3 (0.0f, 1.0f, 0.0f),
+								new Vector3 (1.0f, 1.0f, 0.0f), new Vector3 (1.0f, 0.0f, 0.0f)};
+		int[] iniPolyIndex = new int[4] { 0, 1, 2, 3 };*/
+
+		Vector3[] poss = iniPol.getPositions ();
+		foreach (Vector3 v in poss) {
 			mVertices.Add (v);
 		}
 
@@ -89,7 +87,11 @@ public class CaveGenerator : MonoBehaviour {
 		mVertices.Add(new Vector3 (1.0f, 0.0f, 0.0f));*/
 
 		Vector3 dir = new Vector3 (0.0f, 0.0f, 1.0f);
-		Vector3[] newPoly = extrude (iniPolyPos, iniPolyIndex, dir, 10);
+		Polyline newPoly = extrude (iniPol, dir, 10);
+
+		/*for (int i = 0; i < 10; ++i) {
+
+		}*/
 
 		mesh.vertices = mVertices.ToArray();
 		mesh.triangles = mTriangles.ToArray ();
