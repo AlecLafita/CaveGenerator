@@ -55,43 +55,29 @@ public class CaveGenerator : MonoBehaviour {
 		return newPoly;
 	}
 
-	void Awake() {
-
-	}
-
 	void Start () {
 		Mesh mesh = new Mesh ();
 		mVertices = new List<Vector3>();
 		mTriangles = new List<int>();
 
-		Polyline iniPol = new Polyline (4);
+		Polyline iniPol = new Polyline (4); //Initial polyline
 		iniPol.setPosition (0,new Vector3 (0.0f, 0.0f, 0.0f));
 		iniPol.setPosition (1,new Vector3 (0.0f, 1.0f, 0.0f));
 		iniPol.setPosition (2,new Vector3 (1.0f, 1.0f, 0.0f));
 		iniPol.setPosition (3,new Vector3 (1.0f, 0.0f, 0.0f));
-
 		iniPol.setIndex (0, 0); iniPol.setIndex (1, 1); iniPol.setIndex (2, 2); iniPol.setIndex (3, 3);
-
-		/*Vector3[] iniPolyPos = new Vector3[4] {new Vector3 (0.0f, 0.0f, 0.0f),new Vector3 (0.0f, 1.0f, 0.0f),
-								new Vector3 (1.0f, 1.0f, 0.0f), new Vector3 (1.0f, 0.0f, 0.0f)};
-		int[] iniPolyIndex = new int[4] { 0, 1, 2, 3 };*/
 
 		Vector3[] poss = iniPol.getPositions ();
 		foreach (Vector3 v in poss) {
 			mVertices.Add (v);
 		}
 
-		/*mVertices.Add(new Vector3 (0.0f, 0.0f, 0.0f));
-		mVertices.Add(new Vector3 (0.0f, 1.0f, 0.0f));
-		mVertices.Add(new Vector3 (1.0f, 1.0f, 0.0f));
-		mVertices.Add(new Vector3 (1.0f, 0.0f, 0.0f));*/
-
 		Vector3 dir = new Vector3 (0.0f, 0.0f, 1.0f);
 		Polyline newPoly = extrude (iniPol, dir, 10);
 
-		/*for (int i = 0; i < 10; ++i) {
-
-		}*/
+		for (int i = 0; i < 1000; ++i) { //Example
+			newPoly = extrude(newPoly,dir,10);
+		}
 
 		mesh.vertices = mVertices.ToArray();
 		mesh.triangles = mTriangles.ToArray ();

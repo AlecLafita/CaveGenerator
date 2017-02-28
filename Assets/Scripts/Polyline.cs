@@ -55,7 +55,7 @@ namespace Geometry {
 		}
 
 		//Other functions
-
+		//Generates the positionof some vertex from other position, following a direction and distance
 		public void extrudeVertex(int v, Vector3 originPos, Vector3 direction, int distance) {
 			positions [v] = originPos + direction * distance;
 		}
