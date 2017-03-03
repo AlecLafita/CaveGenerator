@@ -4,10 +4,10 @@ using UnityEngine;
 
 namespace Geometry {
 
-	//Class to help to create the initial polyline quicker
+	//Class to help to create the initial polyline 
 	public class InitialPolyline : Polyline { 
 
-		private int mActualPos = 0; //Actual vertex
+		private int mActualPos = 0; //Actual vertex position
 
 		//Constructors
 		public InitialPolyline() : base() {}
@@ -16,13 +16,13 @@ namespace Geometry {
 		//Setters
 		public void initializeIndices() {
 			for (int i = 0; i < mNumV; ++i) {
-				mIndices [i] = i;
+				mVertices [i].setIndex (i);
 			}
 		}
 		public void addPosition(Vector3 newPos) {
 			if (mActualPos >= mNumV) //TODO:exception
 				Debug.Log("Number of index bigger than size");
-			mPositions [mActualPos] = newPos;
+			mVertices[mActualPos].setPosition(newPos);
 			++mActualPos;
 		}
 	}
