@@ -4,60 +4,58 @@ using UnityEngine;
 using System;
 
 
-//http://answers.unity3d.com/questions/501330/creating-custom-class.html
-
 namespace Geometry {
 	public class Polyline {
 
-		private Vector3[] positions; //Contains the position for each vertex of the polyline
-		private int[] indices; //Containts the index from the mesh for each vertex of the polyline
-		private int numV; //Number of vertices this polyline contains
+		protected Vector3[] mPositions; //Contains the position for each vertex of the polyline
+		protected int[] mIndices; //Containts the index from the mesh for each vertex of the polyline
+		protected int mNumV; //Number of vertices this polyline contains
 
 		//Constructors
 		public Polyline() {
-			positions = new Vector3[0];
-			indices = new int[0];
-			numV = 0;
+			mPositions = new Vector3[0];
+			mIndices = new int[0];
+			mNumV = 0;
 		}
 
-		public Polyline(int numV) {
-			positions = new Vector3[numV];
-			indices = new int[numV];
-			this.numV = numV;
+		public Polyline(int mNumV) {
+			mPositions = new Vector3[mNumV];
+			mIndices = new int[mNumV];
+			this.mNumV = mNumV;
 		}
 
 		//Setters
 		public void setPosition(int v, Vector3 position) {
-			positions [v] = position;
+			mPositions [v] = position;
 		}
 
 		public void setIndex(int v, int index) {
-			indices [v] = index;
+			mIndices [v] = index;
 		}
 
 		//Getters
 		public Vector3 getPosition(int v) {
-			return positions [v];
+			return mPositions [v];
 		}
 		public Vector3[] getPositions() {
-			return positions;
+			return mPositions;
 		}
 
 		public int getIndex(int v) {
-			return indices [v];
+			return mIndices [v];
 		}
 		public int[] getIndices() {
-			return indices;
+			return mIndices;
 		}
 
 		public int getSize() {
-			return numV;
+			return mNumV;
 		}
 
 		//Other functions
-		//Generates the positionof some vertex from other position, following a direction and distance
+		//Generates the position of some vertex from other position, following a direction and distance
 		public void extrudeVertex(int v, Vector3 originPos, Vector3 direction, int distance) {
-			positions [v] = originPos + direction * distance;
+			mPositions [v] = originPos + direction * distance;
 		}
 	}
 }
