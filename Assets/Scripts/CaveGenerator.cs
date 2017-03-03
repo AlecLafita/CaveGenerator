@@ -7,8 +7,10 @@ public class CaveGenerator : MonoBehaviour {
 
 	List<int> mTriangles;
 	List<Vector3> mVertices;
+
 	int extrudeTimes = 100;
 
+	bool hole = false; //TODO: change this!
 
 	void triangulateQuad (int bl, int br, int tl, int tr) {
 		/**		The quad vertices seen from outside the cave:
@@ -27,17 +29,19 @@ public class CaveGenerator : MonoBehaviour {
 		if (pol1.getSize() != pol2.getSize()) //TODO : throw exception
 			Debug.Log ("The two polylines do not have the same length!");
 		for (int i = 0; i < pol1.getSize(); ++i) {
-			triangulateQuad (pol1.getIndex(i), pol1.getIndex(i + 1), pol2.getIndex(i), pol2.getIndex(i + 1));
+			if( !((pol1.getInHole(i) && pol2.getInHole(i+1)) || (pol2.getInHole(i) && pol1.getInHole(i+1)))) //Avoid triangulating holes
+				triangulateQuad (pol1.getIndex(i), pol1.getIndex(i + 1), pol2.getIndex(i), pol2.getIndex(i + 1));
 		}
 	}
-
 
 
 	/** From the vertices of an existing polyline, it creates a new new one
 	 * with the same number of vertices and following some direction and at some distance**/
 	void extrude(Polyline originPoly,  Vector3 direction, int distance) {
-		if (extrudeTimes < 0)
+		if (extrudeTimes < 0) {
+			//TODO: Close cave(add a medium point and triangulate the polyline with it)
 			return;
+		}
 		
 		//Create the new polyline
 		Polyline newPoly = new Polyline(originPoly.getSize());
@@ -50,7 +54,25 @@ public class CaveGenerator : MonoBehaviour {
 			mVertices.Add(newPoly.getPosition(i));
 		}
 
-		//Makes holes: mark some vertices (from old and new polyline) as a new polyline
+		//Make holes: mark some vertices (from old and new polyline) and form a new polyline
+		if (!hole) {
+			Polyline polyHole = new Polyline (4);
+
+			//TODO: not hardcode this
+			originPoly.setInHole (2, true); 
+			originPoly.setInHole (3, true);
+			newPoly.setInHole (2, true);
+			newPoly.setInHole (3, true);
+
+			polyHole.setVertex (0, originPoly.getVertex (2));
+			polyHole.setVertex (1, originPoly.getVertex (3));
+			polyHole.setVertex (2, newPoly.getVertex (3));
+			polyHole.setVertex (3, newPoly.getVertex (2));
+
+			hole = true;
+			direction = new Vector3 (0.0f, 1.0f, 0.0f);
+			extrude (polyHole, direction, distance);
+		}
 
 		//Triangulate from origin to new polyline as a tube/cave shape
 		triangulatePolylines (originPoly, newPoly);

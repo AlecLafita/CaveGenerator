@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace Geometry {
+
+	/** Class that represent a Vertex object **/
 	public class Vertex {
 		
 		private Vector3 position; //Position of the vertex in world coords.
@@ -38,7 +40,7 @@ namespace Geometry {
 			return index;
 		}
 
-		public bool isInHole() {
+		public bool getInHole() {
 			return inHole;
 		}
 

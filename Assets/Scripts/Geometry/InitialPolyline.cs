@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Geometry {
 
-	//Class to help to create the initial polyline 
+	/**Class to help to create the initial polyline **/
 	public class InitialPolyline : Polyline { 
 
 		private int mActualPos = 0; //Actual vertex position
