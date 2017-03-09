@@ -12,15 +12,18 @@ public class CaveGenerator : MonoBehaviour {
 
 	bool hole = false; //TODO: change this!
 
-	void triangulateQuad (int bl, int br, int tl, int tr) {
+
+	void triangulateQuad(Vertex bl, Vertex br, Vertex tl, Vertex tr) {
 		/**		The quad vertices seen from outside the cave:
 		 * 		tl___tr
 		 * 		|	 |
 		 * 		bl___br
 		 **/
-		//Left-hand!
-		mTriangles.Add (bl); mTriangles.Add (tr); mTriangles.Add (tl);
-		mTriangles.Add (bl); mTriangles.Add (br); mTriangles.Add (tr);
+		if (!((bl.getInHole() && tr.getInHole()) || (tl.getInHole() && br.getInHole()))) {
+			//Left-hand!
+			mTriangles.Add (bl.getIndex()); mTriangles.Add (tr.getIndex()); mTriangles.Add (tl.getIndex());
+			mTriangles.Add (bl.getIndex()); mTriangles.Add (br.getIndex()); mTriangles.Add (tr.getIndex());
+		}
 	}
 
 	/** Makes the triangulation between two polylines, checking they
@@ -29,11 +32,9 @@ public class CaveGenerator : MonoBehaviour {
 		if (pol1.getSize() != pol2.getSize()) //TODO : throw exception
 			Debug.Log ("The two polylines do not have the same length!");
 		for (int i = 0; i < pol1.getSize(); ++i) {
-			if( !((pol1.getInHole(i) && pol2.getInHole(i+1)) || (pol2.getInHole(i) && pol1.getInHole(i+1)))) //Avoid triangulating holes
-				triangulateQuad (pol1.getIndex(i), pol1.getIndex(i + 1), pol2.getIndex(i), pol2.getIndex(i + 1));
+			triangulateQuad(pol1.getVertex(i), pol1.getVertex(i+1), pol2.getVertex(i), pol2.getVertex(i+1));
 		}
 	}
-
 
 	/** From the vertices of an existing polyline, it creates a new new one
 	 * with the same number of vertices and following some direction and at some distance**/
@@ -47,11 +48,11 @@ public class CaveGenerator : MonoBehaviour {
 		Polyline newPoly = new Polyline(originPoly.getSize());
 		for (int i = 0; i < originPoly.getSize(); ++i) {//Generate the new vertices
 			//Add vertex to polyline
-			newPoly.extrudeVertex(i, originPoly.getPosition(i),direction,distance);
+			newPoly.extrudeVertex(i, originPoly.getVertex(i).getPosition(), direction,distance);
 			//Add index vertex to polyline
-			newPoly.setIndex(i, mVertices.Count);
+			newPoly.getVertex(i).setIndex(mVertices.Count);
 			//Add the new vertex to the mesh
-			mVertices.Add(newPoly.getPosition(i));
+			mVertices.Add(newPoly.getVertex(i).getPosition());
 		}
 
 		//Make holes: mark some vertices (from old and new polyline) and form a new polyline
@@ -59,10 +60,10 @@ public class CaveGenerator : MonoBehaviour {
 			Polyline polyHole = new Polyline (4);
 
 			//TODO: not hardcode this
-			originPoly.setInHole (2, true); 
-			originPoly.setInHole (3, true);
-			newPoly.setInHole (2, true);
-			newPoly.setInHole (3, true);
+			originPoly.getVertex(2).setInHole(true);
+			originPoly.getVertex(3).setInHole(true);
+			newPoly.getVertex(2).setInHole(true);
+			newPoly.getVertex(3).setInHole(true);
 
 			polyHole.setVertex (0, originPoly.getVertex (2));
 			polyHole.setVertex (1, originPoly.getVertex (3));
@@ -93,11 +94,10 @@ public class CaveGenerator : MonoBehaviour {
 		iniPol.initializeIndices();
 
 		//Add the first polyline vertices to the mesh
-		Vector3[] poss = iniPol.getPositions ();
-		foreach (Vector3 v in poss) {
-			mVertices.Add (v);
+		for (int i = 0; i < iniPol.getSize (); ++i) {
+			mVertices.Add (iniPol.getVertex (i).getPosition ());
 		}
-
+			
 		extrude (iniPol,  new Vector3 (0.0f, 0.0f, 1.0f), 10);
 
 		Mesh mesh = new Mesh ();
