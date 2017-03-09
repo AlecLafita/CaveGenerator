@@ -7,7 +7,7 @@ public class CaveGate : MonoBehaviour {
 
 	/** This scripts waits the user to select the points that will form the cave gate (initial polyline). 
 	 * Once all the point have been selected thorugh clicks, it calls the script that generates
-	 * the cave. The initial points are all on the XY plane**/
+	 * the cave. The initial points are all on the XY plane and must be CLOCKWISE**/
 
 	public Camera cam;
 	public int gateSize = 3; //Number of points the cave'gate will have

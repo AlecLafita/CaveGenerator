@@ -36,14 +36,24 @@ namespace Geometry {
 		public Vertex getVertex(int i) {
 			return mVertices [i % mNumV];
 		}
+
 		public int getSize() {
 			return mNumV;
 		}
 
 		//Other functions
-		//Generates the position of some vertex at the direction and distance from some position
+		/**Generates the position of some vertex at the direction and distance from some position**/
 		public void extrudeVertex(int v, Vector3 originPos, Vector3 direction, int distance) {
 			mVertices [v].setPosition (originPos + direction * distance);
+		}
+
+		/**Calculates the polyline center, which is the vertices mean position**/
+		public Vector3 calculateBaricenter() {
+			Vector3 baricenter = new Vector3 (0.0f,0.0f,0.0f);
+			foreach (Vertex v in mVertices) {
+				baricenter += v.getPosition ();
+			}
+			return baricenter/mNumV;
 		}
 
 		//Generates the normal of the plane formed by the polyline's vertices

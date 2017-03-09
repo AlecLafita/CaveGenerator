@@ -8,11 +8,16 @@ public class CaveGenerator : MonoBehaviour {
 	List<int> mTriangles;
 	List<Vector3> mVertices;
 
-	int extrudeTimes = 100;
+	public int extrudeTimes = 100;
 
-	bool hole = false; //TODO: change this!
+	bool hole = true; //TODO: change this!
 
+	/** Makes the triangulation from the triangle vertices**/
+	void triangulateTriangle(int v1, int v2, int v3) {
+		mTriangles.Add (v1); mTriangles.Add (v2);mTriangles.Add (v3);
+	}
 
+	/** Triangulates the quad iff is not part of a hole**/
 	void triangulateQuad(Vertex bl, Vertex br, Vertex tl, Vertex tr) {
 		/**		The quad vertices seen from outside the cave:
 		 * 		tl___tr
@@ -29,18 +34,32 @@ public class CaveGenerator : MonoBehaviour {
 	/** Makes the triangulation between two polylines, checking they
 	 * have the same size **/
 	void triangulatePolylines(Polyline pol1, Polyline pol2) {
-		if (pol1.getSize() != pol2.getSize()) //TODO : throw exception
+		if (pol1.getSize () != pol2.getSize ()) {//TODO : throw exception
 			Debug.Log ("The two polylines do not have the same length!");
+			return;
+		}
 		for (int i = 0; i < pol1.getSize(); ++i) {
 			triangulateQuad(pol1.getVertex(i), pol1.getVertex(i+1), pol2.getVertex(i), pol2.getVertex(i+1));
 		}
 	}
 
+	/** Closes a polyline by triangulating all it's vertices with it's baricenter**/
+	void closePolyline(Polyline poly) {
+		Vector3 baricenter = poly.calculateBaricenter ();
+		int baricenterIndex = mVertices.Count;
+		mVertices.Add (baricenter);
+		Debug.Log (baricenter); 
+		for (int i = 0; i < poly.getSize(); ++i) {
+			triangulateTriangle (poly.getVertex (i).getIndex(), poly.getVertex (i + 1).getIndex(), baricenterIndex);
+		}
+	}
+
+
 	/** From the vertices of an existing polyline, it creates a new new one
 	 * with the same number of vertices and following some direction and at some distance**/
 	void extrude(Polyline originPoly,  Vector3 direction, int distance) {
 		if (extrudeTimes < 0) {
-			//TODO: Close cave(add a medium point and triangulate the polyline with it)
+			closePolyline(originPoly);
 			return;
 		}
 		
@@ -85,19 +104,12 @@ public class CaveGenerator : MonoBehaviour {
 		mVertices = new List<Vector3>();
 		mTriangles = new List<int>();
 
-		/*InitialPolyline iniPol = new InitialPolyline (5);
-		iniPol.addPosition (new Vector3 (0.0f, 0.0f, 0.0f));
-		iniPol.addPosition (new Vector3 (0.0f, 2.0f, 0.0f));
-		iniPol.addPosition (new Vector3 (0.0f, 5.0f, 0.0f));
-		iniPol.addPosition (new Vector3 (2.0f, 2.0f, 0.0f));
-		iniPol.addPosition (new Vector3 (2.0f, 0.0f, 0.0f));
-		iniPol.initializeIndices();*/
-
 		//Add the first polyline vertices to the mesh
 		for (int i = 0; i < iniPol.getSize (); ++i) {
 			mVertices.Add (iniPol.getVertex (i).getPosition ());
 		}
-			
+
+		//Start the generation
 		extrude (iniPol,  new Vector3 (0.0f, 0.0f, 1.0f), 10);
 
 
