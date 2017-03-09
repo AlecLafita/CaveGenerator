@@ -81,17 +81,17 @@ public class CaveGenerator : MonoBehaviour {
 		extrude(newPoly,direction,distance);
 	}
 
-	void Start () {
+	public void startGeneration (InitialPolyline iniPol) {
 		mVertices = new List<Vector3>();
 		mTriangles = new List<int>();
 
-		InitialPolyline iniPol = new InitialPolyline (5);
+		/*InitialPolyline iniPol = new InitialPolyline (5);
 		iniPol.addPosition (new Vector3 (0.0f, 0.0f, 0.0f));
 		iniPol.addPosition (new Vector3 (0.0f, 2.0f, 0.0f));
 		iniPol.addPosition (new Vector3 (0.0f, 5.0f, 0.0f));
 		iniPol.addPosition (new Vector3 (2.0f, 2.0f, 0.0f));
 		iniPol.addPosition (new Vector3 (2.0f, 0.0f, 0.0f));
-		iniPol.initializeIndices();
+		iniPol.initializeIndices();*/
 
 		//Add the first polyline vertices to the mesh
 		for (int i = 0; i < iniPol.getSize (); ++i) {
@@ -100,6 +100,8 @@ public class CaveGenerator : MonoBehaviour {
 			
 		extrude (iniPol,  new Vector3 (0.0f, 0.0f, 1.0f), 10);
 
+
+		//Assign the vertices and triangles created to a mesh
 		Mesh mesh = new Mesh ();
 		//mesh.vertices = mVertices.ToArray(); //Slower
 		mesh.SetVertices (mVertices);
@@ -112,10 +114,11 @@ public class CaveGenerator : MonoBehaviour {
 		GetComponent<MeshFilter> ().mesh = mesh;
 	}
 		
-	/*void OnDrawGizmos() { //For debug purposes
+	void OnDrawGizmos() { //For debug purposes
+		if (!Application.isPlaying) return; //Avoid error messages after stopping
 		Vector3[] vertices = mVertices.ToArray ();
 		for (int i = 0; i < vertices.Length; ++i) {
 			Gizmos.DrawWireSphere (center: vertices [i], radius: 0.2f);
 		}
-	}*/
+	}
 }

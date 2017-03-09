@@ -20,8 +20,10 @@ namespace Geometry {
 			}
 		}
 		public void addPosition(Vector3 newPos) {
-			if (mActualPos >= mNumV) //TODO:exception
-				Debug.Log("Number of index bigger than size");
+			if (mActualPos >= mNumV) { //TODO:exception
+				Debug.Log ("Number of index bigger than size");
+				return;
+			}
 			mVertices[mActualPos].setPosition(newPos);
 			++mActualPos;
 		}
