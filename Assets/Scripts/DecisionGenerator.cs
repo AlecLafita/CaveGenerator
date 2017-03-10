@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-/** Class that contains the random functions to decide which operations to apply and how **/
+/** Class that contains the random functions to decide which operations apply when generating and how **/
 public class DecisionGenerator : MonoBehaviour
 {
 
@@ -39,6 +39,7 @@ public class DecisionGenerator : MonoBehaviour
 
 
 
+	//******** Scale ********//
 
 
 

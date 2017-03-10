@@ -20,7 +20,7 @@ namespace Geometry {
 
 		//******** Setters ********//
 		public void setPosition(Vector3 position) {
-			this.position = position;
+			this.position = new Vector3(position.x, position.y, position.z);
 		}
 
 		public void setIndex(int index) {

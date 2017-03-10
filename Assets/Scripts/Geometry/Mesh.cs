@@ -71,7 +71,7 @@ namespace Geometry {
 			 * 		|	 |
 			 * 		bl___br
 			 **/
-			if (!((bl.getInHole() && tr.getInHole()) || (tl.getInHole() && br.getInHole()))) {
+			if (!((bl.getInHole() && tr.getInHole()) || (tl.getInHole() && br.getInHole()))) { //Avoid triangulating holes
 				//Left-hand!
 				addTriangle(bl.getIndex(), tr.getIndex(), tl.getIndex());
 				addTriangle(bl.getIndex(), br.getIndex(), tr.getIndex());

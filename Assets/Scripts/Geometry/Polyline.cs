@@ -55,6 +55,18 @@ namespace Geometry {
 			return baricenter/mNumV;
 		}
 
+		/** Scales all the polyline vertices taking the baricentre as origin **/
+		public void scale(float scaleValue) {
+			Vector3 b = calculateBaricenter ();
+			foreach (Vertex v in mVertices) {
+				Vector3 scaledPos = v.getPosition ();
+				scaledPos -= b; //Translate it to the origin with baricenter as pivot
+				scaledPos *= scaleValue; //Apply the scale
+				scaledPos += b; //Return it to the real position
+				v.setPosition (scaledPos);
+			}
+		}
+
 		/** Generates the normal of the plane formed by the polyline's vertices **/
 		/*public Vector3 calculateNormal() {
 			//TODO
@@ -64,5 +76,7 @@ namespace Geometry {
 		/*public bool isSimple() {
 			//TODO
 		}*/
+		
+
 	}
 }

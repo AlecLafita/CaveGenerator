@@ -4,7 +4,7 @@ using UnityEngine;
 using Geometry;
 
 /** This scripts waits the user to select the points that will form the cave gate (initial polyline). 
-	 * Once all the point have been selected thorugh clicks, it calls the script that generates
+	 * Once all the points have been selected thorugh clicks, it calls the script that generates
 	 * the cave. The initial points are all on the XY plane and must be CLOCKWISE **/
 public class CaveGate : MonoBehaviour {
 
