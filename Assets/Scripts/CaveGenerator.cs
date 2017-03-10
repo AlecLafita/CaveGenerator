@@ -6,15 +6,15 @@ using Geometry;
 public class CaveGenerator : MonoBehaviour {
 
 	Geometry.Mesh proceduralMesh;
-	public int extrudeTimes = 100;
+	public int maxExtrudeTimes = 100;
 
 	bool hole = true; //TODO: change this!
 
 
 	/** From the vertices of an existing polyline, it creates a new new one
 	 * with the same number of vertices and following some direction and at some distance**/
-	void extrude(Polyline originPoly,  Vector3 direction, int distance) {
-		if (extrudeTimes < 0) { //Base case, triangulate the polyline as a polygon
+	void extrude(Polyline originPoly,  Vector3 direction, float distance) {
+		if (maxExtrudeTimes < 0) { //Base case, triangulate the polyline as a polygon
 			proceduralMesh.closePolyline(originPoly);
 			return;
 		}
@@ -47,13 +47,13 @@ public class CaveGenerator : MonoBehaviour {
 
 			hole = true;
 			direction = new Vector3 (0.0f, 1.0f, 0.0f);
-			extrude (polyHole, direction, distance);
+			extrude (polyHole, direction, DecisionGenerator.Instance.generateDistance());
 		}
 
 		//Triangulate from origin to new polyline as a tube/cave shape
 		proceduralMesh.triangulatePolylines (originPoly, newPoly);
-		--extrudeTimes;
-		extrude(newPoly,direction,distance);
+		--maxExtrudeTimes;
+		extrude(newPoly,direction,DecisionGenerator.Instance.generateDistance());
 	}
 
 	public void startGeneration (InitialPolyline iniPol) {
@@ -61,7 +61,7 @@ public class CaveGenerator : MonoBehaviour {
 		proceduralMesh = new Geometry.Mesh (iniPol);
 
 		//Start the generation
-		extrude (iniPol, new Vector3 (0.0f, 0.0f, 1.0f), 10);
+		extrude (iniPol, new Vector3 (0.0f, 0.0f, 1.0f), DecisionGenerator.Instance.generateDistance());
 
 		//Generation finished, assign the vertices and triangles created to a Unity mesh
 		UnityEngine.Mesh mesh = new UnityEngine.Mesh ();

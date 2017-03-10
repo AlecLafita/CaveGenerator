@@ -24,7 +24,6 @@ namespace Geometry {
 		public Mesh (Polyline iniPol) {
 			mVertices = new List<Vector3>();
 			mTriangles = new List<int>();
-			//Add the polyline vertices to the mesh
 			for (int i = 0; i < iniPol.getSize (); ++i) {
 				mVertices.Add (iniPol.getVertex (i).getPosition ());
 			}

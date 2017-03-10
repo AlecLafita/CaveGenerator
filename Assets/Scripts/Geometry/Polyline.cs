@@ -43,7 +43,7 @@ namespace Geometry {
 
 		//Other functions
 		/**Generates the position of some vertex at the direction and distance from some position**/
-		public void extrudeVertex(int v, Vector3 originPos, Vector3 direction, int distance) {
+		public void extrudeVertex(int v, Vector3 originPos, Vector3 direction, float distance) {
 			mVertices [v].setPosition (originPos + direction * distance);
 		}
 
