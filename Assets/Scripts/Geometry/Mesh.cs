@@ -95,7 +95,6 @@ namespace Geometry {
 			Vector3 baricenter = poly.calculateBaricenter ();
 			int baricenterIndex = getNumVertices();
 			addVertex (baricenter);
-			Debug.Log (baricenter); 
 			for (int i = 0; i < poly.getSize(); ++i) {
 				//Left-hand!!
 				addTriangle(poly.getVertex (i).getIndex(), poly.getVertex (i + 1).getIndex(), baricenterIndex);

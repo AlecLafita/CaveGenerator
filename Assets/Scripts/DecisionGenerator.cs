@@ -27,7 +27,13 @@ public class DecisionGenerator : MonoBehaviour
 	}
 
 	//******** Holes ********//
-
+	public int extrudeForHole = 10;
+	public bool makeHole() {
+		int r = Random.Range (1, 10);
+		if (r == 4)
+			return true;
+		return false;
+	}
 
 	//******** Direction ********//
 
