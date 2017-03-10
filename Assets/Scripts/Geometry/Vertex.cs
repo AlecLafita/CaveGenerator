@@ -11,14 +11,14 @@ namespace Geometry {
 		private int index; //Index of the vertex in the mesh
 		private bool inHole; //Does this vertex belongs to a hole?
 	
-		//Constructor
+		//******** Constructors ********//
 		public Vertex() {
 			inHole = false;
 			index = -1;
 			position = new Vector3 ();
 		}
 
-		//Setters
+		//******** Setters ********//
 		public void setPosition(Vector3 position) {
 			this.position = position;
 		}
@@ -31,7 +31,7 @@ namespace Geometry {
 			inHole = hole;
 		}
 
-		//Getters
+		//******** Getters ********//
 		public Vector3 getPosition() {
 			return position;
 		}

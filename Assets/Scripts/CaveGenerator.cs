@@ -3,16 +3,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using Geometry;
 
+
+/** Class that manages the cave generation **/
 public class CaveGenerator : MonoBehaviour {
 
 	Geometry.Mesh proceduralMesh;
 	public int maxExtrudeTimes = 100;
 
-	bool hole = true; //TODO: change this!
+	private bool hole = true;
 
 
-	/** From the vertices of an existing polyline, it creates a new new one
-	 * with the same number of vertices and following some direction and at some distance**/
+	/**From the vertices of an existing polyline, it creates a new new one
+	 * with the same number of vertices and following some direction and at some distance **/
 	void extrude(Polyline originPoly,  Vector3 direction, float distance) {
 		if (maxExtrudeTimes < 0) { //Base case, triangulate the polyline as a polygon
 			proceduralMesh.closePolyline(originPoly);
@@ -76,7 +78,7 @@ public class CaveGenerator : MonoBehaviour {
 		GetComponent<MeshFilter> ().mesh = mesh;
 	}
 		
-	//For debug purposes
+	/** For debug purposes **/
 	void OnDrawGizmos() { 
 		if (!Application.isPlaying) return; //Avoid error messages after stopping
 		Vector3[] vertices = proceduralMesh.getVertices().ToArray ();

@@ -3,24 +3,24 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace Geometry {
+	
 	/** This class contains the mesh that will be dynamically generated. It's important then,
 	 * that the operations that modify it are done in constant time.
 	 * The triangles need to have the normal with the direction pointing to the inside 
-	 * of the cave, in order to see the triangulation from inside**/
-
+	 * of the cave, in order to see the triangulation from inside **/
 	public class Mesh {
 
 		private List<Vector3> mVertices; //The vertices position. There's no need to have them as a Vertex instances
 		private List<int> mTriangles; //The triangles that form the mesh. It has a size multiple of three as 
 									  //uses the vertices indices
 
-		//Constructors
+		//******** Constructors ********//
 		public Mesh() {
 			mVertices = new List<Vector3>();
 			mTriangles = new List<int>();
 		}
 
-		/** Creates the mesh intializating it with a polyline's vertices**/
+		/** Creates the mesh intializating it with a polyline's vertices **/
 		public Mesh (Polyline iniPol) {
 			mVertices = new List<Vector3>();
 			mTriangles = new List<int>();
@@ -29,7 +29,7 @@ namespace Geometry {
 			}
 		}
 
-		//Getters
+		//******** Getters ********//
 		public List<Vector3> getVertices() {
 			return mVertices;
 		}
@@ -44,7 +44,7 @@ namespace Geometry {
 			return mTriangles.Count;
 		}
 
-		//Setters
+		//******** Setters ********//
 		public void setVertices(List<Vector3> vertices) {
 			mVertices = vertices;
 		}
@@ -53,7 +53,7 @@ namespace Geometry {
 			mTriangles = triangles;
 		}
 
-		//Other functions
+		//******** Other functions ********//
 		/** Adds a new vertex to the mesh **/
 		public void addVertex(Vector3 v) {
 			mVertices.Add (v);
@@ -64,7 +64,7 @@ namespace Geometry {
 			mTriangles.Add (v1); mTriangles.Add (v2); mTriangles.Add (v3);
 		}
 
-		/** Triangulates the quad iff is not part of a hole**/
+		/** Triangulates the quad iff is not part of a hole **/
 		private void triangulateQuad(Vertex bl, Vertex br, Vertex tl, Vertex tr) {
 			/**		The quad vertices seen from outside the cave:
 			 * 		tl___tr
@@ -79,7 +79,7 @@ namespace Geometry {
 		}
 
 		/** Makes the triangulation between two polylines with same size. The order of
-		 * the vertices has to be the same. This is used then for neighbour polylines**/
+		 * the vertices has to be the same. This is used then for neighbour polylines **/
 		public void triangulatePolylines(Polyline pol1, Polyline pol2) {
 			if (pol1.getSize () != pol2.getSize ()) { //TODO : throw exception
 				Debug.Log ("The two polylines do not have the same length!");
