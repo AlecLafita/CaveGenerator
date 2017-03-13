@@ -18,7 +18,7 @@ public class CaveGenerator : MonoBehaviour {
 		proceduralMesh = new Geometry.Mesh (iniPol);
 
 		//Start the generation
-		extrude (iniPol, new Vector3 (0.0f, 0.0f, 1.0f), DecisionGenerator.Instance.generateDistance(), 0);
+		extrude (iniPol, new Vector3 (0.0f, 0.0f, 0.5f), DecisionGenerator.Instance.generateDistance(), 0);
 
 		//Generation finished, assign the vertices and triangles created to a Unity mesh
 		UnityEngine.Mesh mesh = new UnityEngine.Mesh ();
@@ -56,27 +56,28 @@ public class CaveGenerator : MonoBehaviour {
 			//Add the new vertex to the mesh
 			proceduralMesh.addVertex(newPoly.getVertex(i).getPosition());
 		}
-		newPoly.scale (0.9f);
-		/*
+		//newPoly.scale (0.9f);
+
 		//Make holes: mark some vertices (from old and new polyline) and form a new polyline
 		if (DecisionGenerator.Instance.makeHole()) {
-			Debug.Log ("Making hole");
+			//Debug.Log ("Making hole");
 			Polyline polyHole = new Polyline (4);
 
 			//TODO: not hardcode this
-			originPoly.getVertex(2).setInHole(true);
-			originPoly.getVertex(3).setInHole(true);
-			newPoly.getVertex(2).setInHole(true);
-			newPoly.getVertex(3).setInHole(true);
+			originPoly.getVertex(0).setInHole(true);
+			originPoly.getVertex(1).setInHole(true);
+			newPoly.getVertex(0).setInHole(true);
+			newPoly.getVertex(1).setInHole(true);
 
-			polyHole.setVertex (0, originPoly.getVertex (2));
-			polyHole.setVertex (1, originPoly.getVertex (3));
-			polyHole.setVertex (2, newPoly.getVertex (3));
-			polyHole.setVertex (3, newPoly.getVertex (2));
+			polyHole.setVertex (0, originPoly.getVertex (0));
+			polyHole.setVertex (1, originPoly.getVertex (1));
+			polyHole.setVertex (2, newPoly.getVertex (1));
+			polyHole.setVertex (3, newPoly.getVertex (0));
 
-			direction = new Vector3 (0.0f, 1.0f, 0.0f);
-			extrude (polyHole, direction, DecisionGenerator.Instance.generateDistance(), 0);
-		}*/
+
+			Vector3 directionHole = polyHole.calculateNormal();
+			extrude (polyHole, directionHole, DecisionGenerator.Instance.generateDistance(), 0);
+		}
 
 		//Triangulate from origin to new polyline as a tube/cave shape
 		proceduralMesh.triangulatePolylines (originPoly, newPoly);

@@ -15,13 +15,13 @@ namespace Geometry {
 
 		//******** Setters ********//
 		public void initializeIndices() {
-			for (int i = 0; i < mNumV; ++i) {
+			for (int i = 0; i < mVertices.Length; ++i) {
 				mVertices [i].setIndex (i);
 			}
 		}
 
 		public void addPosition(Vector3 newPos) {
-			if (mActualPos >= mNumV) { //TODO:exception
+			if (mActualPos >= mVertices.Length) { //TODO:exception
 				Debug.Log ("Number of index bigger than size");
 				return;
 			}

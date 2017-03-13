@@ -27,9 +27,9 @@ public class DecisionGenerator : MonoBehaviour
 	}
 
 	//******** Holes ********//
-	public int extrudeForHole = 10;
+	public int extrudeForHole = 30;
 	public bool makeHole() {
-		int r = Random.Range (1, 10);
+		int r = Random.Range (1, extrudeForHole);
 		if (r == 4)
 			return true;
 		return false;

@@ -10,12 +10,10 @@ namespace Geometry {
 	public class Polyline {
 
 		protected Vertex[] mVertices; //Vertices that form the polyline
-		protected int mNumV; //Number of vertices this polyline should have
 
 		//******** Constructors ********//
 		public Polyline() {
 			mVertices = new Vertex[0];
-			mNumV = 0;
 		}
 
 		public Polyline(int numV) {
@@ -23,7 +21,6 @@ namespace Geometry {
 			for (int i = 0; i < numV; ++i) { //Instantiate Vertex!
 				mVertices [i] = new Vertex ();
 			}
-			mNumV = numV;
 		}
 
 		//******** Setters ********//
@@ -33,15 +30,15 @@ namespace Geometry {
 
 		//******** Getters ********//
 		public Vertex getVertex(int i) {
-			return mVertices [i % mNumV];
+			return mVertices [i % mVertices.Length];
 		}
 
 		public int getSize() {
-			return mNumV;
+			return mVertices.Length;
 		}
 
 		//******** Other functions ********//
-		/** Generates the position of some vertex at the direction and distance from some position **/
+		/** Generates the position of some vertex at the direction and distance from some other position **/
 		public void extrudeVertex(int v, Vector3 originPos, Vector3 direction, float distance) {
 			mVertices [v].setPosition (originPos + direction * distance);
 		}
@@ -52,10 +49,10 @@ namespace Geometry {
 			foreach (Vertex v in mVertices) {
 				baricenter += v.getPosition ();
 			}
-			return baricenter/mNumV;
+			return baricenter/mVertices.Length;
 		}
 
-		/** Scales all the polyline vertices taking the baricentre as origin **/
+		/** Scales all the polyline vertices taking the baricenter as origin **/
 		public void scale(float scaleValue) {
 			Vector3 b = calculateBaricenter ();
 			foreach (Vertex v in mVertices) {
@@ -67,9 +64,23 @@ namespace Geometry {
 			}
 		}
 
-		/** Generates the normal of the plane formed by the polyline's vertices **/
-		/*public Vector3 calculateNormal() {
-			//TODO
+		/** Computes the normal of the plane formed by the polyline's vertices. Each component is calculated from the 
+		 * area of the projection on the coordinate plane corresponding for the actual component.
+		 * Pre: The polygon formed by the polyline must be simple **/
+		public Vector3 calculateNormal() {
+			Vector3 normal = new Vector3 (0.0f,0.0f,0.0f);
+			for (int i = 0; i < mVertices.Length; ++i) {
+				normal.x += ((getVertex (i).getPosition ().z + getVertex (i + 1).getPosition ().z)* 
+							(getVertex (i).getPosition ().y - getVertex (i + 1).getPosition ().y));
+				normal.y += ((getVertex (i).getPosition ().x + getVertex (i + 1).getPosition ().x)* 
+							(getVertex (i).getPosition ().z - getVertex (i + 1).getPosition ().z));
+				normal.z += ((getVertex (i).getPosition ().y + getVertex (i + 1).getPosition ().y) - 
+							(getVertex (i).getPosition ().x - getVertex (i + 1).getPosition ().x));
+			}
+			//normal *= 0.5f; //counter-clockwise 
+			normal *= -0.5f; //clockwise (left-hand!)
+			normal.Normalize ();
+			return normal;
 		}
 
 		/** Checks the polyline is simple (no intersections are produced) **/
