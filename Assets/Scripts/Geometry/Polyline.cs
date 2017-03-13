@@ -74,10 +74,10 @@ namespace Geometry {
 							(getVertex (i).getPosition ().y - getVertex (i + 1).getPosition ().y));
 				normal.y += ((getVertex (i).getPosition ().x + getVertex (i + 1).getPosition ().x)* 
 							(getVertex (i).getPosition ().z - getVertex (i + 1).getPosition ().z));
-				normal.z += ((getVertex (i).getPosition ().y + getVertex (i + 1).getPosition ().y) - 
+				normal.z += ((getVertex (i).getPosition ().y + getVertex (i + 1).getPosition ().y)* 
 							(getVertex (i).getPosition ().x - getVertex (i + 1).getPosition ().x));
 			}
-			//normal *= 0.5f; //counter-clockwise 
+			//normal *= 0.5f; //counter-clockwise  (left-hand!)
 			normal *= -0.5f; //clockwise (left-hand!)
 			normal.Normalize ();
 			return normal;

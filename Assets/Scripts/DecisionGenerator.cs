@@ -27,7 +27,8 @@ public class DecisionGenerator : MonoBehaviour
 	}
 
 	//******** Holes ********//
-	public int minExtrusionsForHole = 10;
+	private int minExtrusionsForHole = 3;
+	//public int minExtrusionsForHole = 10;
 	public int extrudeForHole = 30;
 	public bool makeHole(int numExtrude) {
 		if (numExtrude < minExtrusionsForHole) //Wait at least minExtrusionsForHole to make a hole

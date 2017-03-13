@@ -10,6 +10,7 @@ public class CaveGenerator : MonoBehaviour {
 	Geometry.Mesh proceduralMesh;
 	public int totalExtrudeTimes = 200; //How many times an extrusion can be applied, acts as a countdown
 	public int maxExtrudeTimes = 40; // How many times an extrusion can be applied from a hole
+									//TODO: consider to increment this value as holes are created
 
 
 	/** Function to be called in order to start generating the cave **/
