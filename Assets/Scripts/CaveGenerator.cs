@@ -59,7 +59,7 @@ public class CaveGenerator : MonoBehaviour {
 		//newPoly.scale (0.9f);
 
 		//Make holes: mark some vertices (from old and new polyline) and form a new polyline
-		if (DecisionGenerator.Instance.makeHole()) {
+		if (DecisionGenerator.Instance.makeHole(actualExtrusionTimes)) {
 			//Debug.Log ("Making hole");
 			Polyline polyHole = new Polyline (4);
 
@@ -87,10 +87,22 @@ public class CaveGenerator : MonoBehaviour {
 		
 	/** For debug purposes **/
 	void OnDrawGizmos() { 
-		if (!Application.isPlaying) return; //Avoid error messages after stopping
+		//Avoid error messages after stopping
+		if (!Application.isPlaying) return; 
+
+		//Draw triangles vertices
 		Vector3[] vertices = proceduralMesh.getVertices().ToArray ();
 		for (int i = 0; i < vertices.Length; ++i) {
-			Gizmos.DrawWireSphere (center: vertices [i], radius: 0.2f);
+			Gizmos.DrawWireSphere (vertices [i], 0.1f);
+		}
+
+		//Draw triangles edges
+		int[] triangles = proceduralMesh.getTriangles().ToArray();
+		Gizmos.color = Color.blue;
+		for (int i = 0; i < triangles.Length; i += 3) {
+			Gizmos.DrawLine (vertices [triangles[i]], vertices [triangles[i + 1]]);
+			Gizmos.DrawLine (vertices [triangles[i+1]], vertices [triangles[i + 2]]);
+			Gizmos.DrawLine (vertices [triangles[i+2]], vertices [triangles[i]]);
 		}
 	}
 }
