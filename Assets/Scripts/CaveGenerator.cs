@@ -19,7 +19,7 @@ public class CaveGenerator : MonoBehaviour {
 		proceduralMesh = new Geometry.Mesh (iniPol);
 
 		//Start the generation
-		extrude (iniPol, new Vector3 (0.0f, 0.0f, 0.5f), DecisionGenerator.Instance.generateDistance(), 0);
+		extrude (DecisionGenerator.ExtrusionOperation.ExtrudeOnly, iniPol, new Vector3 (0.0f, 0.0f, 0.5f), DecisionGenerator.Instance.generateDistance(), 0);
 
 		//Generation finished, assign the vertices and triangles created to a Unity mesh
 		UnityEngine.Mesh mesh = new UnityEngine.Mesh ();
@@ -36,7 +36,7 @@ public class CaveGenerator : MonoBehaviour {
 		
 	/**From the vertices of an existing polyline, it creates a new new one
 	 * with the same number of vertices and following some direction and at some distance **/
-	void extrude(Polyline originPoly,  Vector3 direction, float distance, int actualExtrusionTimes) {
+	void extrude(DecisionGenerator.ExtrusionOperation operation, Polyline originPoly,  Vector3 direction, float distance, int actualExtrusionTimes) {
 		//Extrusion will be done, update the counter
 		--totalExtrudeTimes;
 		++actualExtrusionTimes;
@@ -46,7 +46,9 @@ public class CaveGenerator : MonoBehaviour {
 			proceduralMesh.closePolyline(originPoly);
 			return;
 		}
-		
+
+		//Check here if distance/ direction needs to be changed
+
 		//Create the new polyline from the actual one
 		Polyline newPoly = new Polyline(originPoly.getSize());
 		for (int i = 0; i < originPoly.getSize(); ++i) { //Generate the new vertices
@@ -57,7 +59,15 @@ public class CaveGenerator : MonoBehaviour {
 			//Add the new vertex to the mesh
 			proceduralMesh.addVertex(newPoly.getVertex(i).getPosition());
 		}
-		//newPoly.scale (0.9f);
+
+		switch (operation) {
+		case (DecisionGenerator.ExtrusionOperation.Scale) : {
+				//newPoly.scale (2.0f);
+				break;
+		}
+		default:
+			break;
+		}
 
 		//Make holes: mark some vertices (from old and new polyline) and form a new polyline
 		if (DecisionGenerator.Instance.makeHole(actualExtrusionTimes)) {
@@ -75,19 +85,20 @@ public class CaveGenerator : MonoBehaviour {
 			polyHole.setVertex (2, newPoly.getVertex (1));
 			polyHole.setVertex (3, newPoly.getVertex (0));
 
-
 			Vector3 directionHole = polyHole.calculateNormal();
-			extrude (polyHole, directionHole, DecisionGenerator.Instance.generateDistance(), 0);
+			extrude (DecisionGenerator.ExtrusionOperation.ExtrudeOnly,polyHole, directionHole, DecisionGenerator.Instance.generateDistance(), 0);
 		}
 
 		//Triangulate from origin to new polyline as a tube/cave shape
 		proceduralMesh.triangulatePolylines (originPoly, newPoly);
-		extrude(newPoly,direction,DecisionGenerator.Instance.generateDistance(),actualExtrusionTimes);
+		//Set next operation and extrude
+		operation = DecisionGenerator.Instance.getNextOperation();
+		extrude(operation,newPoly,direction,DecisionGenerator.Instance.generateDistance(),actualExtrusionTimes);
 	}
 		
 		
 	/** For debug purposes **/
-	void OnDrawGizmos() { 
+	/*void OnDrawGizmos() { 
 		//Avoid error messages after stopping
 		if (!Application.isPlaying) return; 
 
@@ -105,5 +116,5 @@ public class CaveGenerator : MonoBehaviour {
 			Gizmos.DrawLine (vertices [triangles[i+1]], vertices [triangles[i + 2]]);
 			Gizmos.DrawLine (vertices [triangles[i+2]], vertices [triangles[i]]);
 		}
-	}
+	}*/
 }

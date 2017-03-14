@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /** Class that contains the random functions to decide which operations apply when generating and how **/
-public class DecisionGenerator : MonoBehaviour
-{
+
+public class DecisionGenerator : MonoBehaviour {
 
 	//******** Singleton stuff ********//
 	private static DecisionGenerator mInstace; 
@@ -16,6 +16,21 @@ public class DecisionGenerator : MonoBehaviour
 		get {
 			return mInstace;
 		}
+	}
+
+	//******** Different operations ********//
+	private int numOperations = 5;
+	public enum ExtrusionOperation
+	{
+		ExtrudeOnly, ChangeDistance, ChangeDirection, Scale, Rotate
+	}
+
+	//******** General decision********//
+
+	public ExtrusionOperation getNextOperation() {
+		//TODO: pass a parameter with previous operations, and decide next taking those one into account
+		int nextOperation = Random.Range(0,numOperations);
+		return (ExtrusionOperation)nextOperation;
 	}
 		
 	//******** Distance to extrude ********//
@@ -44,7 +59,7 @@ public class DecisionGenerator : MonoBehaviour
 
 
 	//******** Scale ********//
+	//TODO:Take into account previous scale operations
 
-
-
+	//******** Rotation ********//
 }
