@@ -20,6 +20,8 @@ public class DecisionGenerator : MonoBehaviour {
 
 	//******** Different operations ********//
 	private int numOperations = 5;
+	//TODO: As more than one operation can be applied at a time, should be a good idea
+	//implement the different operations as a binary positions
 	public enum ExtrusionOperation
 	{
 		ExtrudeOnly, ChangeDistance, ChangeDirection, Scale, Rotate

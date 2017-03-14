@@ -37,6 +37,8 @@ public class CaveGenerator : MonoBehaviour {
 	/**From the vertices of an existing polyline, it creates a new new one
 	 * with the same number of vertices and following some direction and at some distance **/
 	void extrude(DecisionGenerator.ExtrusionOperation operation, Polyline originPoly,  Vector3 direction, float distance, int actualExtrusionTimes) {
+		//TODO: 6422 recursive calls gives stack overflow error, check this!
+
 		//Extrusion will be done, update the counter
 		--totalExtrudeTimes;
 		++actualExtrusionTimes;
@@ -47,26 +49,33 @@ public class CaveGenerator : MonoBehaviour {
 			return;
 		}
 
-		//Check here if distance/ direction needs to be changed
-		/*if (operation == DecisionGenerator.ExtrusionOperation.ChangeDistance) {
+		//Check if distance/ direction needs to be changed
+		if (operation == DecisionGenerator.ExtrusionOperation.ChangeDistance) {
 			distance = DecisionGenerator.Instance.generateDistance ();
-		}*/
+		}
+		if (operation == DecisionGenerator.ExtrusionOperation.ChangeDirection) {
+			//TODO
+		}
 
 		//Create the new polyline from the actual one
 		Polyline newPoly = new Polyline(originPoly.getSize());
 		for (int i = 0; i < originPoly.getSize(); ++i) { //Generate the new vertices
 			//Add vertex to polyline
 			newPoly.extrudeVertex(i, originPoly.getVertex(i).getPosition(), direction,distance);
-			//Add index vertex to polyline
+			//Add the index to vertex
 			newPoly.getVertex(i).setIndex(proceduralMesh.getNumVertices());
 			//Add the new vertex to the mesh
 			proceduralMesh.addVertex(newPoly.getVertex(i).getPosition());
 		}
-		newPoly.rotate (20.0f);
+		//Apply operations, if any
 		switch (operation) {
 		case (DecisionGenerator.ExtrusionOperation.Scale) : {
-				//newPoly.scale (1.1f);
-				break;
+			newPoly.scale (0.95f);
+			break;
+		}
+		case (DecisionGenerator.ExtrusionOperation.Rotate): {
+			newPoly.rotate (20.0f);
+			break;
 		}
 		default:
 			break;
@@ -74,10 +83,9 @@ public class CaveGenerator : MonoBehaviour {
 
 		//Make holes: mark some vertices (from old and new polyline) and form a new polyline
 		if (DecisionGenerator.Instance.makeHole(actualExtrusionTimes)) {
-			//Debug.Log ("Making hole");
+			//TODO: not hardcode this
 			Polyline polyHole = new Polyline (4);
 
-			//TODO: not hardcode this
 			originPoly.getVertex(0).setInHole(true);
 			originPoly.getVertex(1).setInHole(true);
 			newPoly.getVertex(0).setInHole(true);
