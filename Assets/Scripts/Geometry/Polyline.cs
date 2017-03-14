@@ -43,15 +43,6 @@ namespace Geometry {
 			mVertices [v].setPosition (originPos + direction * distance);
 		}
 
-		/** Calculates the polyline center, which is the vertices mean position **/
-		public Vector3 calculateBaricenter() {
-			Vector3 baricenter = new Vector3 (0.0f,0.0f,0.0f);
-			foreach (Vertex v in mVertices) {
-				baricenter += v.getPosition ();
-			}
-			return baricenter/mVertices.Length;
-		}
-
 		/** Scales all the polyline vertices taking the baricenter as origin **/
 		public void scale(float scaleValue) {
 			Vector3 b = calculateBaricenter ();
@@ -63,6 +54,35 @@ namespace Geometry {
 				v.setPosition (scaledPos);
 			}
 		}
+
+		/** Rotates all the polyline vertices through the polyline's normal vector(degrees) **/
+		public void rotate(float angle) {
+			Vector3 normal = calculateNormal ();
+			/*Quaternion rot = new Quaternion ();
+			rot.SetFromToRotation (Vector3.forward, normal);*/
+
+			Vector3 baricenter = calculateBaricenter ();
+
+			foreach (Vertex v in mVertices) {
+				//Create a new space with center at the actual vertex and rotate the normal vector
+				GameObject obj = new GameObject ();
+				//obj.transform.rotation = rot;
+				obj.transform.position = v.getPosition ();
+				obj.transform.RotateAround (baricenter, normal, angle);
+				v.setPosition (obj.transform.position);
+				UnityEngine.Object.Destroy (obj);
+			}
+		}
+
+		/** Calculates the polyline center, which is the vertices mean position **/
+		public Vector3 calculateBaricenter() {
+			Vector3 baricenter = new Vector3 (0.0f,0.0f,0.0f);
+			foreach (Vertex v in mVertices) {
+				baricenter += v.getPosition ();
+			}
+			return baricenter/mVertices.Length;
+		}
+
 
 		/** Computes the normal of the plane formed by the polyline's vertices. Each component is calculated from the 
 		 * area of the projection on the coordinate plane corresponding for the actual component.

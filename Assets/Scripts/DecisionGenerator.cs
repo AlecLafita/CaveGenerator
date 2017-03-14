@@ -44,11 +44,11 @@ public class DecisionGenerator : MonoBehaviour {
 	//******** Holes ********//
 	private int minExtrusionsForHole = 3;
 	//public int minExtrusionsForHole = 10;
-	public int extrudeForHole = 30;
+	public int randomExtrudeForHole = 30;
 	public bool makeHole(int numExtrude) {
 		if (numExtrude < minExtrusionsForHole) //Wait at least minExtrusionsForHole to make a hole
 			return false; 
-		int r = Random.Range (1, extrudeForHole);
+		int r = Random.Range (1, randomExtrudeForHole);
 		if (r == 4)
 			return true;
 		return false;

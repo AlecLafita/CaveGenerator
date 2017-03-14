@@ -48,6 +48,9 @@ public class CaveGenerator : MonoBehaviour {
 		}
 
 		//Check here if distance/ direction needs to be changed
+		/*if (operation == DecisionGenerator.ExtrusionOperation.ChangeDistance) {
+			distance = DecisionGenerator.Instance.generateDistance ();
+		}*/
 
 		//Create the new polyline from the actual one
 		Polyline newPoly = new Polyline(originPoly.getSize());
@@ -59,10 +62,10 @@ public class CaveGenerator : MonoBehaviour {
 			//Add the new vertex to the mesh
 			proceduralMesh.addVertex(newPoly.getVertex(i).getPosition());
 		}
-
+		newPoly.rotate (20.0f);
 		switch (operation) {
 		case (DecisionGenerator.ExtrusionOperation.Scale) : {
-				//newPoly.scale (2.0f);
+				//newPoly.scale (1.1f);
 				break;
 		}
 		default:
@@ -98,7 +101,7 @@ public class CaveGenerator : MonoBehaviour {
 		
 		
 	/** For debug purposes **/
-	/*void OnDrawGizmos() { 
+	void OnDrawGizmos() { 
 		//Avoid error messages after stopping
 		if (!Application.isPlaying) return; 
 
@@ -116,5 +119,5 @@ public class CaveGenerator : MonoBehaviour {
 			Gizmos.DrawLine (vertices [triangles[i+1]], vertices [triangles[i + 2]]);
 			Gizmos.DrawLine (vertices [triangles[i+2]], vertices [triangles[i]]);
 		}
-	}*/
+	}
 }
