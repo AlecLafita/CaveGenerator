@@ -53,7 +53,7 @@ public class CaveGenerator : MonoBehaviour {
 			distance = DecisionGenerator.Instance.generateDistance ();
 		}
 		if (operation == DecisionGenerator.ExtrusionOperation.ChangeDirection) {
-			//TODO
+			direction = DecisionGenerator.Instance.generateDirection(direction);
 		}
 
 		//Create the new polyline from the actual one
@@ -68,16 +68,16 @@ public class CaveGenerator : MonoBehaviour {
 		}
 		//Apply operations, if any
 		switch (operation) {
-		case (DecisionGenerator.ExtrusionOperation.Scale) : {
-			//newPoly.scale (0.95f);
-			break;
-		}
-		case (DecisionGenerator.ExtrusionOperation.Rotate): {
-			newPoly.rotate (20.0f);
-			break;
-		}
-		default:
-			break;
+			case (DecisionGenerator.ExtrusionOperation.Scale) : {
+				newPoly.scale (DecisionGenerator.Instance.generateScale());
+				break;
+			}
+			case (DecisionGenerator.ExtrusionOperation.Rotate): {
+				newPoly.rotate (DecisionGenerator.Instance.generateRotation());
+				break;
+			}
+			default:
+				break;
 		}
 
 		//Make holes: mark some vertices (from old and new polyline) and form a new polyline
@@ -102,7 +102,7 @@ public class CaveGenerator : MonoBehaviour {
 		//Triangulate from origin to new polyline as a tube/cave shape
 		proceduralMesh.triangulatePolylines (originPoly, newPoly);
 		//Set next operation and extrude
-		operation = DecisionGenerator.Instance.getNextOperation();
+		operation = DecisionGenerator.Instance.generateNextOperation();
 		extrude(operation,newPoly,direction,DecisionGenerator.Instance.generateDistance(),actualExtrusionTimes);
 	}
 		
@@ -111,7 +111,7 @@ public class CaveGenerator : MonoBehaviour {
 	//to a queue will made the inverse recursion effect (more holes at the beggining)
 
 	/** For debug purposes **/
-	/*void OnDrawGizmos() { 
+	void OnDrawGizmos() { 
 		//Avoid error messages after stopping
 		if (!Application.isPlaying) return; 
 
@@ -129,5 +129,5 @@ public class CaveGenerator : MonoBehaviour {
 			Gizmos.DrawLine (vertices [triangles[i+1]], vertices [triangles[i + 2]]);
 			Gizmos.DrawLine (vertices [triangles[i+2]], vertices [triangles[i]]);
 		}
-	}*/
+	}
 }

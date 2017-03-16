@@ -30,7 +30,7 @@ public class DecisionGenerator : MonoBehaviour {
 	}
 
 	//******** General decision********//
-	public ExtrusionOperation getNextOperation() {
+	public ExtrusionOperation generateNextOperation() {
 		int nextOperation = Random.Range(0,numOperations);
 		return (ExtrusionOperation)nextOperation;
 	}
@@ -43,13 +43,35 @@ public class DecisionGenerator : MonoBehaviour {
 		return Random.Range (minDistance, maxDistance);
 	}
 
-	//******** Holes ********//
-	private int minExtrusionsForHole = 3;
-	public float probForHole = 0.4f;
-	public int kHole = 4;
-	private float lambdaHole = 0.2f;
+	//******** Direction ********//
+	public float distanceToChange = 0.2f;
+	public Vector3 generateDirection(Vector3 dir) {
+		int xChange = Random.Range (-1, 2);
+		int yChange = Random.Range (-1, 2);
+		int zChange = Random.Range (-1, 2);
+		dir += new Vector3 (xChange, yChange, zChange) * distanceToChange;
 
-	public enum holeCondition{
+		return dir.normalized;
+	}
+
+
+	//******** Scale ********//
+	public float generateScale() {
+		return Random.Range (0.01f, 2.0f);
+	}
+
+	//******** Rotation ********//
+	public float generateRotation() {
+		return (float)Random.Range (-90, 91);
+	}
+
+	//******** Holes ********//
+	private int minExtrusionsForHole = 3; //Number of extrusions to wait to make hole
+	[Range (0.0f,1.0f)] public float probForHole = 0.4f; //Initial probability to do a hole
+	public int holeK = 5; //For the k conditions
+	public float lambdaHole = 0.02f; //How each extrusion weights to the to final decision
+
+	public enum holeCondition {
 		EachK, EachKProb, MoreExtrMoreProb, MoreExtrLessProb
 	}
 	public holeCondition mHoleCondition;
@@ -57,42 +79,33 @@ public class DecisionGenerator : MonoBehaviour {
 	public bool makeHole(int numExtrude) {
 		if (numExtrude < minExtrusionsForHole) //Wait at least minExtrusionsForHole to make a hole
 			return false; 
+
 		//Different decisions to make holes
 		float r = Random.value;
-
 		switch (mHoleCondition) {
-			case (holeCondition.EachK) :{
-				if (numExtrude % kHole == 0)
+		case (holeCondition.EachK) :{
+				if (numExtrude % holeK == 0)
 					return true;
 				break;
 			}
-			case (holeCondition.EachKProb): {
-				if ((numExtrude % kHole == 0) && r <= probForHole)
+		case (holeCondition.EachKProb): {
+				if ((numExtrude % holeK == 0) && r <= probForHole)
 					return true;
 				break;
 			}
-			case (holeCondition.MoreExtrMoreProb): {
+		case (holeCondition.MoreExtrMoreProb): {
 				if (r <= probForHole + numExtrude * lambdaHole)
 					return true;
 				break;
 			}
-			case (holeCondition.MoreExtrLessProb): {
+		case (holeCondition.MoreExtrLessProb): {
 				if (r <= probForHole - numExtrude * lambdaHole)
 					return true;
 				break;
 			}
-			default:
-				break;
+		default:
+			break;
 		}
 		return false;
 	}
-
-	//******** Direction ********//
-
-
-
-	//******** Scale ********//
-
-
-	//******** Rotation ********//
 }
