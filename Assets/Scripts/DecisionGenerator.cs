@@ -4,12 +4,14 @@ using UnityEngine;
 
 /** Class that contains the random functions to decide which operations apply when generating and how **/
 
+//TODO: pass a parameter with previous operations, and decide next taking those one into account
 public class DecisionGenerator : MonoBehaviour {
 
 	//******** Singleton stuff ********//
 	private static DecisionGenerator mInstace; 
 	public void Awake() {
 		mInstace = this;
+		//Random.seed = 5; //With this setted the result will always be the same
 	}
 
 	public static DecisionGenerator Instance {
@@ -28,9 +30,7 @@ public class DecisionGenerator : MonoBehaviour {
 	}
 
 	//******** General decision********//
-
 	public ExtrusionOperation getNextOperation() {
-		//TODO: pass a parameter with previous operations, and decide next taking those one into account
 		int nextOperation = Random.Range(0,numOperations);
 		return (ExtrusionOperation)nextOperation;
 	}
@@ -45,14 +45,45 @@ public class DecisionGenerator : MonoBehaviour {
 
 	//******** Holes ********//
 	private int minExtrusionsForHole = 3;
-	//public int minExtrusionsForHole = 10;
-	public int randomExtrudeForHole = 30;
+	public float probForHole = 0.4f;
+	public int kHole = 4;
+	private float lambdaHole = 0.2f;
+
+	public enum holeCondition{
+		EachK, EachKProb, MoreExtrMoreProb, MoreExtrLessProb
+	}
+	public holeCondition mHoleCondition;
+
 	public bool makeHole(int numExtrude) {
 		if (numExtrude < minExtrusionsForHole) //Wait at least minExtrusionsForHole to make a hole
 			return false; 
-		int r = Random.Range (1, randomExtrudeForHole);
-		if (r == 4)
-			return true;
+		//Different decisions to make holes
+		float r = Random.value;
+
+		switch (mHoleCondition) {
+			case (holeCondition.EachK) :{
+				if (numExtrude % kHole == 0)
+					return true;
+				break;
+			}
+			case (holeCondition.EachKProb): {
+				if ((numExtrude % kHole == 0) && r <= probForHole)
+					return true;
+				break;
+			}
+			case (holeCondition.MoreExtrMoreProb): {
+				if (r <= probForHole + numExtrude * lambdaHole)
+					return true;
+				break;
+			}
+			case (holeCondition.MoreExtrLessProb): {
+				if (r <= probForHole - numExtrude * lambdaHole)
+					return true;
+				break;
+			}
+			default:
+				break;
+		}
 		return false;
 	}
 
@@ -61,7 +92,7 @@ public class DecisionGenerator : MonoBehaviour {
 
 
 	//******** Scale ********//
-	//TODO:Take into account previous scale operations
+
 
 	//******** Rotation ********//
 }

@@ -22,12 +22,15 @@ public class CaveGate : MonoBehaviour {
 	}
 	
 	void Update () {
-		if (Input.GetMouseButtonDown (0)) { //left click
+		if (Input.GetMouseButtonDown (0) && pointsSelected < gateSize) { //left click
 			Vector3 pos = new Vector3(Input.mousePosition.x, Input.mousePosition.y, 10.0f);
 			pos = cam.ScreenToWorldPoint(pos);
 			initialPoints.addPosition (pos);
 			Debug.Log (pos);
 			++pointsSelected;
+			if (pointsSelected == gateSize) {
+				Debug.Log ("All points selected, press right mouse button");
+			}
 		}
 
 		if (Input.GetMouseButtonDown (1) && pointsSelected==gateSize && !generatorCalled) {//right click

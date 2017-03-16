@@ -34,8 +34,7 @@ public class CaveGenerator : MonoBehaviour {
 		GetComponent<MeshFilter> ().mesh = mesh;
 	}
 		
-	/**From the vertices of an existing polyline, it creates a new new one
-	 * with the same number of vertices and following some direction and at some distance **/
+	/**From the vertices of an existing polyline, it creates a new new one applying some operation **/
 	void extrude(DecisionGenerator.ExtrusionOperation operation, Polyline originPoly,  Vector3 direction, float distance, int actualExtrusionTimes) {
 		//TODO: 6422 recursive calls gives stack overflow error, check this!
 
@@ -70,7 +69,7 @@ public class CaveGenerator : MonoBehaviour {
 		//Apply operations, if any
 		switch (operation) {
 		case (DecisionGenerator.ExtrusionOperation.Scale) : {
-			newPoly.scale (0.95f);
+			//newPoly.scale (0.95f);
 			break;
 		}
 		case (DecisionGenerator.ExtrusionOperation.Rotate): {
@@ -107,9 +106,12 @@ public class CaveGenerator : MonoBehaviour {
 		extrude(operation,newPoly,direction,DecisionGenerator.Instance.generateDistance(),actualExtrusionTimes);
 	}
 		
-		
+	//EXTRUSION ALTERNATIVE: make it iterative and each time a hole need to be done, push it:
+	//to a stack will made the recursion effect (more holes at the end)
+	//to a queue will made the inverse recursion effect (more holes at the beggining)
+
 	/** For debug purposes **/
-	void OnDrawGizmos() { 
+	/*void OnDrawGizmos() { 
 		//Avoid error messages after stopping
 		if (!Application.isPlaying) return; 
 
@@ -127,5 +129,5 @@ public class CaveGenerator : MonoBehaviour {
 			Gizmos.DrawLine (vertices [triangles[i+1]], vertices [triangles[i + 2]]);
 			Gizmos.DrawLine (vertices [triangles[i+2]], vertices [triangles[i]]);
 		}
-	}
+	}*/
 }
