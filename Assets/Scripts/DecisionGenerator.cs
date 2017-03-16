@@ -57,12 +57,12 @@ public class DecisionGenerator : MonoBehaviour {
 
 	//******** Scale ********//
 	public float generateScale() {
-		return Random.Range (0.01f, 2.0f);
+		return Random.Range (0.5f, 1.5f);
 	}
 
 	//******** Rotation ********//
 	public float generateRotation() {
-		return (float)Random.Range (-90, 91);
+		return (float)Random.Range (-45, 46);
 	}
 
 	//******** Holes ********//

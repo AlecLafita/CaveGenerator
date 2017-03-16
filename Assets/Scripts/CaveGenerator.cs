@@ -19,7 +19,7 @@ public class CaveGenerator : MonoBehaviour {
 		proceduralMesh = new Geometry.Mesh (iniPol);
 
 		//Start the generation
-		extrude (DecisionGenerator.ExtrusionOperation.ExtrudeOnly, iniPol, new Vector3 (0.0f, 0.0f, 0.5f), DecisionGenerator.Instance.generateDistance(), 0);
+		generateRecursive (DecisionGenerator.ExtrusionOperation.ExtrudeOnly, iniPol, new Vector3 (0.0f, 0.0f, 0.5f), DecisionGenerator.Instance.generateDistance(), 0);
 
 		//Generation finished, assign the vertices and triangles created to a Unity mesh
 		UnityEngine.Mesh mesh = new UnityEngine.Mesh ();
@@ -33,27 +33,17 @@ public class CaveGenerator : MonoBehaviour {
 		//Assign the created mesh to the one we are storing and visualizing
 		GetComponent<MeshFilter> ().mesh = mesh;
 	}
-		
-	/**From the vertices of an existing polyline, it creates a new new one applying some operation **/
-	void extrude(DecisionGenerator.ExtrusionOperation operation, Polyline originPoly,  Vector3 direction, float distance, int actualExtrusionTimes) {
-		//TODO: 6422 recursive calls gives stack overflow error, check this!
 
-		//Extrusion will be done, update the counter
-		--totalExtrudeTimes;
-		++actualExtrusionTimes;
-
-		//Base case, triangulate the actual polyline as a polygon to close the cave
-		if (totalExtrudeTimes < 0 || actualExtrusionTimes > maxExtrudeTimes) { 
-			proceduralMesh.closePolyline(originPoly);
-			return;
-		}
-
+	/**It creates a new polyline from an exsiting one, applying the corresponding operation and with the direction and distance passed **/
+	Polyline extrude(DecisionGenerator.ExtrusionOperation operation, Polyline originPoly, ref Vector3 direction, ref float distance) {
 		//Check if distance/ direction needs to be changed
 		if (operation == DecisionGenerator.ExtrusionOperation.ChangeDistance) {
 			distance = DecisionGenerator.Instance.generateDistance ();
 		}
 		if (operation == DecisionGenerator.ExtrusionOperation.ChangeDirection) {
 			direction = DecisionGenerator.Instance.generateDirection(direction);
+			//This does not change the normal! The normal is always the same as all the points of a polyline are generated at 
+			//the same distance that it's predecessor polyline (at the moment at least)
 		}
 
 		//Create the new polyline from the actual one
@@ -80,6 +70,24 @@ public class CaveGenerator : MonoBehaviour {
 				break;
 		}
 
+		return newPoly;
+	}
+		
+	void generateRecursive(DecisionGenerator.ExtrusionOperation operation, Polyline originPoly,  Vector3 direction, float distance, int actualExtrusionTimes) {
+		//TODO: 6422 recursive calls gives stack overflow error, check this!
+
+		//Extrusion will be done, update the counter
+		--totalExtrudeTimes;
+		++actualExtrusionTimes;
+
+		//Base case, triangulate the actual polyline as a polygon to close the cave
+		if (totalExtrudeTimes < 0 || actualExtrusionTimes > maxExtrudeTimes) { 
+			proceduralMesh.closePolyline(originPoly);
+			return;
+		}
+
+		//Generate the new polyline applying the operation
+		Polyline newPoly = extrude (operation, originPoly, ref direction, ref distance);
 		//Make holes: mark some vertices (from old and new polyline) and form a new polyline
 		if (DecisionGenerator.Instance.makeHole(actualExtrusionTimes)) {
 			//TODO: not hardcode this
@@ -96,18 +104,21 @@ public class CaveGenerator : MonoBehaviour {
 			polyHole.setVertex (3, newPoly.getVertex (0));
 
 			Vector3 directionHole = polyHole.calculateNormal();
-			extrude (DecisionGenerator.ExtrusionOperation.ExtrudeOnly,polyHole, directionHole, DecisionGenerator.Instance.generateDistance(), 0);
+			generateRecursive (DecisionGenerator.ExtrusionOperation.ExtrudeOnly,polyHole, directionHole, DecisionGenerator.Instance.generateDistance(), 0);
 		}
 
 		//Triangulate from origin to new polyline as a tube/cave shape
 		proceduralMesh.triangulatePolylines (originPoly, newPoly);
 		//Set next operation and extrude
 		operation = DecisionGenerator.Instance.generateNextOperation();
-		extrude(operation,newPoly,direction,DecisionGenerator.Instance.generateDistance(),actualExtrusionTimes);
+		generateRecursive(operation,newPoly,direction,distance,actualExtrusionTimes);
 	}
 		
 	//EXTRUSION ALTERNATIVE: make it iterative and each time a hole need to be done, push it:
 	//to a stack will made the recursion effect (more holes at the end)
+	void generateIterativeStack() {
+
+	}
 	//to a queue will made the inverse recursion effect (more holes at the beggining)
 
 	/** For debug purposes **/
