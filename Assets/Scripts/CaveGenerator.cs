@@ -10,7 +10,7 @@ public class CaveGenerator : MonoBehaviour {
 	Geometry.Mesh proceduralMesh;
 	public int totalExtrudeTimes = 200; //How many times an extrusion can be applied, acts as a countdown
 	public int maxExtrudeTimes = 40; // How many times an extrusion can be applied from a hole
-									//TODO: consider to increment this value as holes are created
+									//TODO: consider to deccrement this value as holes are created
 
 
 	/** Function to be called in order to start generating the cave **/
@@ -19,7 +19,8 @@ public class CaveGenerator : MonoBehaviour {
 		proceduralMesh = new Geometry.Mesh (iniPol);
 
 		//Start the generation
-		generateRecursive (DecisionGenerator.ExtrusionOperation.ExtrudeOnly, iniPol, new Vector3 (0.0f, 0.0f, 0.5f), DecisionGenerator.Instance.generateDistance(), 0);
+		//generateRecursive (DecisionGenerator.ExtrusionOperation.ExtrudeOnly, iniPol, new Vector3 (0.0f, 0.0f, 0.5f), DecisionGenerator.Instance.generateDistance(), 0);
+		generateIterativeStack (iniPol, new Vector3 (0.0f, 0.0f, 0.5f), DecisionGenerator.Instance.generateDistance ());
 
 		//Generation finished, assign the vertices and triangles created to a Unity mesh
 		UnityEngine.Mesh mesh = new UnityEngine.Mesh ();
@@ -115,14 +116,62 @@ public class CaveGenerator : MonoBehaviour {
 	}
 		
 	//EXTRUSION ALTERNATIVE: make it iterative and each time a hole need to be done, push it:
-	//to a stack will made the recursion effect (more holes at the end)
-	void generateIterativeStack() {
+	//(more holes at the end). This WON'T MADE the same effect than the recursive function
+	void generateIterativeStack(Polyline originPoly, Vector3 direction, float distance) {
+		//Stacks for saving the hole information
+		//This with generating holes with MoreExtrMoreProb is a bad combination, as it will made the impression of
+		//only one path being followed (no interections)
+		Stack<Polyline> polylinesStack = new Stack<Polyline> ();
+		Stack<Vector3> holesDirectionStack = new Stack<Vector3> ();
+		polylinesStack.Push(originPoly);
+		holesDirectionStack.Push (direction);
+		Polyline newPoly;
+		while (polylinesStack.Count > 0) {
+			originPoly = polylinesStack.Pop ();
+			direction = holesDirectionStack.Pop ();
+			int actualExtrusionTimes = 0;
+			DecisionGenerator.ExtrusionOperation operation = DecisionGenerator.ExtrusionOperation.ExtrudeOnly;
+
+			while (totalExtrudeTimes >= 0 && actualExtrusionTimes <= maxExtrudeTimes) {
+				//Extrusion will be done, update the counter
+				--totalExtrudeTimes;
+				++actualExtrusionTimes;
+				//Generate the new polyline applying the operation
+				newPoly = extrude (operation, originPoly, ref direction, ref distance);
+				//Make holes: mark some vertices (from old and new polyline) and form a new polyline
+				if (DecisionGenerator.Instance.makeHole(actualExtrusionTimes)) {
+					//TODO: not hardcode this
+					Polyline polyHole = new Polyline (4);
+
+					originPoly.getVertex(0).setInHole(true);
+					originPoly.getVertex(1).setInHole(true);
+					newPoly.getVertex(0).setInHole(true);
+					newPoly.getVertex(1).setInHole(true);
+
+					polyHole.setVertex (0, originPoly.getVertex (0));
+					polyHole.setVertex (1, originPoly.getVertex (1));
+					polyHole.setVertex (2, newPoly.getVertex (1));
+					polyHole.setVertex (3, newPoly.getVertex (0));
+
+					Vector3 directionHole = polyHole.calculateNormal();
+					polylinesStack.Push (polyHole);
+					holesDirectionStack.Push (directionHole);
+				}
+
+				//Triangulate from origin to new polyline as a tube/cave shape
+				proceduralMesh.triangulatePolylines (originPoly, newPoly);
+				//Set next operation and extrude
+				operation = DecisionGenerator.Instance.generateNextOperation();
+				originPoly = newPoly;
+			}
+			proceduralMesh.closePolyline(originPoly);
+		}
 
 	}
 	//to a queue will made the inverse recursion effect (more holes at the beggining)
 
 	/** For debug purposes **/
-	void OnDrawGizmos() { 
+	/*void OnDrawGizmos() { 
 		//Avoid error messages after stopping
 		if (!Application.isPlaying) return; 
 
@@ -140,5 +189,5 @@ public class CaveGenerator : MonoBehaviour {
 			Gizmos.DrawLine (vertices [triangles[i+1]], vertices [triangles[i + 2]]);
 			Gizmos.DrawLine (vertices [triangles[i+2]], vertices [triangles[i]]);
 		}
-	}
+	}*/
 }

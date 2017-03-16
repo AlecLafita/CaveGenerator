@@ -94,6 +94,7 @@ public class DecisionGenerator : MonoBehaviour {
 				break;
 			}
 		case (holeCondition.MoreExtrMoreProb): {
+				Debug.Log (probForHole + numExtrude * lambdaHole);
 				if (r <= probForHole + numExtrude * lambdaHole)
 					return true;
 				break;
