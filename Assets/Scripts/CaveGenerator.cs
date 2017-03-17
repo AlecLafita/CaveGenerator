@@ -56,7 +56,7 @@ public class CaveGenerator : MonoBehaviour {
 		if (DecisionGenerator.Instance.makeHole(actualExtrusionTimes)) {
 			Polyline polyHole = makeHole (originPoly, newPoly);
 			Vector3 directionHole = polyHole.calculateNormal();
-			generateRecursive (DecisionGenerator.ExtrusionOperation.ExtrudeOnly,polyHole, directionHole, DecisionGenerator.Instance.generateDistance(), 0);
+			generateRecursive (DecisionGenerator.ExtrusionOperation.ExtrudeOnly, polyHole, directionHole, DecisionGenerator.Instance.generateDistance(), 0);
 		}
 
 		//Triangulate from origin to new polyline as a tube/cave shape
@@ -134,11 +134,11 @@ public class CaveGenerator : MonoBehaviour {
 		//Apply operations, if any
 		switch (operation) {
 		case (DecisionGenerator.ExtrusionOperation.Scale) : {
-				newPoly.scale (DecisionGenerator.Instance.generateScale());
+				//newPoly.scale (DecisionGenerator.Instance.generateScale());
 				break;
 			}
 		case (DecisionGenerator.ExtrusionOperation.Rotate): {
-				newPoly.rotate (DecisionGenerator.Instance.generateRotation());
+				//newPoly.rotate (DecisionGenerator.Instance.generateRotation());
 				break;
 			}
 		default:
@@ -150,18 +150,29 @@ public class CaveGenerator : MonoBehaviour {
 
 	/** Makes a hole betwen two polylines and return this hole as a new polyline **/
 	Polyline makeHole(Polyline originPoly, Polyline destinyPoly) {
-		//TODO: not hardcode this
-		Polyline polyHole = new Polyline (4);
-		//mark some vertices (from old and new polyline) and form the hole polyline
-		originPoly.getVertex(0).setInHole(true);
-		originPoly.getVertex(1).setInHole(true);
-		destinyPoly.getVertex(0).setInHole(true);
-		destinyPoly.getVertex(1).setInHole(true);
+		//TODO: more than one hole, Make two holes on same polylines pairs can cause intersections!
 
-		polyHole.setVertex (0, originPoly.getVertex (0));
-		polyHole.setVertex (1, originPoly.getVertex (1));
-		polyHole.setVertex (2, destinyPoly.getVertex (1));
-		polyHole.setVertex (3, destinyPoly.getVertex (0));
+		// Decide how and where the hole will be done, take advantatge indices
+		// on the two polylines are at the same order (there are kind of a projection)
+		int sizeHole; int firstIndex;
+		DecisionGenerator.Instance.whereToDig (out sizeHole, out firstIndex);
+
+		//Create the hole polyline by marking and adding the hole vertices(from old a new polylines)
+		InitialPolyline polyHole = new InitialPolyline (sizeHole);
+		//Increasing order for the old and decreasing for the new polyline in order to 
+		//make a correct triangulation
+		int i = 0;
+		while (i < sizeHole / 2) {
+			originPoly.getVertex (firstIndex +i).setInHole (true);
+			polyHole.addVertex (originPoly.getVertex (firstIndex +i));
+			++i;
+		}
+		//at this point i = sizeHole / 2;
+		while (i > 0) {
+			--i;
+			destinyPoly.getVertex (firstIndex+i).setInHole (true);
+			polyHole.addVertex (destinyPoly.getVertex (firstIndex+i));
+		}
 
 		return polyHole;
 	}

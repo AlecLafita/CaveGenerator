@@ -28,5 +28,14 @@ namespace Geometry {
 			mVertices[mActualPos].setPosition(newPos);
 			++mActualPos;
 		}
+
+		public void addVertex(Vertex newV) {
+			if (mActualPos >= mVertices.Length) { //TODO:exception
+				Debug.Log ("Number of index bigger than size");
+				return;
+			}
+			mVertices [mActualPos] = newV;
+			++mActualPos;
+		}
 	}
 }

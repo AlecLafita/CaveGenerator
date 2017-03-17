@@ -109,4 +109,11 @@ public class DecisionGenerator : MonoBehaviour {
 		}
 		return false;
 	}
+
+	public void whereToDig(out int sizeHole, out int firstIndex) {
+		//sizeHole = holeVertices.length*2
+		sizeHole = 6;
+		firstIndex = 0;
+	}
+
 }
