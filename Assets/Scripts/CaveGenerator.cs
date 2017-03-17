@@ -113,10 +113,10 @@ public class CaveGenerator : MonoBehaviour {
 	Polyline extrude(DecisionGenerator.ExtrusionOperation operation, Polyline originPoly, ref Vector3 direction, ref float distance) {
 		//Check if distance/ direction needs to be changed
 		if (operation == DecisionGenerator.ExtrusionOperation.ChangeDistance) {
-			distance = DecisionGenerator.Instance.generateDistance ();
+			//distance = DecisionGenerator.Instance.generateDistance ();
 		}
 		if (operation == DecisionGenerator.ExtrusionOperation.ChangeDirection) {
-			direction = DecisionGenerator.Instance.generateDirection(direction);
+			//direction = DecisionGenerator.Instance.generateDirection(direction);
 			//This does not change the normal! The normal is always the same as all the points of a polyline are generated at 
 			//the same distance that it's predecessor polyline (at the moment at least)
 		}
