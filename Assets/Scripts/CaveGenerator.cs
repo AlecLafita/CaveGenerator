@@ -20,7 +20,8 @@ public class CaveGenerator : MonoBehaviour {
 
 		//Start the generation
 		//generateRecursive (DecisionGenerator.ExtrusionOperation.ExtrudeOnly, iniPol, new Vector3 (0.0f, 0.0f, 0.5f), DecisionGenerator.Instance.generateDistance(), 0);
-		generateIterativeStack (iniPol, new Vector3 (0.0f, 0.0f, 0.5f), DecisionGenerator.Instance.generateDistance ());
+		//generateIterativeStack (iniPol, new Vector3 (0.0f, 0.0f, 0.5f), DecisionGenerator.Instance.generateDistance ());
+		generateIterativeQueue (iniPol, new Vector3 (0.0f, 0.0f, 0.5f), DecisionGenerator.Instance.generateDistance ());
 
 		//Generation finished, assign the vertices and triangles created to a Unity mesh
 		UnityEngine.Mesh mesh = new UnityEngine.Mesh ();
@@ -71,7 +72,7 @@ public class CaveGenerator : MonoBehaviour {
 	void generateIterativeStack(Polyline originPoly, Vector3 direction, float distance) {
 		//Stacks for saving the hole information
 		//This with generating holes with MoreExtrMoreProb is a bad combination, as it will made the impression of
-		//only one path being followed (no interections)
+		//only one path being followed (no bifurcations)
 		Stack<Polyline> polylinesStack = new Stack<Polyline> ();
 		Stack<Vector3> holesDirectionStack = new Stack<Vector3> ();
 		polylinesStack.Push(originPoly);
@@ -105,18 +106,54 @@ public class CaveGenerator : MonoBehaviour {
 			}
 			proceduralMesh.closePolyline(originPoly);
 		}
-
 	}
+
 	//to a queue will made the inverse recursion effect (more holes at the beggining)
+	void generateIterativeQueue(Polyline originPoly, Vector3 direction, float distance) {
+		//Queues for saving the hole information
+		Queue<Polyline> polylinesStack = new Queue<Polyline> ();
+		Queue<Vector3> holesDirectionStack = new Queue<Vector3> ();
+		polylinesStack.Enqueue(originPoly);
+		holesDirectionStack.Enqueue(direction);
+		Polyline newPoly;
+		while (polylinesStack.Count > 0) {
+			originPoly = polylinesStack.Dequeue ();
+			direction = holesDirectionStack.Dequeue ();
+			int actualExtrusionTimes = 0;
+			DecisionGenerator.ExtrusionOperation operation = DecisionGenerator.ExtrusionOperation.ExtrudeOnly;
+
+			while (totalExtrudeTimes >= 0 && actualExtrusionTimes <= maxExtrudeTimes) {
+				//Extrusion will be done, update the counter
+				--totalExtrudeTimes;
+				++actualExtrusionTimes;
+				//Generate the new polyline applying the operation
+				newPoly = extrude (operation, originPoly, ref direction, ref distance);
+				//Make holes: mark some vertices (from old and new polyline) and form a new polyline
+				if (DecisionGenerator.Instance.makeHole(actualExtrusionTimes)) {
+					Polyline polyHole = makeHole (originPoly, newPoly);
+					Vector3 directionHole = polyHole.calculateNormal();
+					polylinesStack.Enqueue (polyHole);
+					holesDirectionStack.Enqueue (directionHole);
+				}
+
+				//Triangulate from origin to new polyline as a tube/cave shape
+				proceduralMesh.triangulatePolylines (originPoly, newPoly);
+				//Set next operation and extrude
+				operation = DecisionGenerator.Instance.generateNextOperation();
+				originPoly = newPoly;
+			}
+			proceduralMesh.closePolyline(originPoly);
+		}
+	}
 
 	/**It creates a new polyline from an exsiting one, applying the corresponding operation and with the direction and distance passed **/
 	Polyline extrude(DecisionGenerator.ExtrusionOperation operation, Polyline originPoly, ref Vector3 direction, ref float distance) {
 		//Check if distance/ direction needs to be changed
 		if (operation == DecisionGenerator.ExtrusionOperation.ChangeDistance) {
-			//distance = DecisionGenerator.Instance.generateDistance ();
+			distance = DecisionGenerator.Instance.generateDistance ();
 		}
 		if (operation == DecisionGenerator.ExtrusionOperation.ChangeDirection) {
-			//direction = DecisionGenerator.Instance.generateDirection(direction);
+			direction = DecisionGenerator.Instance.generateDirection(direction);
 			//This does not change the normal! The normal is always the same as all the points of a polyline are generated at 
 			//the same distance that it's predecessor polyline (at the moment at least)
 		}
@@ -134,11 +171,11 @@ public class CaveGenerator : MonoBehaviour {
 		//Apply operations, if any
 		switch (operation) {
 		case (DecisionGenerator.ExtrusionOperation.Scale) : {
-				//newPoly.scale (DecisionGenerator.Instance.generateScale());
+				newPoly.scale (DecisionGenerator.Instance.generateScale());
 				break;
 			}
 		case (DecisionGenerator.ExtrusionOperation.Rotate): {
-				//newPoly.rotate (DecisionGenerator.Instance.generateRotation());
+				newPoly.rotate (DecisionGenerator.Instance.generateRotation());
 				break;
 			}
 		default:

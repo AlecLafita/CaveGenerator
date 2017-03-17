@@ -45,6 +45,7 @@ namespace Geometry {
 
 		/** Scales all the polyline vertices taking the baricenter as origin **/
 		public void scale(float scaleValue) {
+			//TODO: add a limit(minimum "radius")
 			Vector3 b = calculateBaricenter ();
 			foreach (Vertex v in mVertices) {
 				Vector3 scaledPos = v.getPosition ();
