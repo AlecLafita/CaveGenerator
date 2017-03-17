@@ -35,44 +35,7 @@ public class CaveGenerator : MonoBehaviour {
 		GetComponent<MeshFilter> ().mesh = mesh;
 	}
 
-	/**It creates a new polyline from an exsiting one, applying the corresponding operation and with the direction and distance passed **/
-	Polyline extrude(DecisionGenerator.ExtrusionOperation operation, Polyline originPoly, ref Vector3 direction, ref float distance) {
-		//Check if distance/ direction needs to be changed
-		if (operation == DecisionGenerator.ExtrusionOperation.ChangeDistance) {
-			distance = DecisionGenerator.Instance.generateDistance ();
-		}
-		if (operation == DecisionGenerator.ExtrusionOperation.ChangeDirection) {
-			direction = DecisionGenerator.Instance.generateDirection(direction);
-			//This does not change the normal! The normal is always the same as all the points of a polyline are generated at 
-			//the same distance that it's predecessor polyline (at the moment at least)
-		}
 
-		//Create the new polyline from the actual one
-		Polyline newPoly = new Polyline(originPoly.getSize());
-		for (int i = 0; i < originPoly.getSize(); ++i) { //Generate the new vertices
-			//Add vertex to polyline
-			newPoly.extrudeVertex(i, originPoly.getVertex(i).getPosition(), direction,distance);
-			//Add the index to vertex
-			newPoly.getVertex(i).setIndex(proceduralMesh.getNumVertices());
-			//Add the new vertex to the mesh
-			proceduralMesh.addVertex(newPoly.getVertex(i).getPosition());
-		}
-		//Apply operations, if any
-		switch (operation) {
-			case (DecisionGenerator.ExtrusionOperation.Scale) : {
-				newPoly.scale (DecisionGenerator.Instance.generateScale());
-				break;
-			}
-			case (DecisionGenerator.ExtrusionOperation.Rotate): {
-				newPoly.rotate (DecisionGenerator.Instance.generateRotation());
-				break;
-			}
-			default:
-				break;
-		}
-
-		return newPoly;
-	}
 		
 	void generateRecursive(DecisionGenerator.ExtrusionOperation operation, Polyline originPoly,  Vector3 direction, float distance, int actualExtrusionTimes) {
 		//TODO: 6422 recursive calls gives stack overflow error, check this!
@@ -89,21 +52,9 @@ public class CaveGenerator : MonoBehaviour {
 
 		//Generate the new polyline applying the operation
 		Polyline newPoly = extrude (operation, originPoly, ref direction, ref distance);
-		//Make holes: mark some vertices (from old and new polyline) and form a new polyline
+		//Make hole
 		if (DecisionGenerator.Instance.makeHole(actualExtrusionTimes)) {
-			//TODO: not hardcode this
-			Polyline polyHole = new Polyline (4);
-
-			originPoly.getVertex(0).setInHole(true);
-			originPoly.getVertex(1).setInHole(true);
-			newPoly.getVertex(0).setInHole(true);
-			newPoly.getVertex(1).setInHole(true);
-
-			polyHole.setVertex (0, originPoly.getVertex (0));
-			polyHole.setVertex (1, originPoly.getVertex (1));
-			polyHole.setVertex (2, newPoly.getVertex (1));
-			polyHole.setVertex (3, newPoly.getVertex (0));
-
+			Polyline polyHole = makeHole (originPoly, newPoly);
 			Vector3 directionHole = polyHole.calculateNormal();
 			generateRecursive (DecisionGenerator.ExtrusionOperation.ExtrudeOnly,polyHole, directionHole, DecisionGenerator.Instance.generateDistance(), 0);
 		}
@@ -140,19 +91,7 @@ public class CaveGenerator : MonoBehaviour {
 				newPoly = extrude (operation, originPoly, ref direction, ref distance);
 				//Make holes: mark some vertices (from old and new polyline) and form a new polyline
 				if (DecisionGenerator.Instance.makeHole(actualExtrusionTimes)) {
-					//TODO: not hardcode this
-					Polyline polyHole = new Polyline (4);
-
-					originPoly.getVertex(0).setInHole(true);
-					originPoly.getVertex(1).setInHole(true);
-					newPoly.getVertex(0).setInHole(true);
-					newPoly.getVertex(1).setInHole(true);
-
-					polyHole.setVertex (0, originPoly.getVertex (0));
-					polyHole.setVertex (1, originPoly.getVertex (1));
-					polyHole.setVertex (2, newPoly.getVertex (1));
-					polyHole.setVertex (3, newPoly.getVertex (0));
-
+					Polyline polyHole = makeHole (originPoly, newPoly);
 					Vector3 directionHole = polyHole.calculateNormal();
 					polylinesStack.Push (polyHole);
 					holesDirectionStack.Push (directionHole);
@@ -169,6 +108,63 @@ public class CaveGenerator : MonoBehaviour {
 
 	}
 	//to a queue will made the inverse recursion effect (more holes at the beggining)
+
+	/**It creates a new polyline from an exsiting one, applying the corresponding operation and with the direction and distance passed **/
+	Polyline extrude(DecisionGenerator.ExtrusionOperation operation, Polyline originPoly, ref Vector3 direction, ref float distance) {
+		//Check if distance/ direction needs to be changed
+		if (operation == DecisionGenerator.ExtrusionOperation.ChangeDistance) {
+			distance = DecisionGenerator.Instance.generateDistance ();
+		}
+		if (operation == DecisionGenerator.ExtrusionOperation.ChangeDirection) {
+			direction = DecisionGenerator.Instance.generateDirection(direction);
+			//This does not change the normal! The normal is always the same as all the points of a polyline are generated at 
+			//the same distance that it's predecessor polyline (at the moment at least)
+		}
+
+		//Create the new polyline from the actual one
+		Polyline newPoly = new Polyline(originPoly.getSize());
+		for (int i = 0; i < originPoly.getSize(); ++i) { //Generate the new vertices
+			//Add vertex to polyline
+			newPoly.extrudeVertex(i, originPoly.getVertex(i).getPosition(), direction,distance);
+			//Add the index to vertex
+			newPoly.getVertex(i).setIndex(proceduralMesh.getNumVertices());
+			//Add the new vertex to the mesh
+			proceduralMesh.addVertex(newPoly.getVertex(i).getPosition());
+		}
+		//Apply operations, if any
+		switch (operation) {
+		case (DecisionGenerator.ExtrusionOperation.Scale) : {
+				newPoly.scale (DecisionGenerator.Instance.generateScale());
+				break;
+			}
+		case (DecisionGenerator.ExtrusionOperation.Rotate): {
+				newPoly.rotate (DecisionGenerator.Instance.generateRotation());
+				break;
+			}
+		default:
+			break;
+		}
+
+		return newPoly;
+	}
+
+	/** Makes a hole betwen two polylines and return this hole as a new polyline **/
+	Polyline makeHole(Polyline originPoly, Polyline destinyPoly) {
+		//TODO: not hardcode this
+		Polyline polyHole = new Polyline (4);
+		//mark some vertices (from old and new polyline) and form the hole polyline
+		originPoly.getVertex(0).setInHole(true);
+		originPoly.getVertex(1).setInHole(true);
+		destinyPoly.getVertex(0).setInHole(true);
+		destinyPoly.getVertex(1).setInHole(true);
+
+		polyHole.setVertex (0, originPoly.getVertex (0));
+		polyHole.setVertex (1, originPoly.getVertex (1));
+		polyHole.setVertex (2, destinyPoly.getVertex (1));
+		polyHole.setVertex (3, destinyPoly.getVertex (0));
+
+		return polyHole;
+	}
 
 	/** For debug purposes **/
 	/*void OnDrawGizmos() { 
