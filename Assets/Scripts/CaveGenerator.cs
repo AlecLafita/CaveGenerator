@@ -155,11 +155,11 @@ public class CaveGenerator : MonoBehaviour {
 		// Decide how and where the hole will be done, take advantatge indices
 		// on the two polylines are at the same order (there are kind of a projection)
 		int sizeHole; int firstIndex;
-		DecisionGenerator.Instance.whereToDig (out sizeHole, out firstIndex);
+		DecisionGenerator.Instance.whereToDig (originPoly.getSize(), out sizeHole, out firstIndex);
 
 		//Create the hole polyline by marking and adding the hole vertices(from old a new polylines)
 		InitialPolyline polyHole = new InitialPolyline (sizeHole);
-		//Increasing order for the old and decreasing for the new polyline in order to 
+		//Increasing order for the origin and decreasing for the destiny polyline in order to 
 		//make a correct triangulation
 		int i = 0;
 		while (i < sizeHole / 2) {
@@ -178,7 +178,7 @@ public class CaveGenerator : MonoBehaviour {
 	}
 
 	/** For debug purposes **/
-	/*void OnDrawGizmos() { 
+	void OnDrawGizmos() { 
 		//Avoid error messages after stopping
 		if (!Application.isPlaying) return; 
 
@@ -196,5 +196,5 @@ public class CaveGenerator : MonoBehaviour {
 			Gizmos.DrawLine (vertices [triangles[i+1]], vertices [triangles[i + 2]]);
 			Gizmos.DrawLine (vertices [triangles[i+2]], vertices [triangles[i]]);
 		}
-	}*/
+	}
 }

@@ -110,10 +110,13 @@ public class DecisionGenerator : MonoBehaviour {
 		return false;
 	}
 
-	public void whereToDig(out int sizeHole, out int firstIndex) {
-		//sizeHole = holeVertices.length*2
-		sizeHole = 6;
-		firstIndex = 0;
+	public int maxVerticesHole = 10;
+	public void whereToDig(int numV, out int sizeHole, out int firstIndex) {
+		//TODO: improve this to avoid intersections
+		sizeHole = Random.Range(2,numV);
+		sizeHole *= 2; //Must be a pair number!
+		sizeHole = Mathf.Min (sizeHole, maxVerticesHole);
+		firstIndex = Random.Range (0, numV);
 	}
 
 }
