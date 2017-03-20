@@ -145,6 +145,7 @@ public class CaveGenerator : MonoBehaviour {
 		}
 	}
 
+	private float maxNormalDirectionAngle = 60.0f;
 	/**It creates a new polyline from an exsiting one, applying the corresponding operation and with the direction and distance passed **/
 	Polyline extrude(DecisionGenerator.ExtrusionOperation operation, Polyline originPoly, ref Vector3 direction, ref float distance) {
 		//Check if distance/ direction needs to be changed
@@ -152,9 +153,16 @@ public class CaveGenerator : MonoBehaviour {
 			distance = DecisionGenerator.Instance.generateDistance ();
 		}
 		if (operation == DecisionGenerator.ExtrusionOperation.ChangeDirection) {
-			direction = DecisionGenerator.Instance.generateDirection(direction);
 			//This does not change the normal! The normal is always the same as all the points of a polyline are generated at 
 			//the same distance that it's predecessor polyline (at the moment at least)
+
+			//Vector3 newDirection = DecisionGenerator.Instance.changeDirection(direction);
+			Vector3 newDirection = DecisionGenerator.Instance.generateDirection();
+			//Avoid intersection and narrow halways between the old and new polylines by setting an angle limit
+			//(90 would produce a plane and bigger than 90 would produce an intersection)
+			if (Vector3.Angle(newDirection,originPoly.calculateNormal()) < maxNormalDirectionAngle) {
+				direction = newDirection; 
+			}
 		}
 
 		//Create the new polyline from the actual one

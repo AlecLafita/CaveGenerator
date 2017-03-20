@@ -44,14 +44,24 @@ public class DecisionGenerator : MonoBehaviour {
 	}
 
 	//******** Direction ********//
-	public float distanceToChange = 0.2f;
-	public Vector3 generateDirection(Vector3 dir) {
+	public float minDirectionToChange = 0.2f;
+	public float maxDirectionToChange = 0.5f;
+	public Vector3 changeDirection(Vector3 dir) {
 		int xChange = Random.Range (-1, 2);
 		int yChange = Random.Range (-1, 2);
 		int zChange = Random.Range (-1, 2);
-		dir += new Vector3 (xChange, yChange, zChange) * distanceToChange;
+		dir += new Vector3 (xChange *Random.Range(minDirectionToChange,maxDirectionToChange), 
+			yChange*Random.Range(minDirectionToChange,maxDirectionToChange),
+			zChange*Random.Range(minDirectionToChange,maxDirectionToChange));
 
 		return dir.normalized;
+	}
+
+	public Vector3 generateDirection() {
+		float xDir = Random.Range (-1.0f, 1.0f);
+		float yDir = Random.Range (-1.0f, 1.0f);
+		float zDir = Random.Range (-1.0f, 1.0f);
+		return new Vector3(xDir, yDir, zDir);
 	}
 
 
