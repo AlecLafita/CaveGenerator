@@ -37,7 +37,6 @@ public class CaveGenerator : MonoBehaviour {
 	}
 
 
-		
 	void generateRecursive(DecisionGenerator.ExtrusionOperation operation, Polyline originPoly,  Vector3 direction, float distance, int actualExtrusionTimes) {
 		//TODO: 6422 recursive calls gives stack overflow error, check this!
 
@@ -175,7 +174,7 @@ public class CaveGenerator : MonoBehaviour {
 				break;
 			}
 		case (DecisionGenerator.ExtrusionOperation.Rotate): {
-				newPoly.rotate (DecisionGenerator.Instance.generateRotation());
+				//newPoly.rotate (DecisionGenerator.Instance.generateRotation());
 				break;
 			}
 		default:

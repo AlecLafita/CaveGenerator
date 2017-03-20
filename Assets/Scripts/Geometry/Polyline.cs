@@ -10,7 +10,8 @@ namespace Geometry {
 	public class Polyline {
 
 		protected Vertex[] mVertices; //Vertices that form the polyline
-
+		protected float minRadius = 8.0f; //Minimum radius when the scale is applied
+		protected float maxRadius = 50.0f;//Maximum radius when the scale is applied
 		//******** Constructors ********//
 		public Polyline() {
 			mVertices = new Vertex[0];
@@ -47,13 +48,27 @@ namespace Geometry {
 		public void scale(float scaleValue) {
 			//TODO: add a limit(minimum "radius")
 			Vector3 b = calculateBaricenter ();
+			//First check the scale result is not to small
 			foreach (Vertex v in mVertices) {
 				Vector3 scaledPos = v.getPosition ();
-				scaledPos -= b; //Translate it to the origin with baricenter as pivot
+				scaleFromCenter (b, ref scaledPos, scaleValue);
+				float radius = Vector3.Distance (b, scaledPos);
+				if ( radius < minRadius || radius > maxRadius) return;
+			}
+			//If condition accomplished, then scale
+			foreach (Vertex v in mVertices) {
+				Vector3 scaledPos = v.getPosition ();
+				/*scaledPos -= b; //Translate it to the origin with baricenter as pivot
 				scaledPos *= scaleValue; //Apply the scale
-				scaledPos += b; //Return it to the real position
+				scaledPos += b; //Return it to the real position*/
+				scaleFromCenter (b, ref scaledPos, scaleValue);
 				v.setPosition (scaledPos);
 			}
+		}
+		private void scaleFromCenter(Vector3 center, ref Vector3 point2Scale, float scaleValue) {
+			point2Scale -= center; //Translate the point to the origin with the center as pivot
+			point2Scale *= scaleValue;//Apply the scale
+			point2Scale += center; //Return it to the real position
 		}
 
 		/** Rotates all the polyline vertices through the polyline's normal vector(degrees) **/
