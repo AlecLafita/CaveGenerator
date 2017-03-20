@@ -36,7 +36,7 @@ public class CaveGenerator : MonoBehaviour {
 		GetComponent<MeshFilter> ().mesh = mesh;
 	}
 
-
+	/** Generate the cave recursively **/
 	void generateRecursive(DecisionGenerator.ExtrusionOperation operation, Polyline originPoly,  Vector3 direction, float distance, int actualExtrusionTimes) {
 		//TODO: 6422 recursive calls gives stack overflow error, check this!
 
@@ -66,8 +66,8 @@ public class CaveGenerator : MonoBehaviour {
 		generateRecursive(operation,newPoly,direction,distance,actualExtrusionTimes);
 	}
 		
-	//EXTRUSION ALTERNATIVE: make it iterative and each time a hole need to be done, push it:
-	//(more holes at the end). This WON'T MADE the same effect than the recursive function
+	//The following two generation methods WON'T MADE the same effect than the recursive way
+	/** Generate the cave by LIFO **/
 	void generateIterativeStack(Polyline originPoly, Vector3 direction, float distance) {
 		//Stacks for saving the hole information
 		//This with generating holes with MoreExtrMoreProb is a bad combination, as it will made the impression of
@@ -107,7 +107,7 @@ public class CaveGenerator : MonoBehaviour {
 		}
 	}
 
-	//to a queue will made the inverse recursion effect (more holes at the beggining)
+	/** Generate the cave by FIFO **/
 	void generateIterativeQueue(Polyline originPoly, Vector3 direction, float distance) {
 		//Queues for saving the hole information
 		Queue<Polyline> polylinesStack = new Queue<Polyline> ();
@@ -174,7 +174,7 @@ public class CaveGenerator : MonoBehaviour {
 				break;
 			}
 		case (DecisionGenerator.ExtrusionOperation.Rotate): {
-				//newPoly.rotate (DecisionGenerator.Instance.generateRotation());
+				newPoly.rotate (DecisionGenerator.Instance.generateRotation());
 				break;
 			}
 		default:

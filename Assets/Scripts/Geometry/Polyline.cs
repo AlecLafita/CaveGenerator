@@ -123,7 +123,11 @@ namespace Geometry {
 		/*public bool isSimple() {
 			//TODO
 		}*/
-		
+
+		/** Checks the polyline is convex **/
+		/*public bool isConvex() {
+			//TODO
+		}*/
 
 	}
 }

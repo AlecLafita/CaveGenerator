@@ -37,6 +37,7 @@ public class CaveGate : MonoBehaviour {
 			//Generate the cave when the user has selected all the points
 			cam.ResetProjectionMatrix();
 			Debug.Log("Starting generation");
+			//TODO:check it's clockwise. In case it's not, transform it
 			initialPoints.initializeIndices();
 			GetComponent<CaveGenerator>().startGeneration(initialPoints);
 			generatorCalled = true;
