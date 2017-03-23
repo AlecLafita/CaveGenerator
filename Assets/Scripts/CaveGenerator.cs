@@ -8,9 +8,9 @@ using Geometry;
 public class CaveGenerator : MonoBehaviour {
 
 	Geometry.Mesh proceduralMesh;
-	public int totalExtrudeTimes = 200; //How many times an extrusion can be applied, acts as a countdown
+	public int totalHoles = 200; //How many times an extrusion can be applied, acts as a countdown
 	public int maxExtrudeTimes = 40; // How many times an extrusion can be applied from a hole
-									//TODO: consider to deccrement this value as holes are created
+									//TODO: consider to deccrement this value as holes are created, or some random function that handles this
 
 
 	/** Function to be called in order to start generating the cave **/
@@ -19,7 +19,7 @@ public class CaveGenerator : MonoBehaviour {
 		proceduralMesh = new Geometry.Mesh (iniPol);
 
 		//Start the generation
-		generateRecursive (DecisionGenerator.ExtrusionOperation.ExtrudeOnly, iniPol, new Vector3 (0.0f, 0.0f, 0.5f), DecisionGenerator.Instance.generateDistance(), 0);
+		generateRecursive (iniPol, 0.8f);
 		//generateIterativeStack (iniPol, new Vector3 (0.0f, 0.0f, 0.5f), DecisionGenerator.Instance.generateDistance ());
 		//generateIterativeQueue (iniPol, new Vector3 (0.0f, 0.0f, 0.5f), DecisionGenerator.Instance.generateDistance ());
 
@@ -37,34 +37,41 @@ public class CaveGenerator : MonoBehaviour {
 		GetComponent<MeshFilter> ().mesh = mesh;
 	}
 
-	/** Generate the cave recursively **/
-	void generateRecursive(DecisionGenerator.ExtrusionOperation operation, Polyline originPoly,  Vector3 direction, float distance, int actualExtrusionTimes) {
-		//TODO: 6422 recursive calls gives stack overflow error, check this!
-
-		//Extrusion will be done, update the counter
-		--totalExtrudeTimes;
-		++actualExtrusionTimes;
+	/** Generate the cave by generating the holes/bifurcations recursively **/
+	void generateRecursive(Polyline originPoly, float holeProb) {
+		//Hole make will be done, update the counter
+		--totalHoles;
 
 		//Base case, triangulate the actual polyline as a polygon to close the cave
-		if (totalExtrudeTimes < 0 || actualExtrusionTimes > maxExtrudeTimes) { 
+		if (totalHoles < 0 ) { 
 			proceduralMesh.closePolyline(originPoly);
 			return;
 		}
+		//TODO: change maxExtrudeTimes as holes are done (eg, random number between a rank)
 
-		//Generate the new polyline applying the operation
-		Polyline newPoly = extrude (operation, originPoly, ref direction, ref distance);
-		//Make hole
-		if (DecisionGenerator.Instance.makeHole(actualExtrusionTimes)) {
-			Polyline polyHole = makeHole (originPoly, newPoly);
-			Vector3 directionHole = polyHole.calculateNormal();
-			generateRecursive (DecisionGenerator.ExtrusionOperation.ExtrudeOnly, polyHole, directionHole, DecisionGenerator.Instance.generateDistance(), 0);
+		//Generate the actual hallway/tunnel
+		DecisionGenerator.ExtrusionOperation actualOperation = DecisionGenerator.ExtrusionOperation.ExtrudeOnly;
+		float actualDistance = DecisionGenerator.Instance.generateDistance();
+		Vector3 actualDirection = originPoly.calculateNormal ();
+		for (int i = 0; i < maxExtrudeTimes; ++i) {
+			//Generate the new polyline applying the operation
+			Polyline newPoly = extrude (actualOperation, originPoly, ref actualDirection, ref actualDistance);
+			//Make hole
+			if (DecisionGenerator.Instance.makeHole(i)) {
+				Polyline polyHole = makeHole (originPoly, newPoly);
+				//Vector3 directionHole = polyHole.calculateNormal();
+				generateRecursive (polyHole, holeProb);
+			}
+
+			//Triangulate from origin to new polyline as a tube/cave shape
+			proceduralMesh.triangulatePolylines (originPoly, newPoly);
+			//Set next operation and extrude
+			actualOperation = DecisionGenerator.Instance.generateNextOperation();
+			originPoly = newPoly;
+			//generateRecursive(operation,newPoly,direction,distance,actualExtrusionTimes);
 		}
-
-		//Triangulate from origin to new polyline as a tube/cave shape
-		proceduralMesh.triangulatePolylines (originPoly, newPoly);
-		//Set next operation and extrude
-		operation = DecisionGenerator.Instance.generateNextOperation();
-		generateRecursive(operation,newPoly,direction,distance,actualExtrusionTimes);
+		//Finally, close the actual hallway/tunnel
+		proceduralMesh.closePolyline(originPoly);
 	}
 		
 	//The following two generation methods WON'T MADE the same effect that the recursive way
@@ -84,9 +91,9 @@ public class CaveGenerator : MonoBehaviour {
 			int actualExtrusionTimes = 0;
 			DecisionGenerator.ExtrusionOperation operation = DecisionGenerator.ExtrusionOperation.ExtrudeOnly;
 
-			while (totalExtrudeTimes >= 0 && actualExtrusionTimes <= maxExtrudeTimes) {
+			while (totalHoles >= 0 && actualExtrusionTimes <= maxExtrudeTimes) {
 				//Extrusion will be done, update the counter
-				--totalExtrudeTimes;
+				--totalHoles;
 				++actualExtrusionTimes;
 				//Generate the new polyline applying the operation
 				newPoly = extrude (operation, originPoly, ref direction, ref distance);
@@ -122,9 +129,9 @@ public class CaveGenerator : MonoBehaviour {
 			int actualExtrusionTimes = 0;
 			DecisionGenerator.ExtrusionOperation operation = DecisionGenerator.ExtrusionOperation.ExtrudeOnly;
 
-			while (totalExtrudeTimes >= 0 && actualExtrusionTimes <= maxExtrudeTimes) {
+			while (totalHoles >= 0 && actualExtrusionTimes <= maxExtrudeTimes) {
 				//Extrusion will be done, update the counter
-				--totalExtrudeTimes;
+				--totalHoles;
 				++actualExtrusionTimes;
 				//Generate the new polyline applying the operation
 				newPoly = extrude (operation, originPoly, ref direction, ref distance);
