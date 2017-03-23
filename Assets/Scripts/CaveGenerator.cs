@@ -8,10 +8,15 @@ using Geometry;
 public class CaveGenerator : MonoBehaviour {
 
 	Geometry.Mesh proceduralMesh;
-	public int totalHoles = 200; //How many times an extrusion can be applied, acts as a countdown
+	public int maxHoles = 200; //How many times an extrusion can be applied, acts as a countdown
 	public int maxExtrudeTimes = 40; // How many times an extrusion can be applied from a hole
 									//TODO: consider to deccrement this value as holes are created, or some random function that handles this
 
+	public enum generationMethod
+	{
+		Recursive, IterativeStack, IterativeQueue
+	}
+	public generationMethod method = generationMethod.Recursive;
 
 	/** Function to be called in order to start generating the cave **/
 	public void startGeneration (InitialPolyline iniPol) {
@@ -19,9 +24,22 @@ public class CaveGenerator : MonoBehaviour {
 		proceduralMesh = new Geometry.Mesh (iniPol);
 
 		//Start the generation
-		//generateRecursive (iniPol, 0.8f);
-		//generateIterativeStack (iniPol, new Vector3 (0.0f, 0.0f, 0.5f), DecisionGenerator.Instance.generateDistance ());
-		generateIterativeQueue (iniPol, new Vector3 (0.0f, 0.0f, 0.5f), DecisionGenerator.Instance.generateDistance ());
+		float tunnelHoleProb = 0.8f;
+		switch (method) {
+			case(generationMethod.Recursive): {
+				generateRecursive (iniPol, tunnelHoleProb);
+				break;
+			}
+			case(generationMethod.IterativeStack): {
+				generateIterativeStack (iniPol, tunnelHoleProb);
+				break;
+			}
+			case(generationMethod.IterativeQueue): {
+				generateIterativeQueue (iniPol, tunnelHoleProb);
+				break;
+			}
+		}
+		Debug.Log ("Vertices generated: " + proceduralMesh.getNumVertices ());
 		Debug.Log ("Triangles generated: " + proceduralMesh.getNumTriangles ());
 
 		//Generation finished, assign the vertices and triangles created to a Unity mesh
@@ -37,13 +55,14 @@ public class CaveGenerator : MonoBehaviour {
 		GetComponent<MeshFilter> ().mesh = mesh;
 	}
 
-	/** Generates a hallway/tunnel of the cave. It can create holes depending on the second parameter probability **/
+	/** Generates the cave recursively. Each call creates a tunnel, and
+	 *  holes can be created depending on the second parameter probability [0-1] **/
 	void generateRecursive(Polyline originPoly, float holeProb) {
-		//Hole make will be done, update the counter
-		--totalHoles;
+		//Hole is done, update the counter
+		--maxHoles;
 
-		//Base case, triangulate the actual polyline as a polygon to close the cave
-		if (totalHoles < 0 ) { 
+		//Base case, triangulate the actual tunnel first polyline as a polygon to close the hole
+		if (maxHoles < 0 ) { 
 			proceduralMesh.closePolyline(originPoly);
 			return;
 		}
@@ -71,29 +90,31 @@ public class CaveGenerator : MonoBehaviour {
 		proceduralMesh.closePolyline(originPoly);
 	}
 		
-	//The following two generation methods WON'T MADE the same effect that the recursive way
-	/** Generate the cave creating the holes by LIFO **/
-	void generateIterativeStack(Polyline originPoly, Vector3 direction, float distance) {
+	/** Generate the cave iteratively creating the holes by LIFO **/
+	void generateIterativeStack(Polyline originPoly, float holeProb) {
 		//Stacks for saving the hole information
 		//This with generating holes with MoreExtrMoreProb is a bad combination, as it will made the impression of
 		//only one path being followed (no bifurcations)
 		Stack<Polyline> polylinesStack = new Stack<Polyline> ();
 		polylinesStack.Push(originPoly);
 		Polyline newPoly;
+		float actualDistance;
+		Vector3 actualDirection;
 		while (polylinesStack.Count > 0) {
 			//new tunnel(hole) will be done, update the counter and all the data
-			--totalHoles;
+			--maxHoles;
 			originPoly = polylinesStack.Pop ();
-			direction = originPoly.calculateNormal ();
+			actualDistance = DecisionGenerator.Instance.generateDistance();
+			actualDirection = originPoly.calculateNormal ();
 			int actualExtrusionTimes = 0;
 			DecisionGenerator.ExtrusionOperation operation = DecisionGenerator.ExtrusionOperation.ExtrudeOnly;
 
-			while (totalHoles >= 0 && actualExtrusionTimes <= maxExtrudeTimes) {
+			while (maxHoles >= 0 && actualExtrusionTimes <= maxExtrudeTimes) {
 				++actualExtrusionTimes;
 				//Generate the new polyline applying the operation
-				newPoly = extrude (operation, originPoly, ref direction, ref distance);
-				//Make holes: mark some vertices (from old and new polyline) and form a new polyline
-				if (DecisionGenerator.Instance.makeHole(actualExtrusionTimes)) {
+				newPoly = extrude (operation, originPoly, ref actualDirection, ref actualDistance);
+				//Make hole?
+				if (DecisionGenerator.Instance.makeHole(actualExtrusionTimes,holeProb)) {
 					Polyline polyHole = makeHole (originPoly, newPoly);
 					polylinesStack.Push (polyHole);
 				}
@@ -109,25 +130,28 @@ public class CaveGenerator : MonoBehaviour {
 	}
 
 	/** Generate the cave creating the holes by FIFO **/
-	void generateIterativeQueue(Polyline originPoly, Vector3 direction, float distance) {
+	void generateIterativeQueue(Polyline originPoly, float holeProb) {
 		//Queues for saving the hole information
 		Queue<Polyline> polylinesStack = new Queue<Polyline> ();
 		polylinesStack.Enqueue(originPoly);
 		Polyline newPoly;
+		float actualDistance;
+		Vector3 actualDirection;
 		while (polylinesStack.Count > 0) {
 			//new tunnel(hole) will be done, update the counter and all the data
-			--totalHoles;
+			--maxHoles;
 			originPoly = polylinesStack.Dequeue ();
-			direction = originPoly.calculateNormal ();
+			actualDistance = DecisionGenerator.Instance.generateDistance();
+			actualDirection = originPoly.calculateNormal ();
 			int actualExtrusionTimes = 0;
 			DecisionGenerator.ExtrusionOperation operation = DecisionGenerator.ExtrusionOperation.ExtrudeOnly;
 
-			while (totalHoles >= 0 && actualExtrusionTimes <= maxExtrudeTimes) {
+			while (maxHoles >= 0 && actualExtrusionTimes <= maxExtrudeTimes) {
 				++actualExtrusionTimes;
 				//Generate the new polyline applying the operation
-				newPoly = extrude (operation, originPoly, ref direction, ref distance);
-				//Make holes: mark some vertices (from old and new polyline) and form a new polyline
-				if (DecisionGenerator.Instance.makeHole(actualExtrusionTimes)) {
+				newPoly = extrude (operation, originPoly, ref actualDirection, ref actualDistance);
+				//Make hole?
+				if (DecisionGenerator.Instance.makeHole(actualExtrusionTimes,holeProb)) {
 					Polyline polyHole = makeHole (originPoly, newPoly);
 					polylinesStack.Enqueue (polyHole);
 				}
