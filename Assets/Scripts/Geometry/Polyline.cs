@@ -10,7 +10,7 @@ namespace Geometry {
 	public class Polyline {
 
 		protected Vertex[] mVertices; //Vertices that form the polyline
-		protected float minRadius = 8.0f; //Minimum radius when the scale is applied
+		protected float minRadius = 15.0f; //Minimum radius when the scale is applied
 		protected float maxRadius = 50.0f;//Maximum radius when the scale is applied
 		//******** Constructors ********//
 		public Polyline() {

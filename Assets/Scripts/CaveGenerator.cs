@@ -19,11 +19,11 @@ public class CaveGenerator : MonoBehaviour {
 		proceduralMesh = new Geometry.Mesh (iniPol);
 
 		//Start the generation
-		generateRecursive (iniPol, 0.8f);
+		//generateRecursive (iniPol, 0.8f);
 		//generateIterativeStack (iniPol, new Vector3 (0.0f, 0.0f, 0.5f), DecisionGenerator.Instance.generateDistance ());
-		//generateIterativeQueue (iniPol, new Vector3 (0.0f, 0.0f, 0.5f), DecisionGenerator.Instance.generateDistance ());
-
+		generateIterativeQueue (iniPol, new Vector3 (0.0f, 0.0f, 0.5f), DecisionGenerator.Instance.generateDistance ());
 		Debug.Log ("Triangles generated: " + proceduralMesh.getNumTriangles ());
+
 		//Generation finished, assign the vertices and triangles created to a Unity mesh
 		UnityEngine.Mesh mesh = new UnityEngine.Mesh ();
 		//mesh.vertices = mVertices.ToArray(); //Slower
@@ -37,7 +37,7 @@ public class CaveGenerator : MonoBehaviour {
 		GetComponent<MeshFilter> ().mesh = mesh;
 	}
 
-	/** Generate the cave by generating the holes/bifurcations recursively **/
+	/** Generates a hallway/tunnel of the cave. It can create holes depending on the second parameter probability **/
 	void generateRecursive(Polyline originPoly, float holeProb) {
 		//Hole make will be done, update the counter
 		--totalHoles;
@@ -54,55 +54,48 @@ public class CaveGenerator : MonoBehaviour {
 		float actualDistance = DecisionGenerator.Instance.generateDistance();
 		Vector3 actualDirection = originPoly.calculateNormal ();
 		for (int i = 0; i < maxExtrudeTimes; ++i) {
-			//Generate the new polyline applying the operation
+			//Generate the new polyline applying the corresponding operation
 			Polyline newPoly = extrude (actualOperation, originPoly, ref actualDirection, ref actualDistance);
-			//Make hole
-			if (DecisionGenerator.Instance.makeHole(i)) {
+			//Make hole?
+			if (DecisionGenerator.Instance.makeHole(i,holeProb)) {
 				Polyline polyHole = makeHole (originPoly, newPoly);
-				//Vector3 directionHole = polyHole.calculateNormal();
 				generateRecursive (polyHole, holeProb);
 			}
-
 			//Triangulate from origin to new polyline as a tube/cave shape
 			proceduralMesh.triangulatePolylines (originPoly, newPoly);
-			//Set next operation and extrude
+			//Set next operation and continue from the new polyline
 			actualOperation = DecisionGenerator.Instance.generateNextOperation();
 			originPoly = newPoly;
-			//generateRecursive(operation,newPoly,direction,distance,actualExtrusionTimes);
 		}
 		//Finally, close the actual hallway/tunnel
 		proceduralMesh.closePolyline(originPoly);
 	}
 		
 	//The following two generation methods WON'T MADE the same effect that the recursive way
-	/** Generate the cave by LIFO **/
+	/** Generate the cave creating the holes by LIFO **/
 	void generateIterativeStack(Polyline originPoly, Vector3 direction, float distance) {
 		//Stacks for saving the hole information
 		//This with generating holes with MoreExtrMoreProb is a bad combination, as it will made the impression of
 		//only one path being followed (no bifurcations)
 		Stack<Polyline> polylinesStack = new Stack<Polyline> ();
-		Stack<Vector3> holesDirectionStack = new Stack<Vector3> ();
 		polylinesStack.Push(originPoly);
-		holesDirectionStack.Push (direction);
 		Polyline newPoly;
 		while (polylinesStack.Count > 0) {
+			//new tunnel(hole) will be done, update the counter and all the data
+			--totalHoles;
 			originPoly = polylinesStack.Pop ();
-			direction = holesDirectionStack.Pop ();
+			direction = originPoly.calculateNormal ();
 			int actualExtrusionTimes = 0;
 			DecisionGenerator.ExtrusionOperation operation = DecisionGenerator.ExtrusionOperation.ExtrudeOnly;
 
 			while (totalHoles >= 0 && actualExtrusionTimes <= maxExtrudeTimes) {
-				//Extrusion will be done, update the counter
-				--totalHoles;
 				++actualExtrusionTimes;
 				//Generate the new polyline applying the operation
 				newPoly = extrude (operation, originPoly, ref direction, ref distance);
 				//Make holes: mark some vertices (from old and new polyline) and form a new polyline
 				if (DecisionGenerator.Instance.makeHole(actualExtrusionTimes)) {
 					Polyline polyHole = makeHole (originPoly, newPoly);
-					Vector3 directionHole = polyHole.calculateNormal();
 					polylinesStack.Push (polyHole);
-					holesDirectionStack.Push (directionHole);
 				}
 
 				//Triangulate from origin to new polyline as a tube/cave shape
@@ -115,32 +108,28 @@ public class CaveGenerator : MonoBehaviour {
 		}
 	}
 
-	/** Generate the cave by FIFO **/
+	/** Generate the cave creating the holes by FIFO **/
 	void generateIterativeQueue(Polyline originPoly, Vector3 direction, float distance) {
 		//Queues for saving the hole information
 		Queue<Polyline> polylinesStack = new Queue<Polyline> ();
-		Queue<Vector3> holesDirectionStack = new Queue<Vector3> ();
 		polylinesStack.Enqueue(originPoly);
-		holesDirectionStack.Enqueue(direction);
 		Polyline newPoly;
 		while (polylinesStack.Count > 0) {
+			//new tunnel(hole) will be done, update the counter and all the data
+			--totalHoles;
 			originPoly = polylinesStack.Dequeue ();
-			direction = holesDirectionStack.Dequeue ();
+			direction = originPoly.calculateNormal ();
 			int actualExtrusionTimes = 0;
 			DecisionGenerator.ExtrusionOperation operation = DecisionGenerator.ExtrusionOperation.ExtrudeOnly;
 
 			while (totalHoles >= 0 && actualExtrusionTimes <= maxExtrudeTimes) {
-				//Extrusion will be done, update the counter
-				--totalHoles;
 				++actualExtrusionTimes;
 				//Generate the new polyline applying the operation
 				newPoly = extrude (operation, originPoly, ref direction, ref distance);
 				//Make holes: mark some vertices (from old and new polyline) and form a new polyline
 				if (DecisionGenerator.Instance.makeHole(actualExtrusionTimes)) {
 					Polyline polyHole = makeHole (originPoly, newPoly);
-					Vector3 directionHole = polyHole.calculateNormal();
 					polylinesStack.Enqueue (polyHole);
-					holesDirectionStack.Enqueue (directionHole);
 				}
 
 				//Triangulate from origin to new polyline as a tube/cave shape
@@ -153,7 +142,7 @@ public class CaveGenerator : MonoBehaviour {
 		}
 	}
 
-	private float maxNormalDirectionAngle = 60.0f;
+	private float maxNormalDirectionAngle = 40.0f;
 	/**It creates a new polyline from an exsiting one, applying the corresponding operation and with the direction and distance passed **/
 	Polyline extrude(DecisionGenerator.ExtrusionOperation operation, Polyline originPoly, ref Vector3 direction, ref float distance) {
 		//Check if distance/ direction needs to be changed
@@ -205,11 +194,11 @@ public class CaveGenerator : MonoBehaviour {
 		//TODO: more than one hole, Make two holes on same polylines pairs can cause intersections!
 
 		// Decide how and where the hole will be done, take advantatge indices
-		// on the two polylines are at the same order (there are kind of a projection)
+		// on the two polylines are at the same order (the new is kind of a projection of the old)
 		int sizeHole; int firstIndex;
 		DecisionGenerator.Instance.whereToDig (originPoly.getSize(), out sizeHole, out firstIndex);
 
-		//Create the hole polyline by marking and adding the hole vertices(from old a new polylines)
+		//Create the hole polyline by marking and adding the hole vertices (from old a new polylines)
 		InitialPolyline polyHole = new InitialPolyline (sizeHole);
 		//Increasing order for the origin and decreasing for the destiny polyline in order to 
 		//make a correct triangulation

@@ -71,8 +71,9 @@ public class DecisionGenerator : MonoBehaviour {
 	}
 
 	//******** Rotation ********//
+	private int rotationLimit = 30;
 	public float generateRotation() {
-		return (float)Random.Range (-45, 46);
+		return (float)Random.Range (-rotationLimit, rotationLimit);
 	}
 
 	//******** Holes ********//
@@ -81,17 +82,24 @@ public class DecisionGenerator : MonoBehaviour {
 	public int holeK = 5; //For the k conditions
 	public float lambdaHole = 0.02f; //How each extrusion weights to the to final decision
 
+
 	public enum holeCondition {
 		EachK, EachKProb, MoreExtrMoreProb, MoreExtrLessProb
 	}
 	public holeCondition mHoleCondition;
 
-	public bool makeHole(int numExtrude) {
-		if (numExtrude < minExtrusionsForHole) //Wait at least minExtrusionsForHole to make a hole
+	public bool makeHole(int numExtrude, float probHole = 1.0f) {
+		//Wait at least minExtrusionsForHole to make a hole
+		if (numExtrude < minExtrusionsForHole) 
 			return false; 
-
-		//Different decisions to make holes
+		
+		//Check if this tunnel can make a hole
 		float r = Random.value;
+		if (r > probHole)
+			return false;
+
+		//Then apply differents decisions to make holes (or not)
+		r = Random.value;
 		switch (mHoleCondition) {
 		case (holeCondition.EachK) :{
 				if (numExtrude % holeK == 0)
