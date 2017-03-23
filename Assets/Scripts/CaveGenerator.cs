@@ -19,10 +19,11 @@ public class CaveGenerator : MonoBehaviour {
 		proceduralMesh = new Geometry.Mesh (iniPol);
 
 		//Start the generation
-		//generateRecursive (DecisionGenerator.ExtrusionOperation.ExtrudeOnly, iniPol, new Vector3 (0.0f, 0.0f, 0.5f), DecisionGenerator.Instance.generateDistance(), 0);
+		generateRecursive (DecisionGenerator.ExtrusionOperation.ExtrudeOnly, iniPol, new Vector3 (0.0f, 0.0f, 0.5f), DecisionGenerator.Instance.generateDistance(), 0);
 		//generateIterativeStack (iniPol, new Vector3 (0.0f, 0.0f, 0.5f), DecisionGenerator.Instance.generateDistance ());
-		generateIterativeQueue (iniPol, new Vector3 (0.0f, 0.0f, 0.5f), DecisionGenerator.Instance.generateDistance ());
+		//generateIterativeQueue (iniPol, new Vector3 (0.0f, 0.0f, 0.5f), DecisionGenerator.Instance.generateDistance ());
 
+		Debug.Log ("Triangles generated: " + proceduralMesh.getNumTriangles ());
 		//Generation finished, assign the vertices and triangles created to a Unity mesh
 		UnityEngine.Mesh mesh = new UnityEngine.Mesh ();
 		//mesh.vertices = mVertices.ToArray(); //Slower
@@ -66,7 +67,7 @@ public class CaveGenerator : MonoBehaviour {
 		generateRecursive(operation,newPoly,direction,distance,actualExtrusionTimes);
 	}
 		
-	//The following two generation methods WON'T MADE the same effect than the recursive way
+	//The following two generation methods WON'T MADE the same effect that the recursive way
 	/** Generate the cave by LIFO **/
 	void generateIterativeStack(Polyline originPoly, Vector3 direction, float distance) {
 		//Stacks for saving the hole information
@@ -159,7 +160,7 @@ public class CaveGenerator : MonoBehaviour {
 			//Vector3 newDirection = DecisionGenerator.Instance.changeDirection(direction);
 			Vector3 newDirection = DecisionGenerator.Instance.generateDirection();
 			//Avoid intersection and narrow halways between the old and new polylines by setting an angle limit
-			//(90 would produce a plane and bigger than 90 would produce an intersection)
+			//(90 would produce a plane and greater than 90 would produce an intersection)
 			if (Vector3.Angle(newDirection,originPoly.calculateNormal()) < maxNormalDirectionAngle) {
 				direction = newDirection; 
 			}

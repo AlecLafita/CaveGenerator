@@ -41,7 +41,7 @@ namespace Geometry {
 			return mTriangles;
 		}
 		public int getNumTriangles() {
-			return mTriangles.Count;
+			return mTriangles.Count/3;
 		}
 
 		//******** Setters ********//
