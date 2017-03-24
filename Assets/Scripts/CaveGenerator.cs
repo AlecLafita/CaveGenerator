@@ -18,6 +18,8 @@ public class CaveGenerator : MonoBehaviour {
 	}
 	public generationMethod method = generationMethod.Recursive;
 
+	public GameObject player;
+
 	/** Function to be called in order to start generating the cave **/
 	public void startGeneration (InitialPolyline iniPol) {
 		//Create the mesh that will be modified during the cave generation
@@ -49,10 +51,17 @@ public class CaveGenerator : MonoBehaviour {
 		//mesh.triangles = mTriangles.ToArray ();
 		mesh.SetTriangles (proceduralMesh.getTriangles(),0);
 		mesh.RecalculateNormals ();
-		mesh.RecalculateBounds();
+		//mesh.RecalculateBounds();
 
 		//Assign the created mesh to the one we are storing and visualizing
 		GetComponent<MeshFilter> ().mesh = mesh;
+
+		//Assign the mesh to the collider
+		GetComponent<MeshCollider>().sharedMesh = mesh;
+
+		//Instantiate the player at the cave entrance
+		GameObject pl = Instantiate(player);
+		pl.transform.position = iniPol.calculateBaricenter () + new Vector3 (0.0f, 0.0f, 5.0f);
 	}
 
 	/** Generates the cave recursively. Each call creates a tunnel, and
@@ -255,7 +264,7 @@ public class CaveGenerator : MonoBehaviour {
 	}
 
 	/** For debug purposes **/
-	void OnDrawGizmos() { 
+	/*void OnDrawGizmos() { 
 		//Avoid error messages after stopping
 		if (!Application.isPlaying) return; 
 
@@ -273,5 +282,5 @@ public class CaveGenerator : MonoBehaviour {
 			Gizmos.DrawLine (vertices [triangles[i+1]], vertices [triangles[i + 2]]);
 			Gizmos.DrawLine (vertices [triangles[i+2]], vertices [triangles[i]]);
 		}
-	}
+	}*/
 }

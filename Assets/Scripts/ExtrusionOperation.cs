@@ -29,6 +29,7 @@ public class ExtrusionOperation  {
 	public int getNumOperations() {
 		return numOperations;
 	}
+
 	/** Returns if no operations need to be done, just the extrusion **/
 	public bool justExtrude() {
 		for (int i = 0; i < numOperations; ++i) {
