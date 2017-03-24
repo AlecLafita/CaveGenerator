@@ -21,31 +21,40 @@ public class DecisionGenerator : MonoBehaviour {
 	}
 
 	//******** General decision********//
-	public ExtrusionOperation generateNextOperation() {
-		//int nextOperation = Random.Range(0,numOperations);
+	public int operationK = 3; // Every k extrusion, operation to do
+	public int operationDeviation = 2; // Add more range to make extrusions, each [k-deviation,k+deviation]
+	public ExtrusionOperation generateNextOperation (int extrusionSinceLastOperation) {
 		ExtrusionOperation op = new ExtrusionOperation();
-		op.generateRandomOperation ();
+		//Check if a new operation can be done
+		int extrusionsNeeded = Random.Range(-operationDeviation, operationDeviation+1);
+		//If it not satisfies the condition of generating an operation, return a just extrusion operation
+		if ((extrusionSinceLastOperation % operationK + extrusionsNeeded) != 0)
+			return op;
+
+		int numOperations = op.getNumOperations ();
+		int i = Random.Range (0, numOperations);
+		op.forceOperation (i);
 		return op;
 	}
 		
 	//******** Distance to extrude ********//
-	public float minDistance = 1.0f;
-	public float maxDistance = 10.0f;
+	public float distanceMin = 1.0f;
+	public float distanceMax = 10.0f;
 
 	public float generateDistance() {
-		return Random.Range (minDistance, maxDistance);
+		return Random.Range (distanceMin, distanceMax);
 	}
 
 	//******** Direction ********//
-	public float minDirectionToChange = 0.2f;
-	public float maxDirectionToChange = 0.5f;
+	public float directionMinChange = 0.2f;
+	public float directionMaxChange = 0.5f;
 	public Vector3 changeDirection(Vector3 dir) {
 		int xChange = Random.Range (-1, 2);
 		int yChange = Random.Range (-1, 2);
 		int zChange = Random.Range (-1, 2);
-		dir += new Vector3 (xChange *Random.Range(minDirectionToChange,maxDirectionToChange), 
-			yChange*Random.Range(minDirectionToChange,maxDirectionToChange),
-			zChange*Random.Range(minDirectionToChange,maxDirectionToChange));
+		dir += new Vector3 (xChange *Random.Range(directionMinChange,directionMaxChange), 
+			yChange*Random.Range(directionMinChange,directionMaxChange),
+			zChange*Random.Range(directionMinChange,directionMaxChange));
 
 		return dir.normalized;
 	}
@@ -71,47 +80,47 @@ public class DecisionGenerator : MonoBehaviour {
 
 	//******** Holes ********//
 	private int minExtrusionsForHole = 3; //Number of extrusions to wait to make hole
-	[Range (0.0f,1.0f)] public float probForHole = 0.4f; //Initial probability to do a hole
+	[Range (0.0f,1.0f)] public float holeProb = 0.4f; //Initial probability to do a hole
 	public int holeK = 5; //For the k conditions
-	public float lambdaHole = 0.02f; //How each extrusion weights to the to final decision
+	public float holeLambda = 0.02f; //How each extrusion weights to the to final decision
 
 
-	public enum holeCondition {
+	public enum holeConditions {
 		EachK, EachKProb, MoreExtrMoreProb, MoreExtrLessProb
 	}
-	public holeCondition mHoleCondition;
+	public holeConditions holeCondition;
 
-	public bool makeHole(int numExtrude, float probHole = 1.0f) {
+	public bool makeHole(int numExtrude, float tunnelProb = 1.0f) {
 		//Wait at least minExtrusionsForHole to make a hole
 		if (numExtrude < minExtrusionsForHole) 
 			return false; 
 		
 		//Check if this tunnel can make a hole
 		float r = Random.value;
-		if (r > probHole)
+		if (r > tunnelProb)
 			return false;
 
 		//Then apply differents decisions to make holes (or not)
 		r = Random.value;
-		switch (mHoleCondition) {
-		case (holeCondition.EachK) :{
+		switch (holeCondition) {
+		case (holeConditions.EachK) :{
 				if (numExtrude % holeK == 0)
 					return true;
 				break;
 			}
-		case (holeCondition.EachKProb): {
-				if ((numExtrude % holeK == 0) && r <= probForHole)
+		case (holeConditions.EachKProb): {
+				if ((numExtrude % holeK == 0) && r <= holeProb)
 					return true;
 				break;
 			}
-		case (holeCondition.MoreExtrMoreProb): {
-				Debug.Log (probForHole + numExtrude * lambdaHole);
-				if (r <= probForHole + numExtrude * lambdaHole)
+		case (holeConditions.MoreExtrMoreProb): {
+				Debug.Log (holeProb + numExtrude * holeLambda);
+				if (r <= holeProb + numExtrude * holeLambda)
 					return true;
 				break;
 			}
-		case (holeCondition.MoreExtrLessProb): {
-				if (r <= probForHole - numExtrude * lambdaHole)
+		case (holeConditions.MoreExtrLessProb): {
+				if (r <= holeProb - numExtrude * holeLambda)
 					return true;
 				break;
 			}
@@ -121,12 +130,12 @@ public class DecisionGenerator : MonoBehaviour {
 		return false;
 	}
 
-	public int maxVerticesHole = 10;
+	public int holeMaxVertices = 10;
 	public void whereToDig(int numV, out int sizeHole, out int firstIndex) {
 		//TODO: improve this to avoid intersections (artifacts)
 		sizeHole = Random.Range(2,numV);
 		sizeHole *= 2; //Must be a pair number!
-		sizeHole = Mathf.Min (sizeHole, maxVerticesHole);
+		sizeHole = Mathf.Min (sizeHole, holeMaxVertices);
 		firstIndex = Random.Range (0, numV);
 	}
 

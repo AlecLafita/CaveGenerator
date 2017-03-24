@@ -6,13 +6,13 @@ using UnityEngine;
 public class ExtrusionOperation  {
 
 	//Number of different operations
-	private int numOperations = 4;
+	private const int numOperations = 4;
 
 	//Position of each operation
-	private int distance = 0; 
-	private int direction = 1;
-	private int scale = 2;
-	private int rotation = 3;
+	private const int distance = 0; 
+	private const int direction = 1;
+	private const int scale = 2;
+	private const int rotation = 3;
 
 	//Which operations to apply
 	private bool[] operation;
@@ -24,8 +24,12 @@ public class ExtrusionOperation  {
 		reset ();
 	}
 
-	/*********Getters**********/
-	/** Returns true if no operations needs to be done, just the extrusion **/
+	//*********Getters**********//
+	/**Returns how many different operations are **/
+	public int getNumOperations() {
+		return numOperations;
+	}
+	/** Returns if no operations need to be done, just the extrusion **/
 	public bool justExtrude() {
 		for (int i = 0; i < numOperations; ++i) {
 			if (operation[i])
@@ -54,37 +58,35 @@ public class ExtrusionOperation  {
 		return operation [rotation];
 	}
 
-	/*********Setters**********/
-	/** Generate one random operation to be applied **/
-	public void generateRandomOperation() {
-		int i = Random.Range(0,numOperations);
-		operation [i] = true;
-	}
-
+	//*********Setters**********//
 	/** Resets the operation, making it as a simpe extrusion **/
 	public void reset() {
 		for (int i = 0; i < numOperations; ++i) {
 			operation [i] = false;
 		}
 	}
+	/** Force one specific operation to be done, from it's position **/
+	public void forceOperation(int i) {
+		operation [i] = true;
+	}
 
 	/** Forces to make a distance change**/
-	public void doDistanceOperation() {
+	public void forceDistanceOperation() {
 		operation [distance]= true;
 	}
 
 	/** Forces to make a direction change**/
-	public void doDirectionOperation() {
+	public void forceDirectionOperation() {
 		operation [direction]= true;
 	}
 
 	/** Forces to make a scale **/
-	public void doScaleOperation() {
+	public void forceScaleOperation() {
 		operation [scale]= true;
 	}
 
 	/** Forces to make a rotation **/
-	public void doRotationOperation() {
+	public void forceRotationOperation() {
 		operation [rotation] = true;
 	}
 		
