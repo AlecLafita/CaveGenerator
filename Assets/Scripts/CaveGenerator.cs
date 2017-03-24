@@ -69,7 +69,7 @@ public class CaveGenerator : MonoBehaviour {
 		//TODO: change maxExtrudeTimes as holes are done (eg, random number between a rank)
 
 		//Generate the actual hallway/tunnel
-		DecisionGenerator.ExtrusionOperation actualOperation = DecisionGenerator.ExtrusionOperation.ExtrudeOnly;
+		ExtrusionOperation actualOperation = new ExtrusionOperation();
 		float actualDistance = DecisionGenerator.Instance.generateDistance();
 		Vector3 actualDirection = originPoly.calculateNormal ();
 		for (int i = 0; i < maxExtrudeTimes; ++i) {
@@ -107,7 +107,7 @@ public class CaveGenerator : MonoBehaviour {
 			actualDistance = DecisionGenerator.Instance.generateDistance();
 			actualDirection = originPoly.calculateNormal ();
 			int actualExtrusionTimes = 0;
-			DecisionGenerator.ExtrusionOperation operation = DecisionGenerator.ExtrusionOperation.ExtrudeOnly;
+			ExtrusionOperation operation = new ExtrusionOperation();
 
 			while (maxHoles >= 0 && actualExtrusionTimes <= maxExtrudeTimes) {
 				++actualExtrusionTimes;
@@ -144,7 +144,7 @@ public class CaveGenerator : MonoBehaviour {
 			actualDistance = DecisionGenerator.Instance.generateDistance();
 			actualDirection = originPoly.calculateNormal ();
 			int actualExtrusionTimes = 0;
-			DecisionGenerator.ExtrusionOperation operation = DecisionGenerator.ExtrusionOperation.ExtrudeOnly;
+			ExtrusionOperation operation = new ExtrusionOperation();
 
 			while (maxHoles >= 0 && actualExtrusionTimes <= maxExtrudeTimes) {
 				++actualExtrusionTimes;
@@ -168,12 +168,12 @@ public class CaveGenerator : MonoBehaviour {
 
 	private float maxNormalDirectionAngle = 40.0f;
 	/**It creates a new polyline from an exsiting one, applying the corresponding operation and with the direction and distance passed **/
-	Polyline extrude(DecisionGenerator.ExtrusionOperation operation, Polyline originPoly, ref Vector3 direction, ref float distance) {
+	Polyline extrude(ExtrusionOperation operation, Polyline originPoly, ref Vector3 direction, ref float distance) {
 		//Check if distance/ direction needs to be changed
-		if (operation == DecisionGenerator.ExtrusionOperation.ChangeDistance) {
+		if (operation.distanceOperation()) {
 			distance = DecisionGenerator.Instance.generateDistance ();
 		}
-		if (operation == DecisionGenerator.ExtrusionOperation.ChangeDirection) {
+		if (operation .directionOperation()) {
 			//This does not change the normal! The normal is always the same as all the points of a polyline are generated at 
 			//the same distance that it's predecessor polyline (at the moment at least)
 
@@ -196,18 +196,13 @@ public class CaveGenerator : MonoBehaviour {
 			//Add the new vertex to the mesh
 			proceduralMesh.addVertex(newPoly.getVertex(i).getPosition());
 		}
+
 		//Apply operations, if any
-		switch (operation) {
-		case (DecisionGenerator.ExtrusionOperation.Scale) : {
-				newPoly.scale (DecisionGenerator.Instance.generateScale());
-				break;
-			}
-		case (DecisionGenerator.ExtrusionOperation.Rotate): {
-				newPoly.rotate (DecisionGenerator.Instance.generateRotation());
-				break;
-			}
-		default:
-			break;
+		if (operation.scaleOperation()) {
+			newPoly.scale (DecisionGenerator.Instance.generateScale());
+		}
+		if (operation.rotationOperation ()) {
+			newPoly.rotate (DecisionGenerator.Instance.generateRotation());
 		}
 
 		return newPoly;

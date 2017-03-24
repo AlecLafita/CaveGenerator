@@ -20,19 +20,12 @@ public class DecisionGenerator : MonoBehaviour {
 		}
 	}
 
-	//******** Different operations ********//
-	private int numOperations = 5;
-	//TODO: As more than one operation can be applied at a time, should be a good idea
-	//implement the different operations as a binary positions
-	public enum ExtrusionOperation
-	{
-		ExtrudeOnly, ChangeDistance, ChangeDirection, Scale, Rotate
-	}
-
 	//******** General decision********//
 	public ExtrusionOperation generateNextOperation() {
-		int nextOperation = Random.Range(0,numOperations);
-		return (ExtrusionOperation)nextOperation;
+		//int nextOperation = Random.Range(0,numOperations);
+		ExtrusionOperation op = new ExtrusionOperation();
+		op.generateRandomOperation ();
+		return op;
 	}
 		
 	//******** Distance to extrude ********//
@@ -130,7 +123,7 @@ public class DecisionGenerator : MonoBehaviour {
 
 	public int maxVerticesHole = 10;
 	public void whereToDig(int numV, out int sizeHole, out int firstIndex) {
-		//TODO: improve this to avoid intersections
+		//TODO: improve this to avoid intersections (artifacts)
 		sizeHole = Random.Range(2,numV);
 		sizeHole *= 2; //Must be a pair number!
 		sizeHole = Mathf.Min (sizeHole, maxVerticesHole);
