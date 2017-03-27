@@ -85,12 +85,15 @@ public class CaveGenerator : MonoBehaviour {
 		Vector3 actualDirection = originPoly.calculateNormal ();
 		int extrusionsSinceOperation = 0;
 		for (int i = 0; i < maxExtrudeTimes; ++i) {
+			IntersectionsController.Instance.addPolyline(originPoly);
 			//Generate the new polyline applying the corresponding operation
 			Polyline newPoly = extrude (actualOperation, originPoly, ref actualDirection, ref actualDistance);
 			//Make hole?
 			if (DecisionGenerator.Instance.makeHole(i,holeProb)) {
+				IntersectionsController.Instance.addActualBox ();
 				Polyline polyHole = makeHole (originPoly, newPoly);
 				generateRecursive (polyHole, holeProb);
+				IntersectionsController.Instance.addPolyline(originPoly);
 			}
 			//Triangulate from origin to new polyline as a tube/cave shape
 			proceduralMesh.triangulatePolylines (originPoly, newPoly);
@@ -103,6 +106,8 @@ public class CaveGenerator : MonoBehaviour {
 			originPoly = newPoly;
 		}
 		//Finally, close the actual hallway/tunnel
+		IntersectionsController.Instance.addPolyline(originPoly);
+		IntersectionsController.Instance.addActualBox ();
 		proceduralMesh.closePolyline(originPoly);
 	}
 		
@@ -201,7 +206,7 @@ public class CaveGenerator : MonoBehaviour {
 		if (operation.distanceOperation()) {
 			distance = DecisionGenerator.Instance.generateDistance ();
 		}
-		if (operation .directionOperation()) {
+		if (operation.directionOperation()) {
 			//This does not change the normal! The normal is always the same as all the points of a polyline are generated at 
 			//the same distance that it's predecessor polyline (at the moment at least)
 
@@ -211,6 +216,8 @@ public class CaveGenerator : MonoBehaviour {
 			//(90 would produce a plane and greater than 90 would produce an intersection)
 			if (Vector3.Angle(newDirection,originPoly.calculateNormal()) < maxNormalDirectionAngle) {
 				direction = newDirection; 
+				IntersectionsController.Instance.addActualBox ();
+				IntersectionsController.Instance.addPolyline (originPoly);
 			}
 		}
 
@@ -276,7 +283,7 @@ public class CaveGenerator : MonoBehaviour {
 	void OnDrawGizmos() { 
 		//Avoid error messages after stopping
 		if (!Application.isPlaying) return; 
-
+		/*
 		//Draw triangles vertices
 		Vector3[] vertices = proceduralMesh.getVertices().ToArray ();
 		for (int i = 0; i < vertices.Length; ++i) {
@@ -290,8 +297,12 @@ public class CaveGenerator : MonoBehaviour {
 			Gizmos.DrawLine (vertices [triangles[i]], vertices [triangles[i + 1]]);
 			Gizmos.DrawLine (vertices [triangles[i+1]], vertices [triangles[i + 2]]);
 			Gizmos.DrawLine (vertices [triangles[i+2]], vertices [triangles[i]]);
-		}
+		}*/
 
 		//Draw intersection BBs
+		List<Bounds> BBs = IntersectionsController.Instance.getBBs();
+		foreach (Bounds BB in BBs) {
+			Gizmos.DrawCube (BB.center, BB.size);
+		}
 	}
 }
