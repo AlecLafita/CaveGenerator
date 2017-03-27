@@ -11,7 +11,9 @@ using Geometry;
 public class IntersectionsController : MonoBehaviour {
 
 	private static List<Bounds> boundingBoxes;
+	private static Bounds lastBB;
 	private static List<Polyline> actualPolylines;
+	private static Polyline lastPoly;//Last BB created
 	private static float epsilon = 0.1f;
 	//******** Singleton stuff ********//
 	private static IntersectionsController mInstace; 
@@ -19,6 +21,8 @@ public class IntersectionsController : MonoBehaviour {
 		mInstace = this;
 		boundingBoxes = new List<Bounds> ();
 		actualPolylines = new List<Polyline> ();
+		lastBB = new Bounds();
+		lastPoly = null;
 	}
 
 	public static IntersectionsController Instance {
@@ -32,34 +36,45 @@ public class IntersectionsController : MonoBehaviour {
 		return boundingBoxes;
 	}
 
+	public Bounds getLastBB() {
+		return lastBB;
+	}
+
 	//******** Other functions ********//
 	/**Adds a new polyline to the actual set **/
 	public void addPolyline(Polyline p ) {
-		actualPolylines.Add (p);
+		if (lastPoly != p) { //Avoid adding repeated polylines
+			actualPolylines.Add (p);
+			lastPoly = p;
+		}
 	}
 
 	/**Empties the actual set of polylines**/
-	public void resetActual() {
+	private void resetActual() {
 		actualPolylines.Clear ();
+		lastPoly = null;
 	}
 
 	/**Uses the actual set of polylines to create a new bounding box **/
 	public void addActualBox() {
-		if (actualPolylines.Count > 2) {
+		if (actualPolylines.Count > 1) {
 			Bounds newBB = BBfromPolylines (actualPolylines);
 			//Add the new BB and reset the set of polylines
 			boundingBoxes.Add (newBB);
-			resetActual ();
+			lastBB = newBB;
 		}
+		resetActual ();
+
 	}
 
 	/**Check if the received extrusion do intersect with the previous ones**/
 	public bool doIntersect(Polyline orig, Polyline dest) {
+		//TODO: avoid checking intersection between hole and the tunnel it did, at least for the first extrusion
 		List<Polyline> extr = new List<Polyline> ();
 		extr.Add (orig); extr.Add (dest);
 		Bounds extrusionBox = BBfromPolylines (extr);
-		for (int i = 0; i < boundingBoxes.Count; ++i) {
-			if (extrusionBox.Intersects (boundingBoxes [i]))
+		foreach (Bounds BB in boundingBoxes) {
+			if (extrusionBox.Intersects (BB))
 				return true;
 		}
 		return false;
@@ -71,9 +86,9 @@ public class IntersectionsController : MonoBehaviour {
 		Vector3 min = new Vector3 (float.MaxValue,float.MaxValue,float.MaxValue);
 		Vector3 max = new Vector3 (float.MinValue, float.MinValue, float.MinValue);
 		Vector3 actualPoint;
-		for (int i = 0; i < ps.Count; ++i) {
-			for (int j = 0; j < ps [i].getSize(); ++j) {
-				actualPoint = ps [i].getVertex (j).getPosition ();
+		foreach (Polyline p in ps) {
+			for (int j = 0; j < p.getSize(); ++j) {
+				actualPoint = p.getVertex (j).getPosition ();
 				if (actualPoint.x > max.x) max.x = actualPoint.x;
 				if (actualPoint.y > max.y) max.y = actualPoint.y;
 				if (actualPoint.z > max.z) max.z = actualPoint.z;

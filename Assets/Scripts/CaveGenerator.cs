@@ -42,6 +42,8 @@ public class CaveGenerator : MonoBehaviour {
 				generateIterativeQueue (iniPol, tunnelHoleProb);
 				break;
 			}
+			default:
+				break;
 		}
 		Debug.Log ("Vertices generated: " + proceduralMesh.getNumVertices ());
 		Debug.Log ("Triangles generated: " + proceduralMesh.getNumTriangles ());
@@ -93,7 +95,6 @@ public class CaveGenerator : MonoBehaviour {
 			if (newPoly == null) {
 				//TODO: improve this
 				actualOperation = DecisionGenerator.Instance.generateNextOperation(extrusionsSinceOperation);
-
 				continue;
 			}
 			//Make hole?
@@ -117,8 +118,6 @@ public class CaveGenerator : MonoBehaviour {
 		IntersectionsController.Instance.addPolyline(originPoly);
 		IntersectionsController.Instance.addActualBox ();
 		proceduralMesh.closePolyline(originPoly);
-		//Just in case this tunnel gets with one extrusion (in case all tested directions get in an intersection)
-		IntersectionsController.Instance.resetActual();
 	}
 		
 	/** Generate the cave iteratively creating the holes by LIFO **/
@@ -141,11 +140,13 @@ public class CaveGenerator : MonoBehaviour {
 			actualExtrusionTimes = 0;
 			extrusionsSinceOperation = 0;
 			ExtrusionOperation operation = new ExtrusionOperation();
-
+			IntersectionsController.Instance.addPolyline (originPoly);
 			while (maxHoles >= 0 && actualExtrusionTimes <= maxExtrudeTimes) {
 				++actualExtrusionTimes;
 				//Generate the new polyline applying the operation
 				newPoly = extrude (operation, originPoly, ref actualDirection, ref actualDistance);
+				if (newPoly == null)
+					continue;
 				//Make hole?
 				if (DecisionGenerator.Instance.makeHole(actualExtrusionTimes,holeProb)) {
 					Polyline polyHole = makeHole (originPoly, newPoly);
@@ -162,6 +163,8 @@ public class CaveGenerator : MonoBehaviour {
 					extrusionsSinceOperation = 0;
 				originPoly = newPoly;
 			}
+			IntersectionsController.Instance.addPolyline (originPoly);
+			IntersectionsController.Instance.addActualBox ();
 			proceduralMesh.closePolyline(originPoly);
 		}
 	}
@@ -216,18 +219,18 @@ public class CaveGenerator : MonoBehaviour {
 		if (operation.distanceOperation()) {
 			distance = DecisionGenerator.Instance.generateDistance ();
 		}
+		Vector3 newDirection =  new Vector3();
 		if (operation.directionOperation()) {
 			//This does not change the normal! The normal is always the same as all the points of a polyline are generated at 
 			//the same distance that it's predecessor polyline (at the moment at least)
 
 			//Vector3 newDirection = DecisionGenerator.Instance.changeDirection(direction);
-			Vector3 newDirection = DecisionGenerator.Instance.generateDirection();
+			 newDirection = DecisionGenerator.Instance.generateDirection();
 			//Avoid intersection and narrow halways between the old and new polylines by setting an angle limit
 			//(90 would produce a plane and greater than 90 would produce an intersection)
 			if (Vector3.Angle(newDirection,originPoly.calculateNormal()) < maxNormalDirectionAngle) {
 				direction = newDirection; 
-				IntersectionsController.Instance.addActualBox ();
-				IntersectionsController.Instance.addPolyline (originPoly);
+
 			}
 		}
 
@@ -241,9 +244,12 @@ public class CaveGenerator : MonoBehaviour {
 
 		}
 		//Check there is no intersection
-		if (IntersectionsController.Instance.doIntersect(originPoly,newPoly))
+		if (IntersectionsController.Instance.doIntersect (originPoly, newPoly))
 			return null;
-		
+		else if (direction == newDirection) {
+			IntersectionsController.Instance.addActualBox ();
+			IntersectionsController.Instance.addPolyline (originPoly);
+		}
 		//Add new polyline to the mesh
 		for (int i = 0; i < originPoly.getSize (); ++i) {
 			//Add the new vertex to the mesh
