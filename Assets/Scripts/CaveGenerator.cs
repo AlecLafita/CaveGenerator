@@ -50,8 +50,10 @@ public class CaveGenerator : MonoBehaviour {
 		mesh.SetVertices (proceduralMesh.getVertices());
 		//mesh.triangles = mTriangles.ToArray ();
 		mesh.SetTriangles (proceduralMesh.getTriangles(),0);
+		mesh.SetUVs (0, proceduralMesh.getUVs ());
+		//http://schemingdeveloper.com/2014/10/17/better-method-recalculate-normals-unity/
 		mesh.RecalculateNormals ();
-		//mesh.RecalculateBounds();
+		mesh.RecalculateBounds();
 
 		//Assign the created mesh to the one we are storing and visualizing
 		GetComponent<MeshFilter> ().mesh = mesh;
@@ -264,7 +266,7 @@ public class CaveGenerator : MonoBehaviour {
 	}
 
 	/** For debug purposes **/
-	/*void OnDrawGizmos() { 
+	void OnDrawGizmos() { 
 		//Avoid error messages after stopping
 		if (!Application.isPlaying) return; 
 
@@ -282,5 +284,5 @@ public class CaveGenerator : MonoBehaviour {
 			Gizmos.DrawLine (vertices [triangles[i+1]], vertices [triangles[i + 2]]);
 			Gizmos.DrawLine (vertices [triangles[i+2]], vertices [triangles[i]]);
 		}
-	}*/
+	}
 }

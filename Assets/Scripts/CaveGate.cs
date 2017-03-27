@@ -36,6 +36,8 @@ public class CaveGate : MonoBehaviour {
 		if (Input.GetMouseButtonDown (1) && pointsSelected==gateSize && !generatorCalled) {//right click
 			//Generate the cave when the user has selected all the points
 			cam.ResetProjectionMatrix();
+			cam.enabled = false;
+			cam.GetComponent<AudioListener> ().enabled = false;
 			Debug.Log("Starting generation");
 			//TODO:check it's clockwise. In case it's not, transform it
 			initialPoints.initializeIndices();

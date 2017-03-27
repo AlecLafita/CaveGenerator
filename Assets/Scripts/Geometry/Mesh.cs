@@ -13,19 +13,22 @@ namespace Geometry {
 		private List<Vector3> mVertices; //The vertices position. There's no need to have them as a Vertex instances
 		private List<int> mTriangles; //The triangles that form the mesh. It has a size multiple of three as 
 									  //uses the vertices indices
+		private List<Vector2> mUVs; //UVs coordinates. Position corresponding for each vertex
 
 		//******** Constructors ********//
 		public Mesh() {
 			mVertices = new List<Vector3>();
 			mTriangles = new List<int>();
+			mUVs = new List<Vector2> ();
 		}
 
 		/** Creates the mesh intializating it with a polyline's vertices **/
 		public Mesh (Polyline iniPol) {
 			mVertices = new List<Vector3>();
 			mTriangles = new List<int>();
+			mUVs = new List<Vector2> ();
 			for (int i = 0; i < iniPol.getSize (); ++i) {
-				mVertices.Add (iniPol.getVertex (i).getPosition ());
+				addVertex (iniPol.getVertex (i).getPosition ());
 			}
 		}
 
@@ -44,6 +47,10 @@ namespace Geometry {
 			return mTriangles.Count/3;
 		}
 
+		public List<Vector2> getUVs() {
+			return mUVs;
+		}
+
 		//******** Setters ********//
 		public void setVertices(List<Vector3> vertices) {
 			mVertices = vertices;
@@ -53,10 +60,17 @@ namespace Geometry {
 			mTriangles = triangles;
 		}
 
+		public void setUVs(List<Vector2> uvs) {
+			mUVs = uvs;
+		}
+
 		//******** Other functions ********//
 		/** Adds a new vertex to the mesh **/
 		public void addVertex(Vector3 v) {
 			mVertices.Add (v);
+			//Generate random texture position
+			Vector2 uv = new Vector2 (Random.Range (0.0f, 10.0f), Random.Range (0.0f, 10.0f));
+			mUVs.Add (uv);
 		}
 
 		/** Adds a new triangle to the mesh**/

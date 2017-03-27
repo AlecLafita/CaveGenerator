@@ -34,7 +34,7 @@ public class DecisionGenerator : MonoBehaviour {
 			return op;
 		
 		int numOperations = op.getNumOperations ();
-		int operationsToDo = 4;//Random.Range (1, operationMax + 1);
+		int operationsToDo = Random.Range (1, operationMax + 1);
 		for (int i = 0; i < operationsToDo;++i) {
 			int opPos = Random.Range (0, numOperations);
 			op.forceOperation (opPos);
@@ -142,6 +142,7 @@ public class DecisionGenerator : MonoBehaviour {
 		sizeHole *= 2; //Must be a pair number!
 		sizeHole = Mathf.Min (sizeHole, holeMaxVertices);
 		firstIndex = Random.Range (0, numV);
+		//sizeHole = 12;
 	}
 
 }
