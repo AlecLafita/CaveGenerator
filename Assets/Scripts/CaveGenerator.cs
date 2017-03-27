@@ -224,6 +224,13 @@ public class CaveGenerator : MonoBehaviour {
 			//Add the new vertex to the mesh
 			proceduralMesh.addVertex(newPoly.getVertex(i).getPosition());
 		}
+		//Check there is no intersection
+		/*
+		//Add new polyline to the mesh
+		for (int i = 0; i < originPoly.getSize (); ++i) {
+			//Add the new vertex to the mesh
+			proceduralMesh.addVertex(newPoly.getVertex(i).getPosition());
+		}*/
 
 		//Apply operations, if any
 		if (operation.scaleOperation()) {
@@ -284,5 +291,7 @@ public class CaveGenerator : MonoBehaviour {
 			Gizmos.DrawLine (vertices [triangles[i+1]], vertices [triangles[i + 2]]);
 			Gizmos.DrawLine (vertices [triangles[i+2]], vertices [triangles[i]]);
 		}
+
+		//Draw intersection BBs
 	}
 }
