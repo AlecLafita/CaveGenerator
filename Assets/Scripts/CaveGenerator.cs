@@ -31,7 +31,7 @@ public class CaveGenerator : MonoBehaviour {
 		float tunnelHoleProb = 0.8f;
 		switch (method) {
 			case(generationMethod.Recursive): {
-				generateRecursive (iniPol, tunnelHoleProb);
+				generateRecursive (iniPol, tunnelHoleProb,-1);
 				break;
 			}
 			case(generationMethod.IterativeStack): {
@@ -72,7 +72,7 @@ public class CaveGenerator : MonoBehaviour {
 
 	/** Generates the cave recursively. Each call creates a tunnel, and
 	 *  holes can be created depending on the second parameter probability [0-1] **/
-	void generateRecursive(Polyline originPoly, float holeProb) {
+	void generateRecursive(Polyline originPoly, float holeProb, int canIntersect) {
 		//Hole is done, update the counter
 		--maxHoles;
 
@@ -89,9 +89,10 @@ public class CaveGenerator : MonoBehaviour {
 		Vector3 actualDirection = originPoly.calculateNormal ();
 		int extrusionsSinceOperation = 0;
 		for (int i = 0; i < maxExtrudeTimes; ++i) {
+			//TODO: Ignore intersections bewtween the hole just generated and the end of the actual tunnel
 			IntersectionsController.Instance.addPolyline(originPoly);
 			//Generate the new polyline applying the corresponding operation
-			Polyline newPoly = extrude (actualOperation, originPoly, ref actualDirection, ref actualDistance);
+			Polyline newPoly = extrude (actualOperation, originPoly, ref actualDirection, ref actualDistance, ref canIntersect);
 			if (newPoly == null) {
 				//TODO: improve this
 				actualOperation = DecisionGenerator.Instance.generateNextOperation(extrusionsSinceOperation);
@@ -100,8 +101,9 @@ public class CaveGenerator : MonoBehaviour {
 			//Make hole?
 			if (DecisionGenerator.Instance.makeHole(i,holeProb)) {
 				IntersectionsController.Instance.addActualBox ();
+				canIntersect = -1;
 				Polyline polyHole = makeHole (originPoly, newPoly);
-				generateRecursive (polyHole, holeProb);
+				generateRecursive (polyHole, holeProb, IntersectionsController.Instance.getLastBB());
 				IntersectionsController.Instance.addPolyline(originPoly);
 			}
 			//Triangulate from origin to new polyline as a tube/cave shape
@@ -126,11 +128,13 @@ public class CaveGenerator : MonoBehaviour {
 		//This with generating holes with MoreExtrMoreProb is a bad combination, as it will made the impression of
 		//only one path being followed (no bifurcations)
 		Stack<Polyline> polylinesStack = new Stack<Polyline> ();
+		Stack<int> noIntersectionsStack = new Stack<int> ();
 		polylinesStack.Push(originPoly);
+		noIntersectionsStack.Push (-1);
 		Polyline newPoly;
 		float actualDistance;
 		Vector3 actualDirection;
-		int actualExtrusionTimes, extrusionsSinceOperation;
+		int actualExtrusionTimes, extrusionsSinceOperation, noIntersection;
 		while (polylinesStack.Count > 0) {
 			//new tunnel(hole) will be done, update the counter and all the data
 			--maxHoles;
@@ -139,18 +143,21 @@ public class CaveGenerator : MonoBehaviour {
 			actualDirection = originPoly.calculateNormal ();
 			actualExtrusionTimes = 0;
 			extrusionsSinceOperation = 0;
+			noIntersection = noIntersectionsStack.Pop ();
 			ExtrusionOperation operation = new ExtrusionOperation();
-			IntersectionsController.Instance.addPolyline (originPoly);
 			while (maxHoles >= 0 && actualExtrusionTimes <= maxExtrudeTimes) {
+				IntersectionsController.Instance.addPolyline (originPoly);
 				++actualExtrusionTimes;
 				//Generate the new polyline applying the operation
-				newPoly = extrude (operation, originPoly, ref actualDirection, ref actualDistance);
+				newPoly = extrude (operation, originPoly, ref actualDirection, ref actualDistance, ref noIntersection);
 				if (newPoly == null)
 					continue;
 				//Make hole?
 				if (DecisionGenerator.Instance.makeHole(actualExtrusionTimes,holeProb)) {
+					noIntersection = -1;
 					Polyline polyHole = makeHole (originPoly, newPoly);
 					polylinesStack.Push (polyHole);
+					noIntersectionsStack.Push (IntersectionsController.Instance.getLastBB ()+1);
 				}
 
 				//Triangulate from origin to new polyline as a tube/cave shape
@@ -173,12 +180,15 @@ public class CaveGenerator : MonoBehaviour {
 	void generateIterativeQueue(Polyline originPoly, float holeProb) {
 		//Queues for saving the hole information
 		Queue<Polyline> polylinesStack = new Queue<Polyline> ();
+		Queue<int> noIntersectionsQueue = new Queue<int> ();
 		polylinesStack.Enqueue(originPoly);
+		noIntersectionsQueue.Enqueue (-1);
 		Polyline newPoly;
 		float actualDistance;
 		Vector3 actualDirection;
-		int actualExtrusionTimes, extrusionsSinceOperation;
+		int actualExtrusionTimes, extrusionsSinceOperation, noIntersection;
 		while (polylinesStack.Count > 0) {
+			IntersectionsController.Instance.addPolyline (originPoly);
 			//new tunnel(hole) will be done, update the counter and all the data
 			--maxHoles;
 			originPoly = polylinesStack.Dequeue ();
@@ -187,15 +197,20 @@ public class CaveGenerator : MonoBehaviour {
 			actualExtrusionTimes = 0;
 			extrusionsSinceOperation = 0;
 			ExtrusionOperation operation = new ExtrusionOperation();
+			noIntersection = noIntersectionsQueue.Dequeue ();
 
 			while (maxHoles >= 0 && actualExtrusionTimes <= maxExtrudeTimes) {
 				++actualExtrusionTimes;
 				//Generate the new polyline applying the operation
-				newPoly = extrude (operation, originPoly, ref actualDirection, ref actualDistance);
+				newPoly = extrude (operation, originPoly, ref actualDirection, ref actualDistance, ref noIntersection);
+				if (newPoly == null)
+					continue;
 				//Make hole?
 				if (DecisionGenerator.Instance.makeHole(actualExtrusionTimes,holeProb)) {
+					noIntersection = -1;
 					Polyline polyHole = makeHole (originPoly, newPoly);
 					polylinesStack.Enqueue (polyHole);
+					noIntersectionsQueue.Enqueue (IntersectionsController.Instance.getLastBB ()+1);
 				}
 
 				//Triangulate from origin to new polyline as a tube/cave shape
@@ -208,13 +223,15 @@ public class CaveGenerator : MonoBehaviour {
 					extrusionsSinceOperation = 0;
 				originPoly = newPoly;
 			}
+			IntersectionsController.Instance.addPolyline (originPoly);
+			IntersectionsController.Instance.addActualBox ();
 			proceduralMesh.closePolyline(originPoly);
 		}
 	}
 
 	private float maxNormalDirectionAngle = 40.0f;
 	/**It creates a new polyline from an exsiting one, applying the corresponding operation and with the direction and distance passed **/
-	Polyline extrude(ExtrusionOperation operation, Polyline originPoly, ref Vector3 direction, ref float distance) {
+	Polyline extrude(ExtrusionOperation operation, Polyline originPoly, ref Vector3 direction, ref float distance, ref int canIntersect) {
 		//Check if distance/ direction needs to be changed
 		if (operation.distanceOperation()) {
 			distance = DecisionGenerator.Instance.generateDistance ();
@@ -229,8 +246,10 @@ public class CaveGenerator : MonoBehaviour {
 			//Avoid intersection and narrow halways between the old and new polylines by setting an angle limit
 			//(90 would produce a plane and greater than 90 would produce an intersection)
 			if (Vector3.Angle(newDirection,originPoly.calculateNormal()) < maxNormalDirectionAngle) {
-				direction = newDirection; 
-
+				direction = newDirection;
+			IntersectionsController.Instance.addActualBox ();
+			IntersectionsController.Instance.addPolyline (originPoly);
+				canIntersect = -1;
 			}
 		}
 
@@ -244,12 +263,12 @@ public class CaveGenerator : MonoBehaviour {
 
 		}
 		//Check there is no intersection
-		if (IntersectionsController.Instance.doIntersect (originPoly, newPoly))
+		if (IntersectionsController.Instance.doIntersect (originPoly, newPoly,canIntersect))
 			return null;
-		else if (direction == newDirection) {
+		/*else if (direction == newDirection) {
 			IntersectionsController.Instance.addActualBox ();
 			IntersectionsController.Instance.addPolyline (originPoly);
-		}
+		}*/
 		//Add new polyline to the mesh
 		for (int i = 0; i < originPoly.getSize (); ++i) {
 			//Add the new vertex to the mesh

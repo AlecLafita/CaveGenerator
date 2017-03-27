@@ -138,7 +138,7 @@ public class DecisionGenerator : MonoBehaviour {
 	public int holeMaxVertices = 10;
 	public void whereToDig(int numV, out int sizeHole, out int firstIndex) {
 		//TODO: improve this to avoid intersections (artifacts)
-		sizeHole = Random.Range(2,numV);
+		sizeHole = Random.Range(2,numV/2);
 		sizeHole *= 2; //Must be a pair number!
 		sizeHole = Mathf.Min (sizeHole, holeMaxVertices);
 		firstIndex = Random.Range (0, numV);

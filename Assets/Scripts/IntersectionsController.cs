@@ -11,7 +11,6 @@ using Geometry;
 public class IntersectionsController : MonoBehaviour {
 
 	private static List<Bounds> boundingBoxes;
-	private static Bounds lastBB;
 	private static List<Polyline> actualPolylines;
 	private static Polyline lastPoly;//Last BB created
 	private static float epsilon = 0.1f;
@@ -21,7 +20,6 @@ public class IntersectionsController : MonoBehaviour {
 		mInstace = this;
 		boundingBoxes = new List<Bounds> ();
 		actualPolylines = new List<Polyline> ();
-		lastBB = new Bounds();
 		lastPoly = null;
 	}
 
@@ -36,8 +34,8 @@ public class IntersectionsController : MonoBehaviour {
 		return boundingBoxes;
 	}
 
-	public Bounds getLastBB() {
-		return lastBB;
+	public int getLastBB() {
+		return boundingBoxes.Count - 1;
 	}
 
 	//******** Other functions ********//
@@ -61,21 +59,22 @@ public class IntersectionsController : MonoBehaviour {
 			Bounds newBB = BBfromPolylines (actualPolylines);
 			//Add the new BB and reset the set of polylines
 			boundingBoxes.Add (newBB);
-			lastBB = newBB;
 		}
 		resetActual ();
 
 	}
 
 	/**Check if the received extrusion do intersect with the previous ones**/
-	public bool doIntersect(Polyline orig, Polyline dest) {
-		//TODO: avoid checking intersection between hole and the tunnel it did, at least for the first extrusion
+	public bool doIntersect(Polyline orig, Polyline dest, int canIntersect) {
+		//canIntersect = -1;
 		List<Polyline> extr = new List<Polyline> ();
 		extr.Add (orig); extr.Add (dest);
 		Bounds extrusionBox = BBfromPolylines (extr);
+		int index = 0; 
 		foreach (Bounds BB in boundingBoxes) {
-			if (extrusionBox.Intersects (BB))
+			if (canIntersect != index && extrusionBox.Intersects (BB))
 				return true;
+			++index;
 		}
 		return false;
 	}
