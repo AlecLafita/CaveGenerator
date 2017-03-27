@@ -17,6 +17,8 @@ public class CaveGenerator : MonoBehaviour {
 		Recursive, IterativeStack, IterativeQueue
 	}
 	public generationMethod method = generationMethod.Recursive;
+	public bool debugBB = false;
+	public bool debugTriangles = false;
 
 	public GameObject player;
 
@@ -88,6 +90,12 @@ public class CaveGenerator : MonoBehaviour {
 			IntersectionsController.Instance.addPolyline(originPoly);
 			//Generate the new polyline applying the corresponding operation
 			Polyline newPoly = extrude (actualOperation, originPoly, ref actualDirection, ref actualDistance);
+			if (newPoly == null) {
+				//TODO: improve this
+				actualOperation = DecisionGenerator.Instance.generateNextOperation(extrusionsSinceOperation);
+
+				continue;
+			}
 			//Make hole?
 			if (DecisionGenerator.Instance.makeHole(i,holeProb)) {
 				IntersectionsController.Instance.addActualBox ();
@@ -109,6 +117,8 @@ public class CaveGenerator : MonoBehaviour {
 		IntersectionsController.Instance.addPolyline(originPoly);
 		IntersectionsController.Instance.addActualBox ();
 		proceduralMesh.closePolyline(originPoly);
+		//Just in case this tunnel gets with one extrusion (in case all tested directions get in an intersection)
+		IntersectionsController.Instance.resetActual();
 	}
 		
 	/** Generate the cave iteratively creating the holes by LIFO **/
@@ -227,17 +237,18 @@ public class CaveGenerator : MonoBehaviour {
 			//Add vertex to polyline
 			newPoly.extrudeVertex(i, originPoly.getVertex(i).getPosition(), direction,distance);
 			//Add the index to vertex
-			newPoly.getVertex(i).setIndex(proceduralMesh.getNumVertices());
-			//Add the new vertex to the mesh
-			proceduralMesh.addVertex(newPoly.getVertex(i).getPosition());
+			newPoly.getVertex(i).setIndex(proceduralMesh.getNumVertices() + i);
+
 		}
 		//Check there is no intersection
-		/*
+		if (IntersectionsController.Instance.doIntersect(originPoly,newPoly))
+			return null;
+		
 		//Add new polyline to the mesh
 		for (int i = 0; i < originPoly.getSize (); ++i) {
 			//Add the new vertex to the mesh
 			proceduralMesh.addVertex(newPoly.getVertex(i).getPosition());
-		}*/
+		}
 
 		//Apply operations, if any
 		if (operation.scaleOperation()) {
@@ -283,26 +294,29 @@ public class CaveGenerator : MonoBehaviour {
 	void OnDrawGizmos() { 
 		//Avoid error messages after stopping
 		if (!Application.isPlaying) return; 
-		/*
-		//Draw triangles vertices
-		Vector3[] vertices = proceduralMesh.getVertices().ToArray ();
-		for (int i = 0; i < vertices.Length; ++i) {
-			Gizmos.DrawWireSphere (vertices [i], 0.1f);
+
+		if (debugTriangles) {
+			//Draw triangles vertices
+			Vector3[] vertices = proceduralMesh.getVertices ().ToArray ();
+			for (int i = 0; i < vertices.Length; ++i) {
+				Gizmos.DrawWireSphere (vertices [i], 0.1f);
+			}
+
+			//Draw triangles edges
+			int[] triangles = proceduralMesh.getTriangles ().ToArray ();
+			Gizmos.color = Color.blue;
+			for (int i = 0; i < triangles.Length; i += 3) {
+				Gizmos.DrawLine (vertices [triangles [i]], vertices [triangles [i + 1]]);
+				Gizmos.DrawLine (vertices [triangles [i + 1]], vertices [triangles [i + 2]]);
+				Gizmos.DrawLine (vertices [triangles [i + 2]], vertices [triangles [i]]);
+			}
 		}
-
-		//Draw triangles edges
-		int[] triangles = proceduralMesh.getTriangles().ToArray();
-		Gizmos.color = Color.blue;
-		for (int i = 0; i < triangles.Length; i += 3) {
-			Gizmos.DrawLine (vertices [triangles[i]], vertices [triangles[i + 1]]);
-			Gizmos.DrawLine (vertices [triangles[i+1]], vertices [triangles[i + 2]]);
-			Gizmos.DrawLine (vertices [triangles[i+2]], vertices [triangles[i]]);
-		}*/
-
-		//Draw intersection BBs
-		List<Bounds> BBs = IntersectionsController.Instance.getBBs();
-		foreach (Bounds BB in BBs) {
-			Gizmos.DrawCube (BB.center, BB.size);
+		if (debugBB) {
+			//Draw intersection BBs
+			List<Bounds> BBs = IntersectionsController.Instance.getBBs ();
+			foreach (Bounds BB in BBs) {
+				Gizmos.DrawCube (BB.center, BB.size);
+			}
 		}
 	}
 }

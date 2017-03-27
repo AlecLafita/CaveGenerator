@@ -12,7 +12,7 @@ public class IntersectionsController : MonoBehaviour {
 
 	private static List<Bounds> boundingBoxes;
 	private static List<Polyline> actualPolylines;
-
+	private static float epsilon = 0.1f;
 	//******** Singleton stuff ********//
 	private static IntersectionsController mInstace; 
 	public void Awake() {
@@ -39,18 +39,18 @@ public class IntersectionsController : MonoBehaviour {
 	}
 
 	/**Empties the actual set of polylines**/
-	private void resetActual() {
+	public void resetActual() {
 		actualPolylines.Clear ();
 	}
 
 	/**Uses the actual set of polylines to create a new bounding box **/
 	public void addActualBox() {
-		if (actualPolylines.Count > 1) {
+		if (actualPolylines.Count > 2) {
 			Bounds newBB = BBfromPolylines (actualPolylines);
 			//Add the new BB and reset the set of polylines
 			boundingBoxes.Add (newBB);
+			resetActual ();
 		}
-		resetActual ();
 	}
 
 	/**Check if the received extrusion do intersect with the previous ones**/
@@ -67,7 +67,7 @@ public class IntersectionsController : MonoBehaviour {
 
 	/**Creates the bounding box from a set of polylines **/
 	private Bounds BBfromPolylines(List<Polyline> ps) {
-		//Obtain the BB from the set of the polylines' points
+		//Obtain the BB bounds from the set of the polylines' points
 		Vector3 min = new Vector3 (float.MaxValue,float.MaxValue,float.MaxValue);
 		Vector3 max = new Vector3 (float.MinValue, float.MinValue, float.MinValue);
 		Vector3 actualPoint;
@@ -82,6 +82,10 @@ public class IntersectionsController : MonoBehaviour {
 				if (actualPoint.z < min.z) min.z = actualPoint.z;
 			}
 		}
+		//Accurate a little the box size in order to not block the extrusion
+		min += new Vector3 (epsilon, epsilon, epsilon);
+		max -= new Vector3 (epsilon, epsilon, epsilon);
+		//Finally create the bounding box from the min and max point
 		Bounds newBB = new Bounds();
 		newBB.SetMinMax (min, max);
 		return newBB;
