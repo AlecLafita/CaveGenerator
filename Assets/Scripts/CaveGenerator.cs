@@ -100,10 +100,13 @@ public class CaveGenerator : MonoBehaviour {
 			}
 			//Make hole?
 			if (DecisionGenerator.Instance.makeHole(i,holeProb)) {
-				IntersectionsController.Instance.addActualBox ();
+				if (maxHoles >= 0 )
+					IntersectionsController.Instance.addActualBox ();
 				canIntersect = -1;
 				Polyline polyHole = makeHole (originPoly, newPoly);
 				generateRecursive (polyHole, holeProb, IntersectionsController.Instance.getLastBB());
+				//if (maxHoles > 0 ) before the recursive call. This comrobation won't be done as it is redundant 
+				// (it was the last polyline to be added IC, so it won't be added again)
 				IntersectionsController.Instance.addPolyline(originPoly);
 			}
 			//Triangulate from origin to new polyline as a tube/cave shape
@@ -247,8 +250,8 @@ public class CaveGenerator : MonoBehaviour {
 			//(90 would produce a plane and greater than 90 would produce an intersection)
 			if (Vector3.Angle(newDirection,originPoly.calculateNormal()) < maxNormalDirectionAngle) {
 				direction = newDirection;
-			IntersectionsController.Instance.addActualBox ();
-			IntersectionsController.Instance.addPolyline (originPoly);
+				IntersectionsController.Instance.addActualBox ();
+				IntersectionsController.Instance.addPolyline (originPoly);
 				canIntersect = -1;
 			}
 		}
@@ -265,10 +268,6 @@ public class CaveGenerator : MonoBehaviour {
 		//Check there is no intersection
 		if (IntersectionsController.Instance.doIntersect (originPoly, newPoly,canIntersect))
 			return null;
-		/*else if (direction == newDirection) {
-			IntersectionsController.Instance.addActualBox ();
-			IntersectionsController.Instance.addPolyline (originPoly);
-		}*/
 		//Add new polyline to the mesh
 		for (int i = 0; i < originPoly.getSize (); ++i) {
 			//Add the new vertex to the mesh

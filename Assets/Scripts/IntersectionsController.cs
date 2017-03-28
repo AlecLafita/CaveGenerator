@@ -13,7 +13,7 @@ public class IntersectionsController : MonoBehaviour {
 	private static List<Bounds> boundingBoxes;
 	private static List<Polyline> actualPolylines;
 	private static Polyline lastPoly;//Last BB created
-	private static float epsilon = 0.1f;
+	private static float epsilon = 0.02f;
 	//******** Singleton stuff ********//
 	private static IntersectionsController mInstace; 
 	public void Awake() {
