@@ -158,7 +158,6 @@ public class DecisionGenerator : MonoBehaviour {
 		sizeHole *= 2; //Must be a pair number!
 		sizeHole = Mathf.Min (sizeHole, holeMaxVertices);
 		firstIndex = Random.Range (0, numV);
-		//sizeHole = 12;
 	}
 
 }

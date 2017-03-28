@@ -57,9 +57,10 @@ public class IntersectionsController : MonoBehaviour {
 	public void addActualBox() {
 		if (actualPolylines.Count > 1) {
 			Bounds newBB = BBfromPolylines (actualPolylines);
-			//Add the new BB and reset the set of polylines
+			//Add the new BB
 			boundingBoxes.Add (newBB);
 		}
+		// Reset the set of polylines
 		resetActual ();
 
 	}

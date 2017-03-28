@@ -13,6 +13,7 @@ public class ExtrusionOperation  {
 	private const int direction = 1;
 	private const int scale = 2;
 	private const int rotation = 3;
+	//To make a hole on this extrusion or not
 	private bool hole; 
 
 	//Which operations to apply
