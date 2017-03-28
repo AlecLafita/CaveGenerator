@@ -240,6 +240,9 @@ public class CaveGenerator : MonoBehaviour {
 	/**It creates a new polyline from an exsiting one, applying the corresponding operation and with the direction and distance passed **/
 	Polyline extrude(ExtrusionOperation operation, Polyline originPoly, ref Vector3 direction, ref float distance, ref int canIntersect) {
 		//Check if distance/ direction needs to be changed
+		Vector3 oldDirection = direction;
+		float oldDistance = distance;
+		int oldCanIntersect = canIntersect;
 		if (operation.distanceOperation()) {
 			distance = DecisionGenerator.Instance.generateDistance (operation.holeOperation());
 		}
@@ -259,8 +262,7 @@ public class CaveGenerator : MonoBehaviour {
 					direction = newDirection;
 					IntersectionsController.Instance.addActualBox ();
 					IntersectionsController.Instance.addPolyline (originPoly);
-					canIntersect = -1;
-
+					canIntersect = IntersectionsController.Instance.getLastBB ();
 				}
 			}
 		}
@@ -275,8 +277,13 @@ public class CaveGenerator : MonoBehaviour {
 
 		}
 		//Check there is no intersection
-		if (IntersectionsController.Instance.doIntersect (originPoly, newPoly,canIntersect))
+		if (IntersectionsController.Instance.doIntersect (originPoly, newPoly, canIntersect)) {
+			//Undo changes
+			distance = oldDistance;
+			direction = oldDirection;
+			canIntersect = oldCanIntersect;
 			return null;
+		}
 		//Add new polyline to the mesh
 		for (int i = 0; i < originPoly.getSize (); ++i) {
 			//Add the new vertex to the mesh
