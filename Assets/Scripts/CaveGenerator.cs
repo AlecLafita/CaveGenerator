@@ -102,7 +102,7 @@ public class CaveGenerator : MonoBehaviour {
 			if (actualOperation.holeOperation()) {
 				if (maxHoles >= 0 )
 					IntersectionsController.Instance.addActualBox ();
-				canIntersect = -1;
+				canIntersect = IntersectionsController.Instance.getLastBB()+1; //Avoid intersection check with hole
 				Polyline polyHole = makeHole (originPoly, newPoly);
 				generateRecursive (polyHole, holeProb, IntersectionsController.Instance.getLastBB());
 				//if (maxHoles > 0 ) before the recursive call. This comrobation won't be done as it is redundant 
@@ -236,28 +236,32 @@ public class CaveGenerator : MonoBehaviour {
 	}
 
 	private float maxNormalDirectionAngle = 40.0f;
+	private int distanceGenerationTries = 3;
 	/**It creates a new polyline from an exsiting one, applying the corresponding operation and with the direction and distance passed **/
 	Polyline extrude(ExtrusionOperation operation, Polyline originPoly, ref Vector3 direction, ref float distance, ref int canIntersect) {
 		//Check if distance/ direction needs to be changed
 		if (operation.distanceOperation()) {
 			distance = DecisionGenerator.Instance.generateDistance (operation.holeOperation());
-			if (operation.holeOperation ())
-				Debug.Log (distance);
 		}
-		Vector3 newDirection =  new Vector3();
 		if (operation.directionOperation()) {
 			//This does not change the normal! The normal is always the same as all the points of a polyline are generated at 
 			//the same distance that it's predecessor polyline (at the moment at least)
+			bool goodDistance = false;
+			Vector3 newDirection =  new Vector3();
+			for (int i = 0; i < distanceGenerationTries && !goodDistance; ++i) {
+				//Vector3 newDirection = DecisionGenerator.Instance.changeDirection(direction);
+				newDirection = DecisionGenerator.Instance.generateDirection();
 
-			//Vector3 newDirection = DecisionGenerator.Instance.changeDirection(direction);
-			 newDirection = DecisionGenerator.Instance.generateDirection();
-			//Avoid intersection and narrow halways between the old and new polylines by setting an angle limit
-			//(90 would produce a plane and greater than 90 would produce an intersection)
-			if (Vector3.Angle(newDirection,originPoly.calculateNormal()) < maxNormalDirectionAngle) {
-				direction = newDirection;
-				IntersectionsController.Instance.addActualBox ();
-				IntersectionsController.Instance.addPolyline (originPoly);
-				canIntersect = -1;
+				//Avoid intersection and narrow halways between the old and new polylines by setting an angle limit
+				//(90 would produce a plane and greater than 90 would produce an intersection)
+				if (Vector3.Angle (newDirection, originPoly.calculateNormal ()) < maxNormalDirectionAngle) {
+					goodDistance = true;
+					direction = newDirection;
+					IntersectionsController.Instance.addActualBox ();
+					IntersectionsController.Instance.addPolyline (originPoly);
+					canIntersect = -1;
+
+				}
 			}
 		}
 

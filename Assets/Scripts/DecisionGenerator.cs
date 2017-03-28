@@ -21,8 +21,8 @@ public class DecisionGenerator : MonoBehaviour {
 	}
 
 	//******** General decision********//
-	public int operationK = 3; // Every k extrusions, operation can be done
-	public int operationDeviation = 2; // Add more range to make extrusions, each random value between [k-deviation,k+deviation]
+	public int operationK = 4; // Every k extrusions, operation can be done
+	public int operationDeviation = 0; // Add more range to make extrusions, each random value between [k-deviation,k+deviation]
 										//Changes each time the function is called!
 	private int operationMax = 2; //How many operations can be applied at a time
 	public ExtrusionOperation generateNextOperation (int extrusionSinceLastOperation) {
@@ -154,7 +154,7 @@ public class DecisionGenerator : MonoBehaviour {
 	public int holeMaxVertices = 10;
 	public void whereToDig(int numV, out int sizeHole, out int firstIndex) {
 		//TODO: improve this to avoid intersections (artifacts)
-		sizeHole = Random.Range(2,numV/2);
+		sizeHole = Random.Range(3,numV/2);
 		sizeHole *= 2; //Must be a pair number!
 		sizeHole = Mathf.Min (sizeHole, holeMaxVertices);
 		firstIndex = Random.Range (0, numV);
