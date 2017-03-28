@@ -99,7 +99,7 @@ public class CaveGenerator : MonoBehaviour {
 				continue;
 			}
 			//Make hole?
-			if (DecisionGenerator.Instance.makeHole(i,holeProb)) {
+			if (actualOperation.holeOperation()) {
 				if (maxHoles >= 0 )
 					IntersectionsController.Instance.addActualBox ();
 				canIntersect = -1;
@@ -113,6 +113,7 @@ public class CaveGenerator : MonoBehaviour {
 			proceduralMesh.triangulatePolylines (originPoly, newPoly);
 			//Set next operation and continue from the new polyline
 			actualOperation = DecisionGenerator.Instance.generateNextOperation(extrusionsSinceOperation);
+			DecisionGenerator.Instance.makeHole (ref actualOperation, i, holeProb);
 			if (actualOperation.justExtrude ())
 				++extrusionsSinceOperation;
 			else
@@ -156,7 +157,7 @@ public class CaveGenerator : MonoBehaviour {
 				if (newPoly == null)
 					continue;
 				//Make hole?
-				if (DecisionGenerator.Instance.makeHole(actualExtrusionTimes,holeProb)) {
+				if (operation.holeOperation()) {
 					noIntersection = -1;
 					Polyline polyHole = makeHole (originPoly, newPoly);
 					polylinesStack.Push (polyHole);
@@ -167,6 +168,7 @@ public class CaveGenerator : MonoBehaviour {
 				proceduralMesh.triangulatePolylines (originPoly, newPoly);
 				//Set next operation and extrude
 				operation = DecisionGenerator.Instance.generateNextOperation(extrusionsSinceOperation);
+				DecisionGenerator.Instance.makeHole(ref operation, actualExtrusionTimes,holeProb);
 				if (operation.justExtrude ())
 					++extrusionsSinceOperation;
 				else
@@ -209,7 +211,7 @@ public class CaveGenerator : MonoBehaviour {
 				if (newPoly == null)
 					continue;
 				//Make hole?
-				if (DecisionGenerator.Instance.makeHole(actualExtrusionTimes,holeProb)) {
+				if (operation.holeOperation()) {
 					noIntersection = -1;
 					Polyline polyHole = makeHole (originPoly, newPoly);
 					polylinesStack.Enqueue (polyHole);
@@ -220,6 +222,7 @@ public class CaveGenerator : MonoBehaviour {
 				proceduralMesh.triangulatePolylines (originPoly, newPoly);
 				//Set next operation and extrude
 				operation = DecisionGenerator.Instance.generateNextOperation(extrusionsSinceOperation);
+				DecisionGenerator.Instance.makeHole (ref operation, actualExtrusionTimes, holeProb);
 				if (operation.justExtrude ())
 					++extrusionsSinceOperation;
 				else
@@ -237,7 +240,9 @@ public class CaveGenerator : MonoBehaviour {
 	Polyline extrude(ExtrusionOperation operation, Polyline originPoly, ref Vector3 direction, ref float distance, ref int canIntersect) {
 		//Check if distance/ direction needs to be changed
 		if (operation.distanceOperation()) {
-			distance = DecisionGenerator.Instance.generateDistance ();
+			distance = DecisionGenerator.Instance.generateDistance (operation.holeOperation());
+			if (operation.holeOperation ())
+				Debug.Log (distance);
 		}
 		Vector3 newDirection =  new Vector3();
 		if (operation.directionOperation()) {

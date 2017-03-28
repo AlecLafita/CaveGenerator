@@ -13,6 +13,7 @@ public class ExtrusionOperation  {
 	private const int direction = 1;
 	private const int scale = 2;
 	private const int rotation = 3;
+	private bool hole; 
 
 	//Which operations to apply
 	private bool[] operation;
@@ -59,12 +60,18 @@ public class ExtrusionOperation  {
 		return operation [rotation];
 	}
 
+	/** Returns if a hole needs to be done **/
+	public bool holeOperation() {
+		return hole;
+	}
+
 	//*********Setters**********//
 	/** Resets the operation, making it as a simpe extrusion **/
 	public void reset() {
 		for (int i = 0; i < numOperations; ++i) {
 			operation [i] = false;
 		}
+		hole = false;
 	}
 	/** Force one specific operation to be done, from it's position **/
 	public void forceOperation(int i) {
@@ -90,5 +97,10 @@ public class ExtrusionOperation  {
 	public void forceRotationOperation() {
 		operation [rotation] = true;
 	}
-		
+
+	/** Forces to make a hole **/
+	public void forceHoleOperation() {
+		hole = true;
+		operation [distance] = true;
+	}	
 }

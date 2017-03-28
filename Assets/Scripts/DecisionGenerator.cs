@@ -43,11 +43,20 @@ public class DecisionGenerator : MonoBehaviour {
 	}
 		
 	//******** Distance to extrude ********//
-	public float distanceMin = 1.0f;
-	public float distanceMax = 10.0f;
+	public float distanceMin = 2.0f;
+	public float distanceMax = 3.0f;
+	public float distanceHoleMin = 8.0f;
+	public float distanceHoleMax = 10.0f;
 
 	public float generateDistance() {
 		return Random.Range (distanceMin, distanceMax);
+	}
+
+	public float generateDistance(bool doHole) {
+		if (doHole)
+			return Random.Range (distanceHoleMin, distanceHoleMax);
+		else
+			return Random.Range (distanceMin, distanceMax);
 	}
 
 	//******** Direction ********//
@@ -95,44 +104,51 @@ public class DecisionGenerator : MonoBehaviour {
 	}
 	public holeConditions holeCondition;
 
-	public bool makeHole(int numExtrude, float tunnelProb = 1.0f) {
-		//Wait at least minExtrusionsForHole to make a hole
-		if (numExtrude < minExtrusionsForHole) 
-			return false; 
+	public void makeHole(ref ExtrusionOperation op, int numExtrude, float tunnelProb = 1.0f) {
 		
+		//Wait at least minExtrusionsForHole to make a hole
+		if (numExtrude < minExtrusionsForHole)
+			return; 
 		//Check if this tunnel can make a hole
 		float r = Random.value;
 		if (r > tunnelProb)
-			return false;
+			return;
 
 		//Then apply differents decisions to make holes (or not)
 		r = Random.value;
 		switch (holeCondition) {
 		case (holeConditions.EachK) :{
-				if (numExtrude % holeK == 0)
-					return true;
+				if (numExtrude % holeK == 0) {
+					op.forceHoleOperation ();
+					return;
+				}
 				break;
 			}
 		case (holeConditions.EachKProb): {
-				if ((numExtrude % holeK == 0) && r <= holeProb)
-					return true;
+				if ((numExtrude % holeK == 0) && r <= holeProb){
+					op.forceHoleOperation ();
+					return;
+				}
 				break;
 			}
 		case (holeConditions.MoreExtrMoreProb): {
-				Debug.Log (holeProb + numExtrude * holeLambda);
-				if (r <= holeProb + numExtrude * holeLambda)
-					return true;
+				if (r <= holeProb + numExtrude * holeLambda){
+					op.forceHoleOperation ();
+					return;
+				}
 				break;
 			}
 		case (holeConditions.MoreExtrLessProb): {
-				if (r <= holeProb - numExtrude * holeLambda)
-					return true;
+				if (r <= holeProb - numExtrude * holeLambda){
+					op.forceHoleOperation ();
+					return;
+				}
 				break;
 			}
 		default:
 			break;
 		}
-		return false;
+		return;
 	}
 
 	public int holeMaxVertices = 10;
