@@ -95,7 +95,6 @@ public class CaveGenerator : MonoBehaviour {
 			Polyline newPoly = extrude (actualOperation, originPoly, ref actualDirection, ref actualDistance, ref canIntersect);
 			if (newPoly == null) { //Intersection produced
 				//TODO: improve this
-				//actualOperation = DecisionGenerator.Instance.generateNextOperation(extrusionsSinceOperation);
 				continue;
 			}
 			//Make hole?
@@ -112,11 +111,7 @@ public class CaveGenerator : MonoBehaviour {
 			//Triangulate from origin to new polyline as a tube/cave shape
 			proceduralMesh.triangulatePolylines (originPoly, newPoly);
 			//Set next operation and continue from the new polyline
-			DecisionGenerator.Instance.generateNextOperation(ref actualOperation, extrusionsSinceOperation,i,holeProb);
-			if (actualOperation.justExtrude ())
-				++extrusionsSinceOperation;
-			else
-				extrusionsSinceOperation = 0;
+			DecisionGenerator.Instance.generateNextOperation(ref actualOperation, ref extrusionsSinceOperation,i,holeProb);
 			originPoly = newPoly;
 		}
 		//Finally, close the actual hallway/tunnel
@@ -166,11 +161,7 @@ public class CaveGenerator : MonoBehaviour {
 				//Triangulate from origin to new polyline as a tube/cave shape
 				proceduralMesh.triangulatePolylines (originPoly, newPoly);
 				//Set next operation and extrude
-				DecisionGenerator.Instance.generateNextOperation(ref operation, extrusionsSinceOperation,actualExtrusionTimes,holeProb);
-				if (operation.justExtrude ())
-					++extrusionsSinceOperation;
-				else
-					extrusionsSinceOperation = 0;
+				DecisionGenerator.Instance.generateNextOperation(ref operation, ref extrusionsSinceOperation, actualExtrusionTimes, holeProb);
 				originPoly = newPoly;
 			}
 			IntersectionsController.Instance.addPolyline (originPoly);
@@ -220,11 +211,8 @@ public class CaveGenerator : MonoBehaviour {
 				//Triangulate from origin to new polyline as a tube/cave shape
 				proceduralMesh.triangulatePolylines (originPoly, newPoly);
 				//Set next operation and extrude
-				DecisionGenerator.Instance.generateNextOperation(ref operation, extrusionsSinceOperation,actualExtrusionTimes,holeProb);
-				if (operation.justExtrude ())
-					++extrusionsSinceOperation;
-				else
-					extrusionsSinceOperation = 0;
+				DecisionGenerator.Instance.generateNextOperation(ref operation, ref extrusionsSinceOperation,actualExtrusionTimes,holeProb);
+
 				originPoly = newPoly;
 			}
 			IntersectionsController.Instance.addPolyline (originPoly);

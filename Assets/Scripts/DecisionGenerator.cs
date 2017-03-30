@@ -21,31 +21,44 @@ public class DecisionGenerator : MonoBehaviour {
 	}
 
 	//******** Next operation decision********//
+	/**Decide which operations apply to the next extrusion **/
+	public void generateNextOperation (ref ExtrusionOperation op, ref int extrusionsSinceLastOperation, int numExtrude, float tunnelProb = 1.0f) {
+		op = new ExtrusionOperation();
+		//Change the distance as the first one is always bigger
+		if (numExtrude == 0) 
+			op.forceDistanceOperation ();
+		//Decide which operations to apply
+		generateNoHoleOperation (ref op, extrusionsSinceLastOperation);
+
+		//Decide to make hole or not
+		makeHole (ref op, numExtrude, tunnelProb);
+
+		//Update the counter
+		if (op.justExtrude ())
+			++extrusionsSinceLastOperation;
+		else
+			extrusionsSinceLastOperation = 0;
+	}
+
 	public int operationK = 4; // Every k extrusions, operation can be done
 	public int operationDeviation = 0; // Add more range to make extrusions, each random value between [k-deviation,k+deviation]
-										//Changes each time the function is called!
+	//Changes each time the function is called!
 	private int operationMax = 2; //How many operations can be applied at a time
-	public void generateNextOperation (ref ExtrusionOperation op, int extrusionSinceLastOperation, int numExtrude, float tunnelProb = 1.0f) {
-		//TODO: make this more clear
-		op = new ExtrusionOperation();
-		if (numExtrude == 0) //Change the distance as the first one is always bigger
-			op.forceDistanceOperation ();
+	/**Decide which operations except from hole apply **/
+	private void generateNoHoleOperation(ref ExtrusionOperation op, int extrusionsSinceLastOperation) {
 		//Check if a new operation can be done
 		//If it not satisfies the condition of generating an operation, return a just extrusion operation
 		int extrusionsNeeded = Random.Range(-operationDeviation, operationDeviation+1);
-		if ((extrusionSinceLastOperation % operationK + extrusionsNeeded) != 0) {
-			makeHole (ref op, numExtrude, tunnelProb);
+		if ((extrusionsSinceLastOperation % operationK + extrusionsNeeded) != 0) {
 			return;
 		}
-		
+
 		int numOperations = op.getNumOperations ();
 		int operationsToDo = Random.Range (1, operationMax + 1);
 		for (int i = 0; i < operationsToDo;++i) {
 			int opPos = Random.Range (0, numOperations);
 			op.forceOperation (opPos);
 		}
-		makeHole (ref op, numExtrude, tunnelProb);
-		return;
 	}
 		
 	//******** Distance to extrude ********//
@@ -93,7 +106,7 @@ public class DecisionGenerator : MonoBehaviour {
 	}
 
 	//******** Rotation ********//
-	private int rotationLimit = 3;
+	private int rotationLimit = 30;
 	public float generateRotation() {
 		return (float)Random.Range (-rotationLimit, rotationLimit);
 	}
