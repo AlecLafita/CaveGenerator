@@ -20,7 +20,7 @@ public class DecisionGenerator : MonoBehaviour {
 		}
 	}
 
-	//******** General decision********//
+	//******** Next operation decision********//
 	public int operationK = 4; // Every k extrusions, operation can be done
 	public int operationDeviation = 0; // Add more range to make extrusions, each random value between [k-deviation,k+deviation]
 										//Changes each time the function is called!

@@ -62,7 +62,6 @@ public class IntersectionsController : MonoBehaviour {
 		}
 		// Reset the set of polylines
 		resetActual ();
-
 	}
 
 	/**Check if the received extrusion do intersect with the previous ones**/

@@ -113,7 +113,6 @@ public class CaveGenerator : MonoBehaviour {
 			proceduralMesh.triangulatePolylines (originPoly, newPoly);
 			//Set next operation and continue from the new polyline
 			DecisionGenerator.Instance.generateNextOperation(ref actualOperation, extrusionsSinceOperation,i,holeProb);
-			//DecisionGenerator.Instance.makeHole (ref actualOperation, i, holeProb);
 			if (actualOperation.justExtrude ())
 				++extrusionsSinceOperation;
 			else
@@ -168,8 +167,6 @@ public class CaveGenerator : MonoBehaviour {
 				proceduralMesh.triangulatePolylines (originPoly, newPoly);
 				//Set next operation and extrude
 				DecisionGenerator.Instance.generateNextOperation(ref operation, extrusionsSinceOperation,actualExtrusionTimes,holeProb);
-				//operation = DecisionGenerator.Instance.generateNextOperation(extrusionsSinceOperation);
-				//DecisionGenerator.Instance.makeHole(ref operation, actualExtrusionTimes,holeProb);
 				if (operation.justExtrude ())
 					++extrusionsSinceOperation;
 				else
@@ -195,7 +192,6 @@ public class CaveGenerator : MonoBehaviour {
 		Vector3 actualDirection;
 		int actualExtrusionTimes, extrusionsSinceOperation, noIntersection;
 		while (polylinesStack.Count > 0) {
-			IntersectionsController.Instance.addPolyline (originPoly);
 			//new tunnel(hole) will be done, update the counter and all the data
 			--maxHoles;
 			originPoly = polylinesStack.Dequeue ();
@@ -207,6 +203,7 @@ public class CaveGenerator : MonoBehaviour {
 			noIntersection = noIntersectionsQueue.Dequeue ();
 
 			while (maxHoles >= 0 && actualExtrusionTimes <= maxExtrudeTimes) {
+				IntersectionsController.Instance.addPolyline (originPoly);
 				++actualExtrusionTimes;
 				//Generate the new polyline applying the operation
 				newPoly = extrude (operation, originPoly, ref actualDirection, ref actualDistance, ref noIntersection);
@@ -224,8 +221,6 @@ public class CaveGenerator : MonoBehaviour {
 				proceduralMesh.triangulatePolylines (originPoly, newPoly);
 				//Set next operation and extrude
 				DecisionGenerator.Instance.generateNextOperation(ref operation, extrusionsSinceOperation,actualExtrusionTimes,holeProb);
-				//operation = DecisionGenerator.Instance.generateNextOperation(extrusionsSinceOperation);
-				//DecisionGenerator.Instance.makeHole (ref operation, actualExtrusionTimes, holeProb);
 				if (operation.justExtrude ())
 					++extrusionsSinceOperation;
 				else
