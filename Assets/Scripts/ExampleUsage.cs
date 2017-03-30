@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ExampleUsage : MonoBehaviour {
+public class ExampleMeshUsage : MonoBehaviour {
 
 	//https://www.youtube.com/watch?v=8LTDFwWMlqQ&feature=youtu.be
 	//http://wiki.unity3d.com/index.php/ProceduralPrimitives

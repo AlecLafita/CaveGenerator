@@ -14,8 +14,8 @@ public class CaveGenerator : MonoBehaviour {
 	private bool generatorCalled; //In order to generate the cave just once
 	InitialPolyline initialPoints;
 
-	public int maxHoles = 50; //How many times an extrusion can be applied, acts as a countdown
-	public int maxExtrudeTimes = 100; // How many times an extrusion can be applied from a hole
+	public int maxHoles = 50; //How many times a hole can be extruded and behave like a tunnel
+	public int maxExtrudeTimes = 100; // How many times an extrusion can be applied from a hole initially
 
 	public enum generationMethod
 	{
@@ -28,7 +28,6 @@ public class CaveGenerator : MonoBehaviour {
 	public GameObject player;
 
 	private Geometry.Mesh proceduralMesh;
-
 
 	void Start () {
 		initialPoints = new InitialPolyline(gateSize);
@@ -120,7 +119,7 @@ public class CaveGenerator : MonoBehaviour {
 
 		//Instantiate the player at the cave entrance
 		GameObject pl = Instantiate(player);
-		pl.transform.position = iniPol.calculateBaricenter () + new Vector3 (0.0f, 0.0f, 5.0f);
+		pl.transform.position = iniPol.calculateBaricenter () + new Vector3 (0.0f, 0.0f, caveDistance);
 	}
 
 	/** For debug purposes **/

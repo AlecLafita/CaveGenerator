@@ -8,7 +8,7 @@ using Geometry;
  * of polylines to a axis aligned bounding box. Each time a extrusion is done, must check if 
  * it intersects with ALL the other BBs **/
 
-public class IntersectionsController : MonoBehaviour {
+public class IntersectionsController {
 
 	private static List<Bounds> boundingBoxes;
 	private static List<Polyline> actualPolylines;
@@ -16,19 +16,22 @@ public class IntersectionsController : MonoBehaviour {
 	private static float epsilon = 0.02f;
 	//******** Singleton stuff ********//
 	private static IntersectionsController mInstace; 
-	public void Awake() {
-		mInstace = this;
+
+	public static IntersectionsController Instance {
+		get {
+			if (mInstace == null)
+				mInstace = new IntersectionsController ();
+			return mInstace;
+		}
+	}
+
+	//******** Creator ********//
+	public IntersectionsController() {
 		boundingBoxes = new List<Bounds> ();
 		actualPolylines = new List<Polyline> ();
 		lastPoly = null;
 	}
 
-	public static IntersectionsController Instance {
-		get {
-			return mInstace;
-		}
-	}
-		
 	//******** Getters ********//
 	public List<Bounds> getBBs() {
 		return boundingBoxes;

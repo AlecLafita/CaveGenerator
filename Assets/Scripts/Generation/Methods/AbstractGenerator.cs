@@ -9,15 +9,15 @@ abstract public class AbstractGenerator {
 
 	protected Geometry.Mesh proceduralMesh;	//Mesh that will be modified during the cave generation
 	protected float initialTunelHoleProb; //holes can be created depending on this probability [0-1]
-	protected int maxHoles;
+	protected int maxHoles; //How many times a hole can be extruded and behave like a tunnel, acts as a countdown
 	protected int maxExtrudeTimes;//TODO: consider to deccrement this value as holes are created, or some random function that handles this
-	protected Polyline gatePolyline;
+	protected Polyline gatePolyline; //Polyline where the cave starts from
 
 	/**Creates the instance without initializing anything **/
 	public AbstractGenerator() {
 	}
 
-	/**Gives as arguments the needed parameters for the generator **/
+	/**Initialize, being the arguments are the needed parameters for the generator **/
 	public void initialize(Polyline iniPol, float initialTunelHoleProb, int maxHoles, int maxExtrudeTimes) {
 		proceduralMesh = new Geometry.Mesh (iniPol);
 		gatePolyline = iniPol;
@@ -130,158 +130,5 @@ abstract public class AbstractGenerator {
 
 		return polyHole;
 	}
-
-	/** Generates the cave recursively. Each call creates a tunnel, and
-	 *  holes can be created depending on the second parameter probability [0-1] **/
-	/*void generateRecursive(Polyline originPoly, float holeProb, int canIntersect) {
-	//Hole is done, update the counter
-	--maxHoles;
-
-	//Base case, triangulate the actual tunnel last polyline as a polygon to close the hole
-	if (maxHoles < 0 ) { 
-		proceduralMesh.closePolyline(originPoly);
-		return;
-	}
-	//TODO: change maxExtrudeTimes as holes are done (eg, random number between a rank)
-
-	//Generate the actual hallway/tunnel
-	ExtrusionOperation actualOperation = new ExtrusionOperation();
-	float actualDistance = DecisionGenerator.Instance.generateDistance(true);
-	Vector3 actualDirection = originPoly.calculateNormal ();
-	int extrusionsSinceOperation = 0;
-	for (int i = 0; i < maxExtrudeTimes; ++i) {
-		//Add actual polyline to the next intersection BB
-		IntersectionsController.Instance.addPolyline(originPoly);
-		//Generate the new polyline applying the corresponding operation
-		Polyline newPoly = extrude (actualOperation, originPoly, ref actualDirection, ref actualDistance, ref canIntersect);
-		if (newPoly == null) { //Intersection produced
-			//TODO: improve this
-			continue;
-		}
-		//Make hole?
-		if (actualOperation.holeOperation()) {
-			if (maxHoles >= 0 )
-				IntersectionsController.Instance.addActualBox ();
-			canIntersect = IntersectionsController.Instance.getLastBB()+1; //Avoid intersection check with hole first BB
-			Polyline polyHole = makeHole (originPoly, newPoly);
-			generateRecursive (polyHole, holeProb-0.01f, IntersectionsController.Instance.getLastBB());
-			//if (maxHoles > 0 ) before the recursive call. This comrobation won't be done as it is redundant 
-			// (it was the last polyline to be added IC, so it won't be added again)
-			IntersectionsController.Instance.addPolyline(originPoly);
-		}
-		//Triangulate from origin to new polyline as a tube/cave shape
-		proceduralMesh.triangulatePolylines (originPoly, newPoly);
-		//Set next operation and continue from the new polyline
-		DecisionGenerator.Instance.generateNextOperation(ref actualOperation, ref extrusionsSinceOperation,i,holeProb);
-		originPoly = newPoly;
-	}
-	//Finally, close the actual hallway/tunnel
-	IntersectionsController.Instance.addPolyline(originPoly);
-	IntersectionsController.Instance.addActualBox ();
-	proceduralMesh.closePolyline(originPoly);
-}*/
-
-/** Generate the cave iteratively creating the holes by LIFO **/
-/*void generateIterativeStack(Polyline originPoly, float holeProb) {
-		//Stacks for saving the hole information
-		//This with generating holes with MoreExtrMoreProb is a bad combination, as it will made the impression of
-		//only one path being followed (no bifurcations)
-		Stack<Polyline> polylinesStack = new Stack<Polyline> ();
-		Stack<int> noIntersectionsStack = new Stack<int> ();
-		polylinesStack.Push(originPoly);
-		noIntersectionsStack.Push (-1);
-		Polyline newPoly;
-		float actualDistance;
-		Vector3 actualDirection;
-		int actualExtrusionTimes, extrusionsSinceOperation, noIntersection;
-		while (polylinesStack.Count > 0) {
-			//new tunnel(hole) will be done, update the counter and all the data
-			--maxHoles;
-			originPoly = polylinesStack.Pop ();
-			actualDistance = DecisionGenerator.Instance.generateDistance(true);
-			actualDirection = originPoly.calculateNormal ();
-			actualExtrusionTimes = 0;
-			extrusionsSinceOperation = 0;
-			noIntersection = noIntersectionsStack.Pop ();
-			ExtrusionOperation operation = new ExtrusionOperation();
-			while (maxHoles >= 0 && actualExtrusionTimes <= maxExtrudeTimes) {
-				IntersectionsController.Instance.addPolyline (originPoly);
-				++actualExtrusionTimes;
-				//Generate the new polyline applying the operation
-				newPoly = extrude (operation, originPoly, ref actualDirection, ref actualDistance, ref noIntersection);
-				if (newPoly == null)
-					continue;
-				//Make hole?
-				if (operation.holeOperation()) {
-					noIntersection = -1;
-					Polyline polyHole = makeHole (originPoly, newPoly);
-					polylinesStack.Push (polyHole);
-					noIntersectionsStack.Push (IntersectionsController.Instance.getLastBB ()+1);
-				}
-
-				//Triangulate from origin to new polyline as a tube/cave shape
-				proceduralMesh.triangulatePolylines (originPoly, newPoly);
-				//Set next operation and extrude
-				DecisionGenerator.Instance.generateNextOperation(ref operation, ref extrusionsSinceOperation, actualExtrusionTimes, holeProb);
-				originPoly = newPoly;
-			}
-			IntersectionsController.Instance.addPolyline (originPoly);
-			IntersectionsController.Instance.addActualBox ();
-			proceduralMesh.closePolyline(originPoly);
-			holeProb -= 0.01f;
-		}
-	}*/
-
-/** Generate the cave creating the holes by FIFO **/
-/*void generateIterativeQueue(Polyline originPoly, float holeProb) {
-		//Queues for saving the hole information
-		Queue<Polyline> polylinesStack = new Queue<Polyline> ();
-		Queue<int> noIntersectionsQueue = new Queue<int> ();
-		polylinesStack.Enqueue(originPoly);
-		noIntersectionsQueue.Enqueue (-1);
-		Polyline newPoly;
-		float actualDistance;
-		Vector3 actualDirection;
-		int actualExtrusionTimes, extrusionsSinceOperation, noIntersection;
-		while (polylinesStack.Count > 0) {
-			//new tunnel(hole) will be done, update the counter and all the data
-			--maxHoles;
-			originPoly = polylinesStack.Dequeue ();
-			actualDistance = DecisionGenerator.Instance.generateDistance(true);
-			actualDirection = originPoly.calculateNormal ();
-			actualExtrusionTimes = 0;
-			extrusionsSinceOperation = 0;
-			ExtrusionOperation operation = new ExtrusionOperation();
-			noIntersection = noIntersectionsQueue.Dequeue ();
-
-			while (maxHoles >= 0 && actualExtrusionTimes <= maxExtrudeTimes) {
-				IntersectionsController.Instance.addPolyline (originPoly);
-				++actualExtrusionTimes;
-				//Generate the new polyline applying the operation
-				newPoly = extrude (operation, originPoly, ref actualDirection, ref actualDistance, ref noIntersection);
-				if (newPoly == null)
-					continue;
-				//Make hole?
-				if (operation.holeOperation()) {
-					noIntersection = -1;
-					Polyline polyHole = makeHole (originPoly, newPoly);
-					polylinesStack.Enqueue (polyHole);
-					noIntersectionsQueue.Enqueue (IntersectionsController.Instance.getLastBB ()+1);
-				}
-
-				//Triangulate from origin to new polyline as a tube/cave shape
-				proceduralMesh.triangulatePolylines (originPoly, newPoly);
-				//Set next operation and extrude
-				DecisionGenerator.Instance.generateNextOperation(ref operation, ref extrusionsSinceOperation,actualExtrusionTimes,holeProb);
-
-				originPoly = newPoly;
-			}
-			IntersectionsController.Instance.addPolyline (originPoly);
-			IntersectionsController.Instance.addActualBox ();
-			proceduralMesh.closePolyline(originPoly);
-			holeProb -= 0.01f;
-		}
-	}*/
-
-
+		
 }
