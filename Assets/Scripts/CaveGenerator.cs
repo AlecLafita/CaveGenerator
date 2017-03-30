@@ -76,7 +76,7 @@ public class CaveGenerator : MonoBehaviour {
 		//Hole is done, update the counter
 		--maxHoles;
 
-		//Base case, triangulate the actual tunnel first polyline as a polygon to close the hole
+		//Base case, triangulate the actual tunnel last polyline as a polygon to close the hole
 		if (maxHoles < 0 ) { 
 			proceduralMesh.closePolyline(originPoly);
 			return;
@@ -104,7 +104,7 @@ public class CaveGenerator : MonoBehaviour {
 					IntersectionsController.Instance.addActualBox ();
 				canIntersect = IntersectionsController.Instance.getLastBB()+1; //Avoid intersection check with hole
 				Polyline polyHole = makeHole (originPoly, newPoly);
-				generateRecursive (polyHole, holeProb, IntersectionsController.Instance.getLastBB());
+				generateRecursive (polyHole, holeProb-0.01f, IntersectionsController.Instance.getLastBB());
 				//if (maxHoles > 0 ) before the recursive call. This comrobation won't be done as it is redundant 
 				// (it was the last polyline to be added IC, so it won't be added again)
 				IntersectionsController.Instance.addPolyline(originPoly);
@@ -178,6 +178,7 @@ public class CaveGenerator : MonoBehaviour {
 			IntersectionsController.Instance.addPolyline (originPoly);
 			IntersectionsController.Instance.addActualBox ();
 			proceduralMesh.closePolyline(originPoly);
+			holeProb -= 0.01f;
 		}
 	}
 
@@ -232,6 +233,8 @@ public class CaveGenerator : MonoBehaviour {
 			IntersectionsController.Instance.addPolyline (originPoly);
 			IntersectionsController.Instance.addActualBox ();
 			proceduralMesh.closePolyline(originPoly);
+			holeProb -= 0.01f;
+
 		}
 	}
 
