@@ -68,7 +68,7 @@ namespace Geometry {
 		/** Adds a new vertex to the mesh **/
 		public void addVertex(Vector3 v) {
 			mVertices.Add (v);
-			//Generate random texture position
+			//Generate random texture position TODO:Improve this
 			Vector2 uv = new Vector2 (Random.Range (0.0f, 10.0f), Random.Range (0.0f, 10.0f));
 			mUVs.Add (uv);
 		}

@@ -25,13 +25,18 @@ public class DecisionGenerator : MonoBehaviour {
 	public int operationDeviation = 0; // Add more range to make extrusions, each random value between [k-deviation,k+deviation]
 										//Changes each time the function is called!
 	private int operationMax = 2; //How many operations can be applied at a time
-	public ExtrusionOperation generateNextOperation (int extrusionSinceLastOperation) {
-		ExtrusionOperation op = new ExtrusionOperation();
+	public void generateNextOperation (ref ExtrusionOperation op, int extrusionSinceLastOperation, int numExtrude, float tunnelProb = 1.0f) {
+		//TODO: make this more clear
+		op = new ExtrusionOperation();
+		if (numExtrude == 0) //Change the distance as the first one is always bigger
+			op.forceDistanceOperation ();
 		//Check if a new operation can be done
 		//If it not satisfies the condition of generating an operation, return a just extrusion operation
 		int extrusionsNeeded = Random.Range(-operationDeviation, operationDeviation+1);
-		if ((extrusionSinceLastOperation % operationK + extrusionsNeeded) != 0)
-			return op;
+		if ((extrusionSinceLastOperation % operationK + extrusionsNeeded) != 0) {
+			makeHole (ref op, numExtrude, tunnelProb);
+			return;
+		}
 		
 		int numOperations = op.getNumOperations ();
 		int operationsToDo = Random.Range (1, operationMax + 1);
@@ -39,7 +44,8 @@ public class DecisionGenerator : MonoBehaviour {
 			int opPos = Random.Range (0, numOperations);
 			op.forceOperation (opPos);
 		}
-		return op;
+		makeHole (ref op, numExtrude, tunnelProb);
+		return;
 	}
 		
 	//******** Distance to extrude ********//
@@ -87,7 +93,7 @@ public class DecisionGenerator : MonoBehaviour {
 	}
 
 	//******** Rotation ********//
-	private int rotationLimit = 30;
+	private int rotationLimit = 3;
 	public float generateRotation() {
 		return (float)Random.Range (-rotationLimit, rotationLimit);
 	}
