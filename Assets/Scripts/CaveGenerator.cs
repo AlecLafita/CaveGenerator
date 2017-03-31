@@ -53,8 +53,6 @@ public class CaveGenerator : MonoBehaviour {
 		if (Input.GetMouseButtonDown (1) && pointsSelected==gateSize && !generatorCalled) {//right click
 			//Generate the cave when the user has selected all the points
 			cam.ResetProjectionMatrix();
-			cam.enabled = false;
-			cam.GetComponent<AudioListener> ().enabled = false;
 			Debug.Log("Starting generation");
 			//TODO:check it's clockwise. In case it's not, transform it
 			initialPoints.initializeIndices();
@@ -117,9 +115,18 @@ public class CaveGenerator : MonoBehaviour {
 		//Assign the mesh to the collider
 		GetComponent<MeshCollider>().sharedMesh = mesh;
 
+		preparePlayer (iniPol);
+
+	}
+
+	/** Gets all the player related stuff ready **/
+	void preparePlayer(Polyline iniPol) {
 		//Instantiate the player at the cave entrance
 		GameObject pl = Instantiate(player);
 		pl.transform.position = iniPol.calculateBaricenter () + new Vector3 (0.0f, 0.0f, caveDistance);
+
+		cam.enabled = false;
+		cam.GetComponent<AudioListener> ().enabled = false;
 	}
 
 	/** For debug purposes **/

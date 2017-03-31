@@ -82,7 +82,7 @@ public class DecisionGenerator : MonoBehaviour {
 	public float directionMinChange = 0.2f;
 	public float directionMaxChange = 0.5f;
 	public bool directionJustWalk = false;
-	public float directionYWalkLimit = 0.3f;
+	public float directionYWalkLimit = 0.35f;
 	public Vector3 changeDirection(Vector3 dir) {
 		int xChange = Random.Range (-1, 2);
 		int yChange = Random.Range (-1, 2);

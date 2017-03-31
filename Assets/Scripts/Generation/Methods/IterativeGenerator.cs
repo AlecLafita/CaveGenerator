@@ -38,7 +38,8 @@ abstract public class IterativeGenerator : AbstractGenerator {
 			actualExtrusionTimes = 0;
 			extrusionsSinceOperation = 0;
 			ExtrusionOperation operation = new ExtrusionOperation();
-
+			if (checkInvalidWalk(originPoly)) //Check is a valid walk tunnel
+				actualExtrusionTimes = maxExtrudeTimes+1;
 			//Extrude the tunnel
 			while (maxHoles >= 0 && actualExtrusionTimes <= maxExtrudeTimes) {
 				IntersectionsController.Instance.addPolyline (originPoly);
@@ -51,7 +52,7 @@ abstract public class IterativeGenerator : AbstractGenerator {
 				if (operation.holeOperation()) {
 					noIntersection = -1;
 					Polyline polyHole = makeHole (originPoly, newPoly);
-					if (polyHole != null) //Check the hole was done without problems
+					//if (polyHole != null) //Check the hole was done without problems
 						addElementToDataStructure (polyHole, IntersectionsController.Instance.getLastBB () + 1);
 				}
 

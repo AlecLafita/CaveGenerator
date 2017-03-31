@@ -129,27 +129,33 @@ abstract public class AbstractGenerator {
 		}
 
 		//In the walking case, check if the hole is not too upwards or downwards(y component)
-		if (DecisionGenerator.Instance.directionJustWalk) { 
-			//TODO: Improve this to be less do and test and more test and do
-			bool invalidHole = false;
-			Vector3 normal = polyHole.calculateNormal ();
-			if (normal.y < 0) {
-				invalidHole = normal.y < -DecisionGenerator.Instance.directionYWalkLimit;
-			} else {
-				invalidHole = normal.y > DecisionGenerator.Instance.directionYWalkLimit;
-
+		//TODO: Improve this to be less do and test and more test and do
+		/*bool invalidWalkHole = checkInvalidWalk(polyHole);
+		//Undo hole if invalid
+		if (invalidWalkHole) {
+			for (int j = 0; j < sizeHole/2; ++j) {
+				originPoly.getVertex (firstIndex + j).setInHole (false);
+				destinyPoly.getVertex (firstIndex + j).setInHole (false);
 			}
-			//Undo hole
-			if (invalidHole) {
-				for (int j = 0; j < sizeHole/2; ++j) {
-					originPoly.getVertex (firstIndex + j).setInHole (false);
-					destinyPoly.getVertex (firstIndex + j).setInHole (false);
-				}
-				return null;
-			}
-		}
+			return null;
+		}*/
 
 		return polyHole;
+	}
+
+	protected bool checkInvalidWalk(Polyline tunelStartPoly) {
+		if (!DecisionGenerator.Instance.directionJustWalk)
+			return false;
+
+		bool invalidHole = false;
+		Vector3 normal = tunelStartPoly.calculateNormal ();
+		if (normal.y < 0) {
+			invalidHole = normal.y < -DecisionGenerator.Instance.directionYWalkLimit;
+		} else {
+			invalidHole = normal.y > DecisionGenerator.Instance.directionYWalkLimit;
+		}
+
+		return invalidHole;
 	}
 		
 }
