@@ -32,12 +32,12 @@ abstract public class IterativeGenerator : AbstractGenerator {
 		while (isDataStructureEmpty()) {
 			//new tunnel(hole) will be done, update the counter and all the data
 			--maxHoles;
+			initializeDataStructure(ref noIntersection, ref originPoly);
 			actualDistance = DecisionGenerator.Instance.generateDistance(true);
 			actualDirection = originPoly.calculateNormal ();
 			actualExtrusionTimes = 0;
 			extrusionsSinceOperation = 0;
 			ExtrusionOperation operation = new ExtrusionOperation();
-			initializeDataStructure(ref noIntersection, ref originPoly);
 
 			//Extrude the tunnel
 			while (maxHoles >= 0 && actualExtrusionTimes <= maxExtrudeTimes) {
@@ -51,7 +51,8 @@ abstract public class IterativeGenerator : AbstractGenerator {
 				if (operation.holeOperation()) {
 					noIntersection = -1;
 					Polyline polyHole = makeHole (originPoly, newPoly);
-					addElementToDataStructure (polyHole, IntersectionsController.Instance.getLastBB () + 1);
+					if (polyHole != null) //Check the hole was done without problems
+						addElementToDataStructure (polyHole, IntersectionsController.Instance.getLastBB () + 1);
 				}
 
 				//Triangulate from origin to new polyline as a tube/cave shape

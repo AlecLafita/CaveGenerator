@@ -81,6 +81,8 @@ public class DecisionGenerator : MonoBehaviour {
 	//******** Direction ********//
 	public float directionMinChange = 0.2f;
 	public float directionMaxChange = 0.5f;
+	public bool directionJustWalk = false;
+	public float directionYWalkLimit = 0.3f;
 	public Vector3 changeDirection(Vector3 dir) {
 		int xChange = Random.Range (-1, 2);
 		int yChange = Random.Range (-1, 2);
@@ -88,13 +90,20 @@ public class DecisionGenerator : MonoBehaviour {
 		dir += new Vector3 (xChange *Random.Range(directionMinChange,directionMaxChange), 
 			yChange*Random.Range(directionMinChange,directionMaxChange),
 			zChange*Random.Range(directionMinChange,directionMaxChange));
-
+		if (dir.y < 0)
+			dir.y = Mathf.Max (dir.y, -directionYWalkLimit);
+		else if(dir.y >0)
+			dir.y = Mathf.Min (dir.y, directionYWalkLimit);
 		return dir.normalized;
 	}
 
 	public Vector3 generateDirection() {
 		float xDir = Random.Range (-1.0f, 1.0f);
-		float yDir = Random.Range (-1.0f, 1.0f);
+		float yDir;
+		if (directionJustWalk)
+			yDir = Random.Range (-directionYWalkLimit, directionYWalkLimit);
+		else
+			yDir = Random.Range (-1.0f, 1.0f);
 		float zDir = Random.Range (-1.0f, 1.0f);
 		return new Vector3(xDir, yDir, zDir);
 	}

@@ -128,6 +128,27 @@ abstract public class AbstractGenerator {
 			polyHole.addVertex (destinyPoly.getVertex (firstIndex+i));
 		}
 
+		//In the walking case, check if the hole is not too upwards or downwards(y component)
+		if (DecisionGenerator.Instance.directionJustWalk) { 
+			//TODO: Improve this to be less do and test and more test and do
+			bool invalidHole = false;
+			Vector3 normal = polyHole.calculateNormal ();
+			if (normal.y < 0) {
+				invalidHole = normal.y < -DecisionGenerator.Instance.directionYWalkLimit;
+			} else {
+				invalidHole = normal.y > DecisionGenerator.Instance.directionYWalkLimit;
+
+			}
+			//Undo hole
+			if (invalidHole) {
+				for (int j = 0; j < sizeHole/2; ++j) {
+					originPoly.getVertex (firstIndex + j).setInHole (false);
+					destinyPoly.getVertex (firstIndex + j).setInHole (false);
+				}
+				return null;
+			}
+		}
+
 		return polyHole;
 	}
 		
