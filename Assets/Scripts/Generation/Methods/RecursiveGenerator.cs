@@ -34,6 +34,8 @@ public class RecursiveGenerator : AbstractGenerator {
 			Polyline newPoly = extrude (actualOperation, originPoly, ref actualDirection, ref actualDistance, ref canIntersect);
 			if (newPoly == null) { //Intersection produced
 				//TODO: improve this
+				DecisionGenerator.Instance.generateNextOperation(ref actualOperation, ref extrusionsSinceOperation,i,holeProb);
+
 				continue;
 			}
 			//Make hole?

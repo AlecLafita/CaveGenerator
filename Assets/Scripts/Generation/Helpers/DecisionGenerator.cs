@@ -27,6 +27,7 @@ public class DecisionGenerator : MonoBehaviour {
 		//Change the distance as the first one is always bigger
 		//if (numExtrude == 0) 
 			op.forceDistanceOperation ();
+
 		//Decide which operations to apply
 		generateNoHoleOperation (ref op, extrusionsSinceLastOperation);
 
@@ -90,10 +91,12 @@ public class DecisionGenerator : MonoBehaviour {
 		dir += new Vector3 (xChange *Random.Range(directionMinChange,directionMaxChange), 
 			yChange*Random.Range(directionMinChange,directionMaxChange),
 			zChange*Random.Range(directionMinChange,directionMaxChange));
-		if (dir.y < 0)
-			dir.y = Mathf.Max (dir.y, -directionYWalkLimit);
-		else if(dir.y >0)
-			dir.y = Mathf.Min (dir.y, directionYWalkLimit);
+		if (directionJustWalk) {
+			if (dir.y < 0)
+				dir.y = Mathf.Max (dir.y, -directionYWalkLimit);
+			else if (dir.y > 0)
+				dir.y = Mathf.Min (dir.y, directionYWalkLimit);
+		}
 		return dir.normalized;
 	}
 
@@ -108,14 +111,29 @@ public class DecisionGenerator : MonoBehaviour {
 		return new Vector3(xDir, yDir, zDir);
 	}
 
+	[Range (0.0f,40.0f)] public float directionMaxAngle = 40.0f;
+	public Vector3 generateDirection(Vector3 normal) {
+		float xValue = Random.Range (normal.x - directionMaxAngle / 90.0f, normal.x + directionMaxAngle / 90.0f);
+		float yValue = Random.Range (normal.y - directionMaxAngle / 90.0f, normal.y + directionMaxAngle / 90.0f);
+		float zValue = Random.Range (normal.z - directionMaxAngle / 90.0f, normal.z + directionMaxAngle / 90.0f);
+
+		Vector3 result =  new Vector3(xValue,yValue,zValue);
+		if (directionJustWalk) {
+			//TODO
+		}
+		return result.normalized;
+
+	}
+
 
 	//******** Scale ********//
+	[Range (0.0f,0.99f)] public float scaleLimit  = 0.5f;
 	public float generateScale() {
-		return Random.Range (0.5f, 1.5f);
+		return Random.Range (1.0f-scaleLimit, 1.0f + scaleLimit);
 	}
 
 	//******** Rotation ********//
-	private int rotationLimit = 30;
+	public int rotationLimit = 30;
 	public float generateRotation() {
 		return (float)Random.Range (-rotationLimit, rotationLimit);
 	}

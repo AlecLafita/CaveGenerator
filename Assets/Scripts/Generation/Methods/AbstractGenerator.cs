@@ -34,7 +34,6 @@ abstract public class AbstractGenerator {
 		return proceduralMesh;
 	}
 		
-	private const float maxNormalDirectionAngle = 40.0f;
 	private const int distanceGenerationTries = 3;
 	/**It creates a new polyline from an exsiting one, applying the corresponding operations**/
 	protected Polyline extrude(ExtrusionOperation operation, Polyline originPoly, ref Vector3 direction, ref float distance, ref int canIntersect) {
@@ -51,15 +50,18 @@ abstract public class AbstractGenerator {
 			Vector3 auxiliarDirection =  new Vector3();
 			Vector3 polylineNormal = originPoly.calculateNormal ();
 			for (int i = 0; i < distanceGenerationTries && !goodDirection; ++i) {
-				//Vector3 newDirection = DecisionGenerator.Instance.changeDirection(direction);
+				//auxiliarDirection = DecisionGenerator.Instance.changeDirection(direction);
 				auxiliarDirection = DecisionGenerator.Instance.generateDirection();
+				//auxiliarDirection = DecisionGenerator.Instance.generateDirection(polylineNormal);
 				//Avoid intersection and narrow halways between the old and new polylines by setting an angle limit
 				//(90 would produce a plane and greater than 90 would produce an intersection)
-				if (Vector3.Angle (auxiliarDirection, polylineNormal) < maxNormalDirectionAngle) {
+				if (Vector3.Angle (auxiliarDirection, polylineNormal) < DecisionGenerator.Instance.directionMaxAngle) {
 					goodDirection = true;
 					newDirection = auxiliarDirection;
 				}
 			}
+			//if (!goodDirection)
+				//Debug.Log ("BAD DIRECITON");
 		}
 		//Create the new polyline from the actual one
 		Polyline newPoly = new Polyline(originPoly.getSize());
@@ -70,6 +72,15 @@ abstract public class AbstractGenerator {
 			newPoly.getVertex(i).setIndex(proceduralMesh.getNumVertices() + i);
 
 		}
+
+		//Apply operations, if any
+		if (operation.scaleOperation()) {
+			newPoly.scale (DecisionGenerator.Instance.generateScale());
+		}
+		if (operation.rotationOperation ()) {
+			newPoly.rotate (DecisionGenerator.Instance.generateRotation());
+		}
+			
 		//Check there is no intersection
 		if (IntersectionsController.Instance.doIntersect (originPoly, newPoly, canIntersect)) {
 			return null;
@@ -87,14 +98,6 @@ abstract public class AbstractGenerator {
 		for (int i = 0; i < originPoly.getSize (); ++i) {
 			//Add the new vertex to the mesh
 			proceduralMesh.addVertex(newPoly.getVertex(i).getPosition());
-		}
-
-		//Apply operations, if any
-		if (operation.scaleOperation()) {
-			newPoly.scale (DecisionGenerator.Instance.generateScale());
-		}
-		if (operation.rotationOperation ()) {
-			newPoly.rotate (DecisionGenerator.Instance.generateRotation());
 		}
 
 		return newPoly;

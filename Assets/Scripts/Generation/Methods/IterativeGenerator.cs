@@ -46,8 +46,10 @@ abstract public class IterativeGenerator : AbstractGenerator {
 				++actualExtrusionTimes;
 				//Generate the new polyline applying the operation
 				newPoly = extrude (operation, originPoly, ref actualDirection, ref actualDistance, ref noIntersection);
-				if (newPoly == null)
+				if (newPoly == null) {
+					DecisionGenerator.Instance.generateNextOperation (ref operation, ref extrusionsSinceOperation, actualExtrusionTimes, holeProb);
 					continue;
+				}
 				//Make hole?
 				if (operation.holeOperation()) {
 					noIntersection = -1;
