@@ -11,17 +11,16 @@ public class SimpleMovement : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
-		transform.Translate (0.0f, speedY * Time.deltaTime*Input.mouseScrollDelta.y, 0.0f,Space.Self);
+		GetComponent<Rigidbody>().AddRelativeForce (0.0f, speedY * Time.deltaTime*Input.mouseScrollDelta.y, 0.0f,ForceMode.VelocityChange);
 
 		if (Input.GetKey(KeyCode.W))
-			transform.Translate (0.0f, 0.0f, speedZ*Time.deltaTime,Space.Self);
+			GetComponent<Rigidbody>().AddRelativeForce(0.0f, 0.0f, speedZ*Time.deltaTime,ForceMode.Impulse);
 		if (Input.GetKey(KeyCode.S))
-			transform.Translate (0.0f, 0.0f, -speedZ*Time.deltaTime,Space.Self);
-		
+			GetComponent<Rigidbody>().AddRelativeForce (0.0f, 0.0f, -speedZ*Time.deltaTime,ForceMode.Impulse);
 		if (Input.GetKey(KeyCode.D))
-			transform.Translate (speedX*Time.deltaTime, 0.0f, 0.0f,Space.Self);
+			GetComponent<Rigidbody>().AddRelativeForce(speedX*Time.deltaTime, 0.0f, 0.0f,ForceMode.Impulse);
 		if (Input.GetKey(KeyCode.A))
-			transform.Translate (-speedX*Time.deltaTime,0.0f, 0.0f,Space.Self);
+			GetComponent<Rigidbody>().AddRelativeForce (-speedX*Time.deltaTime,0.0f, 0.0f,ForceMode.Impulse);
 
 		transform.Rotate (0.0f, Input.GetAxis("Mouse X") , 0.0f, Space.Self);
 	}
