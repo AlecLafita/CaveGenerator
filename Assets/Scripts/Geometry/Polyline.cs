@@ -11,7 +11,7 @@ namespace Geometry {
 
 		protected Vertex[] mVertices; //Vertices that form the polyline
 		protected float minRadius = 15.0f; //Minimum radius when the scale is applied
-		protected float maxRadius = 50.0f;//Maximum radius when the scale is applied
+		protected float maxRadius = 100.0f;//Maximum radius when the scale is applied
 		//******** Constructors ********//
 		public Polyline() {
 			mVertices = new Vertex[0];
@@ -46,14 +46,14 @@ namespace Geometry {
 
 		/** Scales all the polyline vertices taking the baricenter as origin **/
 		public void scale(float scaleValue) {
-			//TODO: add a limit(minimum "radius")
 			Vector3 b = calculateBaricenter ();
-			//First check the scale result is not to small
+			//First check the scale result is not to small nor big
 			foreach (Vertex v in mVertices) {
 				Vector3 scaledPos = v.getPosition ();
 				scaleFromCenter (b, ref scaledPos, scaleValue);
 				float radius = Vector3.Distance (b, scaledPos);
-				if ( radius < minRadius || radius > maxRadius) return;
+				if ( (radius < minRadius && scaleValue < 1.0f) || ( radius > maxRadius && scaleValue > 1.0f)) 
+					return;
 			}
 			//If condition accomplished, then scale
 			foreach (Vertex v in mVertices) {
@@ -73,6 +73,7 @@ namespace Geometry {
 
 		/** Rotates all the polyline vertices through the polyline's normal vector(degrees) **/
 		public void rotate(float angle) {
+			//TODO:Rotate towards extrusion direction instead of polyline's normal?
 			Vector3 normal = calculateNormal ();
 			/*Quaternion rot = new Quaternion ();
 			rot.SetFromToRotation (Vector3.forward, normal);*/

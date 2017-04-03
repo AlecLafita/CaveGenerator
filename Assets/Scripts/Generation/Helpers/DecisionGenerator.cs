@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Geometry;
 
 /** Class that contains the random functions to decide which operations apply when generating and how **/
 
@@ -22,17 +23,33 @@ public class DecisionGenerator : MonoBehaviour {
 
 	//******** Next operation decision********//
 	/**Decide which operations apply to the next extrusion **/
-	public void generateNextOperation (ref ExtrusionOperation op, ref int extrusionsSinceLastOperation, int numExtrude, float tunnelProb = 1.0f) {
-		op = new ExtrusionOperation();
+
+	public ExtrusionOperations generateNewOperation(Polyline p) {
+		ExtrusionOperations op = new ExtrusionOperations();
+		op.forceDistanceOperation (DecisionGenerator.Instance.generateDistance (true));
+		op.forceDirectionOperation (p.calculateNormal ());
+
+		op.setCanIntersect(IntersectionsController.Instance.getLastBB());
+
+		return op;
+	}
+
+	public void generateNextOperation (Polyline p, ref ExtrusionOperations op, ref int extrusionsSinceLastOperation, int numExtrude, float tunnelProb = 1.0f) {
+		//op = new ExtrusionOperation();
 		//Change the distance as the first one is always bigger
 		//if (numExtrude == 0) 
-			op.forceDistanceOperation ();
-
-		//Decide which operations to apply
-		generateNoHoleOperation (ref op, extrusionsSinceLastOperation);
+			op.forceDistanceOperation (generateDistance (false));
 
 		//Decide to make hole or not
 		makeHole (ref op, numExtrude, tunnelProb);
+
+		//Decide which operations to apply
+		generateNoHoleOperation (p, ref op, extrusionsSinceLastOperation);
+
+		//Distance for hole case
+		if (op.holeOperation()) {
+			op.forceDistanceOperation (generateDistance (true));
+		}
 
 		//Update the counter
 		if (op.justExtrude ())
@@ -46,7 +63,7 @@ public class DecisionGenerator : MonoBehaviour {
 	//Changes each time the function is called!
 	private int operationMax = 2; //How many operations can be applied at a time
 	/**Decide which operations except from hole apply **/
-	private void generateNoHoleOperation(ref ExtrusionOperation op, int extrusionsSinceLastOperation) {
+	private void generateNoHoleOperation(Polyline p, ref ExtrusionOperations op, int extrusionsSinceLastOperation) {
 		//Check if a new operation can be done
 		//If it not satisfies the condition of generating an operation, return a just extrusion operation
 		int extrusionsNeeded = Random.Range(-operationDeviation, operationDeviation+1);
@@ -58,8 +75,40 @@ public class DecisionGenerator : MonoBehaviour {
 		int operationsToDo = Random.Range (1, operationMax + 1);
 		for (int i = 0; i < operationsToDo;++i) {
 			int opPos = Random.Range (0, numOperations);
-			op.forceOperation (opPos);
+			switch (opPos) {
+			case(0): //Distance
+				{
+					op.forceDistanceOperation (generateDistance (false));
+					break;
+				}
+			case(1): //Direction
+				{
+
+					Vector3 newDirection = generateDirection (p);
+					if (newDirection != Vector3.zero) {
+						op.forceDirectionOperation(newDirection);
+
+						IntersectionsController.Instance.addActualBox ();
+						IntersectionsController.Instance.addPolyline (p);
+
+						op.setCanIntersect (IntersectionsController.Instance.getLastBB ());
+					}
+					break;
+				}
+			case(2): //Scale
+				{
+					//TODO: find a divisor
+					op.forceScaleOperation (operationK, generateScale ());
+					break;
+				}
+			case(3): //Rotation
+				{
+					op.forceRotationOperation(operationK,generateRotation ()/operationK);
+					break;
+				}
+			}
 		}
+
 	}
 		
 	//******** Distance to extrude ********//
@@ -67,10 +116,6 @@ public class DecisionGenerator : MonoBehaviour {
 	public float distanceSmallMax = 3.0f;
 	public float distanceBigMin = 8.0f;
 	public float distanceBigMax = 10.0f;
-
-	public float generateDistance() {
-		return Random.Range (distanceSmallMin, distanceSmallMax);
-	}
 
 	public float generateDistance(bool big) {
 		if (big)
@@ -84,7 +129,34 @@ public class DecisionGenerator : MonoBehaviour {
 	public float directionMaxChange = 0.5f;
 	public bool directionJustWalk = false;
 	public float directionYWalkLimit = 0.35f;
-	public Vector3 changeDirection(Vector3 dir) {
+
+	private const int directionGenerationTries = 3;
+	public Vector3 generateDirection(Polyline p) {
+		//This does not change the normal! The normal is always the same as all the points of a polyline are generated at 
+		//the same distance that it's predecessor polyline (at the moment at least)
+		bool goodDirection = false;
+		Vector3 auxiliarDirection = new Vector3();
+		Vector3 result = Vector3.zero;
+		Vector3 polylineNormal = p.calculateNormal ();
+		for (int i = 0; i < directionGenerationTries && !goodDirection; ++i) {
+			//auxiliarDirection = DecisionGenerator.Instance.changeDirection(direction);
+			auxiliarDirection = DecisionGenerator.Instance.generateDirection();
+			//auxiliarDirection = DecisionGenerator.Instance.generateDirection(polylineNormal);
+			//Avoid intersection and narrow halways between the old and new polylines by setting an angle limit
+			//(90 would produce a plane and greater than 90 would produce an intersection)
+			if (Vector3.Angle (auxiliarDirection, polylineNormal) < DecisionGenerator.Instance.directionMaxAngle) {
+				goodDirection = true;
+				result = auxiliarDirection;
+			}
+		}
+		//if (!goodDirection)
+		//Debug.Log ("BAD DIRECITON");
+
+		return result;
+
+	}
+
+	private Vector3 changeDirection(Vector3 dir) {
 		int xChange = Random.Range (-1, 2);
 		int yChange = Random.Range (-1, 2);
 		int zChange = Random.Range (-1, 2);
@@ -100,7 +172,7 @@ public class DecisionGenerator : MonoBehaviour {
 		return dir.normalized;
 	}
 
-	public Vector3 generateDirection() {
+	private Vector3 generateDirection() {
 		float xDir = Random.Range (-1.0f, 1.0f);
 		float yDir;
 		if (directionJustWalk)
@@ -112,7 +184,7 @@ public class DecisionGenerator : MonoBehaviour {
 	}
 
 	[Range (0.0f,40.0f)] public float directionMaxAngle = 40.0f;
-	public Vector3 generateDirection(Vector3 normal) {
+	private Vector3 generateDirection(Vector3 normal) {
 		float xValue = Random.Range (normal.x - directionMaxAngle / 90.0f, normal.x + directionMaxAngle / 90.0f);
 		float yValue = Random.Range (normal.y - directionMaxAngle / 90.0f, normal.y + directionMaxAngle / 90.0f);
 		float zValue = Random.Range (normal.z - directionMaxAngle / 90.0f, normal.z + directionMaxAngle / 90.0f);
@@ -150,7 +222,7 @@ public class DecisionGenerator : MonoBehaviour {
 	}
 	public holeConditions holeCondition;
 
-	public void makeHole(ref ExtrusionOperation op, int numExtrude, float tunnelProb = 1.0f) {
+	public void makeHole(ref ExtrusionOperations op, int numExtrude, float tunnelProb = 1.0f) {
 		
 		//Wait at least minExtrusionsForHole to make a hole
 		if (numExtrude < minExtrusionsForHole)
@@ -165,28 +237,28 @@ public class DecisionGenerator : MonoBehaviour {
 		switch (holeCondition) {
 		case (holeConditions.EachK) :{
 				if (numExtrude % holeK == 0) {
-					op.forceHoleOperation ();
+					op.forceHoleOperation (true);
 					return;
 				}
 				break;
 			}
 		case (holeConditions.EachKProb): {
 				if ((numExtrude % holeK == 0) && r <= holeProb){
-					op.forceHoleOperation ();
+					op.forceHoleOperation (true);
 					return;
 				}
 				break;
 			}
 		case (holeConditions.MoreExtrMoreProb): {
 				if (r <= holeProb + numExtrude * holeLambda){
-					op.forceHoleOperation ();
+					op.forceHoleOperation (true);
 					return;
 				}
 				break;
 			}
 		case (holeConditions.MoreExtrLessProb): {
 				if (r <= holeProb - numExtrude * holeLambda){
-					op.forceHoleOperation ();
+					op.forceHoleOperation (true);
 					return;
 				}
 				break;

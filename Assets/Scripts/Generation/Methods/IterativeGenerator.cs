@@ -25,19 +25,17 @@ abstract public class IterativeGenerator : AbstractGenerator {
 
 	protected void generate(Polyline originPoly, float holeProb) {
 		Polyline newPoly;
-		float actualDistance;
-		Vector3 actualDirection;
 		int actualExtrusionTimes, extrusionsSinceOperation, noIntersection;
 		noIntersection = -1;
 		while (isDataStructureEmpty()) {
 			//new tunnel(hole) will be done, update the counter and all the data
 			--maxHoles;
 			initializeDataStructure(ref noIntersection, ref originPoly);
-			actualDistance = DecisionGenerator.Instance.generateDistance(true);
-			actualDirection = originPoly.calculateNormal ();
 			actualExtrusionTimes = 0;
 			extrusionsSinceOperation = 0;
-			ExtrusionOperation operation = new ExtrusionOperation();
+			ExtrusionOperations operation = DecisionGenerator.Instance.generateNewOperation (originPoly);
+			operation.setCanIntersect (noIntersection);
+
 			if (checkInvalidWalk(originPoly)) //Check is a valid walk tunnel
 				actualExtrusionTimes = maxExtrudeTimes+1;
 			//Extrude the tunnel
@@ -45,24 +43,30 @@ abstract public class IterativeGenerator : AbstractGenerator {
 				IntersectionsController.Instance.addPolyline (originPoly);
 				++actualExtrusionTimes;
 				//Generate the new polyline applying the operation
-				newPoly = extrude (operation, originPoly, ref actualDirection, ref actualDistance, ref noIntersection);
+				newPoly = extrude (operation, originPoly);
 				if (newPoly == null) {
-					DecisionGenerator.Instance.generateNextOperation (ref operation, ref extrusionsSinceOperation, actualExtrusionTimes, holeProb);
+					//DecisionGenerator.Instance.generateNextOperation (ref operation, ref extrusionsSinceOperation, actualExtrusionTimes, holeProb);
+					operation = DecisionGenerator.Instance.generateNewOperation (originPoly);
 					continue;
 				}
 				//Make hole?
 				if (operation.holeOperation()) {
 					noIntersection = -1;
+					operation.setCanIntersect (noIntersection);
 					Polyline polyHole = makeHole (originPoly, newPoly);
 					//if (polyHole != null) //Check the hole was done without problems
 						addElementToDataStructure (polyHole, IntersectionsController.Instance.getLastBB () + 1);
+
+					//Provisional, TODO: change this
+					operation.forceHoleOperation (false);
+					operation.forceDistanceOperation (DecisionGenerator.Instance.generateDistance (false));
 				}
 
 				//Triangulate from origin to new polyline as a tube/cave shape
 				proceduralMesh.triangulatePolylines (originPoly, newPoly);
 				//Set next operation and extrude
-				DecisionGenerator.Instance.generateNextOperation(ref operation, ref extrusionsSinceOperation,actualExtrusionTimes,holeProb);
 				originPoly = newPoly;
+				DecisionGenerator.Instance.generateNextOperation(originPoly, ref operation, ref extrusionsSinceOperation,actualExtrusionTimes,holeProb);
 			}
 			IntersectionsController.Instance.addPolyline (originPoly);
 			IntersectionsController.Instance.addActualBox ();
