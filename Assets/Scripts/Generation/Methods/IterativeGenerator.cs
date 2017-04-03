@@ -65,7 +65,7 @@ abstract public class IterativeGenerator : AbstractGenerator {
 			IntersectionsController.Instance.addPolyline (originPoly);
 			IntersectionsController.Instance.addActualBox ();
 			proceduralMesh.closePolyline(originPoly);
-			holeProb -= 0.01f;
+			holeProb -= 0.001f;
 		}
 	}
 }

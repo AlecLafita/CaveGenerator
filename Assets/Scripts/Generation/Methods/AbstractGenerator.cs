@@ -39,50 +39,48 @@ abstract public class AbstractGenerator {
 	/**It creates a new polyline from an exsiting one, applying the corresponding operations**/
 	protected Polyline extrude(ExtrusionOperation operation, Polyline originPoly, ref Vector3 direction, ref float distance, ref int canIntersect) {
 		//Check if distance/ direction needs to be changed
-		Vector3 oldDirection = direction;
-		float oldDistance = distance;
-		int oldCanIntersect = canIntersect;
-
+		Vector3 newDirection = direction;
+		float newDistance = distance;
 		if (operation.distanceOperation()) {
-			distance = DecisionGenerator.Instance.generateDistance (operation.holeOperation());
+			newDistance = DecisionGenerator.Instance.generateDistance (operation.holeOperation());
 		}
 		if (operation.directionOperation()) {
 			//This does not change the normal! The normal is always the same as all the points of a polyline are generated at 
 			//the same distance that it's predecessor polyline (at the moment at least)
 			bool goodDirection = false;
-			Vector3 newDirection =  new Vector3();
+			Vector3 auxiliarDirection =  new Vector3();
 			Vector3 polylineNormal = originPoly.calculateNormal ();
 			for (int i = 0; i < distanceGenerationTries && !goodDirection; ++i) {
 				//Vector3 newDirection = DecisionGenerator.Instance.changeDirection(direction);
-				newDirection = DecisionGenerator.Instance.generateDirection();
+				auxiliarDirection = DecisionGenerator.Instance.generateDirection();
 				//Avoid intersection and narrow halways between the old and new polylines by setting an angle limit
 				//(90 would produce a plane and greater than 90 would produce an intersection)
-				if (Vector3.Angle (newDirection, polylineNormal) < maxNormalDirectionAngle) {
+				if (Vector3.Angle (auxiliarDirection, polylineNormal) < maxNormalDirectionAngle) {
 					goodDirection = true;
-					direction = newDirection;
-					IntersectionsController.Instance.addActualBox ();
-					IntersectionsController.Instance.addPolyline (originPoly);
-					canIntersect = IntersectionsController.Instance.getLastBB ();
+					newDirection = auxiliarDirection;
 				}
 			}
 		}
-
 		//Create the new polyline from the actual one
 		Polyline newPoly = new Polyline(originPoly.getSize());
 		for (int i = 0; i < originPoly.getSize(); ++i) { //Generate the new vertices
 			//Add vertex to polyline
-			newPoly.extrudeVertex(i, originPoly.getVertex(i).getPosition(), direction,distance);
+			newPoly.extrudeVertex(i, originPoly.getVertex(i).getPosition(), newDirection, newDistance);
 			//Add the index to vertex
 			newPoly.getVertex(i).setIndex(proceduralMesh.getNumVertices() + i);
 
 		}
 		//Check there is no intersection
 		if (IntersectionsController.Instance.doIntersect (originPoly, newPoly, canIntersect)) {
-			//Undo changes
-			distance = oldDistance;
-			direction = oldDirection;
-			canIntersect = oldCanIntersect;
 			return null;
+		} else {
+			distance = newDistance;
+			if (direction != newDirection) { //Direction changed
+				IntersectionsController.Instance.addActualBox ();
+				IntersectionsController.Instance.addPolyline (originPoly);
+				canIntersect = IntersectionsController.Instance.getLastBB ();
+				direction = newDirection;
+			}
 		}
 
 		//Add new polyline to the mesh

@@ -25,7 +25,7 @@ public class DecisionGenerator : MonoBehaviour {
 	public void generateNextOperation (ref ExtrusionOperation op, ref int extrusionsSinceLastOperation, int numExtrude, float tunnelProb = 1.0f) {
 		op = new ExtrusionOperation();
 		//Change the distance as the first one is always bigger
-		if (numExtrude == 0) 
+		//if (numExtrude == 0) 
 			op.forceDistanceOperation ();
 		//Decide which operations to apply
 		generateNoHoleOperation (ref op, extrusionsSinceLastOperation);
@@ -62,20 +62,20 @@ public class DecisionGenerator : MonoBehaviour {
 	}
 		
 	//******** Distance to extrude ********//
-	public float distanceMin = 2.0f;
-	public float distanceMax = 3.0f;
-	public float distanceHoleMin = 8.0f;
-	public float distanceHoleMax = 10.0f;
+	public float distanceSmallMin = 2.0f;
+	public float distanceSmallMax = 3.0f;
+	public float distanceBigMin = 8.0f;
+	public float distanceBigMax = 10.0f;
 
 	public float generateDistance() {
-		return Random.Range (distanceMin, distanceMax);
+		return Random.Range (distanceSmallMin, distanceSmallMax);
 	}
 
-	public float generateDistance(bool doHole) {
-		if (doHole)
-			return Random.Range (distanceHoleMin, distanceHoleMax);
+	public float generateDistance(bool big) {
+		if (big)
+			return Random.Range (distanceBigMin, distanceBigMax);
 		else
-			return Random.Range (distanceMin, distanceMax);
+			return Random.Range (distanceSmallMin, distanceSmallMax);
 	}
 
 	//******** Direction ********//

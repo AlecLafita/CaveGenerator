@@ -43,7 +43,7 @@ public class RecursiveGenerator : AbstractGenerator {
 				canIntersect = IntersectionsController.Instance.getLastBB()+1; //Avoid intersection check with hole first BB
 				Polyline polyHole = makeHole (originPoly, newPoly);
 				//if (polyHole != null) //Check the hole was done without problems
-					generate(polyHole, holeProb-0.01f, IntersectionsController.Instance.getLastBB());
+					generate(polyHole, holeProb-0.001f, IntersectionsController.Instance.getLastBB());
 				//if (maxHoles > 0 ) before the recursive call. This comrobation won't be done as it is redundant 
 				// (it was the last polyline to be added IC, so it won't be added again)
 				IntersectionsController.Instance.addPolyline(originPoly);
