@@ -28,18 +28,16 @@ abstract public class IterativeGenerator : AbstractGenerator {
 		int actualExtrusionTimes, extrusionsSinceOperation, noIntersection;
 		noIntersection = -1;
 		while (isDataStructureEmpty()) {
-			//new tunnel(hole) will be done, update the counter and all the data
-			--maxHoles;
+			//new tunnel(hole) will be done, initialize all the data
+			//Case base is implicit, as the operation generation takes into account the maxHoles variables in order to stop generating holes
 			initializeDataStructure(ref noIntersection, ref originPoly);
 			actualExtrusionTimes = 0;
 			extrusionsSinceOperation = 0;
 			ExtrusionOperations operation = DecisionGenerator.Instance.generateNewOperation (originPoly);
 			operation.setCanIntersect (noIntersection);
 
-			if (checkInvalidWalk(originPoly)) //Check is a valid walk tunnel
-				actualExtrusionTimes = maxExtrudeTimes+1;
 			//Extrude the tunnel
-			while (maxHoles >= 0 && actualExtrusionTimes <= maxExtrudeTimes) {
+			while (actualExtrusionTimes <= maxExtrudeTimes) {
 				IntersectionsController.Instance.addPolyline (originPoly);
 				++actualExtrusionTimes;
 				//Generate the new polyline applying the operation
@@ -54,19 +52,19 @@ abstract public class IterativeGenerator : AbstractGenerator {
 					noIntersection = -1;
 					operation.setCanIntersect (noIntersection);
 					Polyline polyHole = makeHole (originPoly, newPoly);
-					//if (polyHole != null) //Check the hole was done without problems
+					if (polyHole != null) {//Check the hole was done without problems
 						addElementToDataStructure (polyHole, IntersectionsController.Instance.getLastBB () + 1);
+						--maxHoles;
+					}
+					//TODO: ELSE, reextrude without hole (this is due to it is generated with big distance)
 
-					//Provisional, TODO: change this
-					operation.forceHoleOperation (false);
-					operation.forceDistanceOperation (DecisionGenerator.Instance.generateDistance (false));
 				}
 
 				//Triangulate from origin to new polyline as a tube/cave shape
 				proceduralMesh.triangulatePolylines (originPoly, newPoly);
 				//Set next operation and extrude
 				originPoly = newPoly;
-				DecisionGenerator.Instance.generateNextOperation(originPoly, ref operation, ref extrusionsSinceOperation,actualExtrusionTimes,holeProb);
+				DecisionGenerator.Instance.generateNextOperation(originPoly, ref operation, ref extrusionsSinceOperation,actualExtrusionTimes,holeProb, maxHoles);
 			}
 			IntersectionsController.Instance.addPolyline (originPoly);
 			IntersectionsController.Instance.addActualBox ();

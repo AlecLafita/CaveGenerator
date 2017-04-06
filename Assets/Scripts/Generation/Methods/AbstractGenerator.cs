@@ -96,7 +96,7 @@ abstract public class AbstractGenerator {
 
 		//In the walking case, check if the hole is not too upwards or downwards(y component)
 		//TODO: Improve this to be less do and test and more test and do
-		/*bool invalidWalkHole = checkInvalidWalk(polyHole);
+		bool invalidWalkHole = checkInvalidWalk(polyHole);
 		//Undo hole if invalid
 		if (invalidWalkHole) {
 			for (int j = 0; j < sizeHole/2; ++j) {
@@ -104,7 +104,7 @@ abstract public class AbstractGenerator {
 				destinyPoly.getVertex (firstIndex + j).setInHole (false);
 			}
 			return null;
-		}*/
+		}
 
 		return polyHole;
 	}

@@ -15,11 +15,8 @@ public class RecursiveGenerator : AbstractGenerator {
 		//Hole is done, update the counter
 		--maxHoles;
 
-		//Base case, triangulate the actual tunnel last polyline as a polygon to close the hole
-		if (maxHoles < 0 || checkInvalidWalk(originPoly)) { 
-			proceduralMesh.closePolyline(originPoly);
-			return;
-		}
+		//Case base is implicit, as the operation generation takes into account the maxHoles variables in order to stop generating holes
+
 		//TODO: change maxExtrudeTimes as holes are done (eg, random number between a rank)
 
 		//Generate the actual hallway/tunnel
@@ -38,25 +35,21 @@ public class RecursiveGenerator : AbstractGenerator {
 			}
 			//Make hole?
 			if (actualOperation.holeOperation()) {
-				if (maxHoles >= 0 )
-					IntersectionsController.Instance.addActualBox ();
+				IntersectionsController.Instance.addActualBox ();
 				actualOperation.setCanIntersect(IntersectionsController.Instance.getLastBB()+1); //Avoid intersection check with hole first BB
 				Polyline polyHole = makeHole (originPoly, newPoly);
-				//if (polyHole != null) //Check the hole was done without problems
+				if (polyHole != null) //Check the hole was done without problems
 					generate(polyHole, holeProb-0.001f);
+				//TODO: ELSE, reextrude without hole (this is due to it is generated with big distance)
 				//if (maxHoles > 0 ) before the recursive call. This comrobation won't be done as it is redundant 
 				// (it was the last polyline to be added IC, so it won't be added again)
 				IntersectionsController.Instance.addPolyline(originPoly);
-
-				//Provisional, TODO: change this
-				actualOperation.forceHoleOperation (false);
-				actualOperation.forceDistanceOperation (DecisionGenerator.Instance.generateDistance (false));
 			}
 			//Triangulate from origin to new polyline as a tube/cave shape
 			proceduralMesh.triangulatePolylines (originPoly, newPoly);
 			//Set next operation and continue from the new polyline
 			originPoly = newPoly;
-			DecisionGenerator.Instance.generateNextOperation(originPoly, ref actualOperation, ref extrusionsSinceOperation,i,holeProb);
+			DecisionGenerator.Instance.generateNextOperation(originPoly, ref actualOperation, ref extrusionsSinceOperation,i,holeProb, maxHoles);
 		}
 		//Finally, close the actual hallway/tunnel
 		IntersectionsController.Instance.addPolyline(originPoly);
