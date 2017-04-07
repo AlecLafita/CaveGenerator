@@ -83,12 +83,10 @@ public class DecisionGenerator : MonoBehaviour {
 				{
 
 					Vector3 newDirection = generateDirection (p);
-					if (newDirection != Vector3.zero) {
-						op.forceDirectionOperation(newDirection);
-
+					if (newDirection != Vector3.zero) { //Valid direction found
+						op.forceDirectionOperation(newDirection); //TODO: apply intervals
 						IntersectionsController.Instance.addActualBox ();
 						IntersectionsController.Instance.addPolyline (p);
-
 						op.setCanIntersect (IntersectionsController.Instance.getLastBB ());
 					}
 					break;

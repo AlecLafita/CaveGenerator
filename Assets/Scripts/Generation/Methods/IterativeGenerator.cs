@@ -35,10 +35,10 @@ abstract public class IterativeGenerator : AbstractGenerator {
 			extrusionsSinceOperation = -1; //Make sure the first two polylines are added as BB
 			ExtrusionOperations operation = DecisionGenerator.Instance.generateNewOperation (originPoly);
 			operation.setCanIntersect (noIntersection);
-
-			//Extrude the tunnel
+			//Add first polyline to the intersection BB
+			IntersectionsController.Instance.addPolyline (originPoly);
+			//Generate the tunnel
 			while (actualExtrusionTimes <= maxExtrudeTimes) {
-				IntersectionsController.Instance.addPolyline (originPoly);
 				++actualExtrusionTimes;
 				//Generate the new polyline applying the operation
 				newPoly = extrude (operation, originPoly);
@@ -62,11 +62,12 @@ abstract public class IterativeGenerator : AbstractGenerator {
 
 				//Triangulate from origin to new polyline as a tube/cave shape
 				proceduralMesh.triangulatePolylines (originPoly, newPoly);
-				//Set next operation and extrude
+				//Set next operation and continue from the new polyline
 				originPoly = newPoly;
+				//Add actual polyline to the next intersection BB ang get nexxt operation
+				IntersectionsController.Instance.addPolyline(originPoly);
 				DecisionGenerator.Instance.generateNextOperation(originPoly, ref operation, ref extrusionsSinceOperation,actualExtrusionTimes,holeProb, maxHoles);
 			}
-			IntersectionsController.Instance.addPolyline (originPoly);
 			IntersectionsController.Instance.addActualBox ();
 			proceduralMesh.closePolyline(originPoly);
 			holeProb -= 0.001f;
