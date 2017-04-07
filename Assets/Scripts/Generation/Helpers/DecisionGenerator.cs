@@ -39,7 +39,6 @@ public class DecisionGenerator : MonoBehaviour {
 		//Change the distance as the first one is always bigger
 		//if (numExtrude == 0) 
 			op.forceDistanceOperation (generateDistance (false));
-
 		//Decide to make hole or not
 		op.forceHoleOperation(makeHole (ref op, numExtrude, tunnelProb, holesCountdown));
 

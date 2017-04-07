@@ -21,7 +21,7 @@ public class RecursiveGenerator : AbstractGenerator {
 
 		//Generate the actual hallway/tunnel
 		ExtrusionOperations actualOperation = DecisionGenerator.Instance.generateNewOperation (originPoly);
-		int extrusionsSinceOperation = 0;
+		int extrusionsSinceOperation = -1; //Make sure the first two polylines are added as BB
 		for (int i = 0; i < maxExtrudeTimes; ++i) {
 			//Add actual polyline to the next intersection BB
 			IntersectionsController.Instance.addPolyline(originPoly);
@@ -35,15 +35,16 @@ public class RecursiveGenerator : AbstractGenerator {
 			}
 			//Make hole?
 			if (actualOperation.holeOperation()) {
-				IntersectionsController.Instance.addActualBox ();
-				actualOperation.setCanIntersect(IntersectionsController.Instance.getLastBB()+1); //Avoid intersection check with hole first BB
 				Polyline polyHole = makeHole (originPoly, newPoly);
-				if (polyHole != null) //Check the hole was done without problems
-					generate(polyHole, holeProb-0.001f);
+				if (polyHole != null) { //Check the hole was done without problems
+					IntersectionsController.Instance.addActualBox ();
+					actualOperation.setCanIntersect(IntersectionsController.Instance.getLastBB()+1); //Avoid intersection check with hole first BB
+					generate (polyHole, holeProb - 0.001f);
+					IntersectionsController.Instance.addPolyline(originPoly);
+				}
 				//TODO: ELSE, reextrude without hole (this is due to it is generated with big distance)
 				//if (maxHoles > 0 ) before the recursive call. This comrobation won't be done as it is redundant 
 				// (it was the last polyline to be added IC, so it won't be added again)
-				IntersectionsController.Instance.addPolyline(originPoly);
 			}
 			//Triangulate from origin to new polyline as a tube/cave shape
 			proceduralMesh.triangulatePolylines (originPoly, newPoly);

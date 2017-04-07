@@ -32,7 +32,7 @@ abstract public class IterativeGenerator : AbstractGenerator {
 			//Case base is implicit, as the operation generation takes into account the maxHoles variables in order to stop generating holes
 			initializeDataStructure(ref noIntersection, ref originPoly);
 			actualExtrusionTimes = 0;
-			extrusionsSinceOperation = 0;
+			extrusionsSinceOperation = -1; //Make sure the first two polylines are added as BB
 			ExtrusionOperations operation = DecisionGenerator.Instance.generateNewOperation (originPoly);
 			operation.setCanIntersect (noIntersection);
 
