@@ -34,7 +34,22 @@ public class CaveGenerator : MonoBehaviour {
 		pointsSelected = 0;
 		generatorCalled = false;
 	}
-	
+
+	/** Draw a line between start and end **/
+	void DrawLine(Vector3 start, Vector3 end, Color color, float duration = 0.2f)
+	{
+		GameObject myLine = new GameObject();
+		myLine.transform.position = start;
+		myLine.AddComponent<LineRenderer>();
+		LineRenderer lr = myLine.GetComponent<LineRenderer>();
+		lr.material = new Material(Shader.Find("Particles/Alpha Blended Premultiply"));
+		lr.SetColors(color, color);
+		lr.SetWidth(0.05f, 0.05f);
+		lr.SetPosition(0, start);
+		lr.SetPosition(1, end);
+		//GameObject.Destroy(myLine, duration);
+	}
+
 	void Update () {
 		/** Waits the user to select the points that will form the cave gate (initial polyline). 
 		 * Once all the points have been selected thorugh clicks, it calls the function that generates
@@ -42,10 +57,15 @@ public class CaveGenerator : MonoBehaviour {
 		if (Input.GetMouseButtonDown (0) && pointsSelected < gateSize) { //left click
 			Vector3 pos = new Vector3(Input.mousePosition.x, Input.mousePosition.y, 10.0f);
 			pos = cam.ScreenToWorldPoint(pos);
+			if (pointsSelected > 0) {
+				DrawLine (initialPoints.getVertex (pointsSelected-1).getPosition(), pos, Color.green, 20.0f);
+			}
 			initialPoints.addPosition (pos);
 			Debug.Log (pos);
 			++pointsSelected;
 			if (pointsSelected == gateSize) {
+				DrawLine (pos, initialPoints.getVertex (0).getPosition(), Color.green, 20.0f);
+
 				Debug.Log ("All points selected, press right mouse button");
 			}
 		}
