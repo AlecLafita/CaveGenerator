@@ -70,7 +70,6 @@ public class DecisionGenerator : MonoBehaviour {
 		if ((extrusionsSinceLastOperation % operationK + extrusionsNeeded) != 0) {
 			return;
 		}
-
 		int numOperations = op.getNumOperations ();
 		int operationsToDo = Random.Range (1, operationMax + 1);
 		for (int i = 0; i < operationsToDo;++i) {
@@ -98,7 +97,7 @@ public class DecisionGenerator : MonoBehaviour {
 			case(2): //Scale
 				{
 					//TODO: find a divisor
-					op.forceScaleOperation (operationK, generateScale ());
+					op.forceScaleOperation (operationK,Mathf.Pow(generateScale(),1/(float)operationK));
 					break;
 				}
 			case(3): //Rotation
