@@ -76,7 +76,10 @@ abstract public class AbstractGenerator {
 		// on the two polylines are at the same order (the new is kind of a projection of the old)
 		int sizeHole; int firstIndex;
 		DecisionGenerator.Instance.whereToDig (originPoly.getSize(), out sizeHole, out firstIndex);
-
+		/*DecisionGenerator.Instance.whereToDig (originPoly, out sizeHole, out firstIndex);
+		if (sizeHole <= 1)
+			return null;*/
+		
 		//Create the hole polyline by marking and adding the hole vertices (from old a new polylines)
 		InitialPolyline polyHole = new InitialPolyline (sizeHole);
 		//Increasing order for the origin and decreasing for the destiny polyline in order to 

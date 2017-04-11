@@ -93,7 +93,6 @@ public class DecisionGenerator : MonoBehaviour {
 				}
 			case(2): //Scale
 				{
-					//TODO: find a divisor
 					op.forceScaleOperation (operationK,Mathf.Pow(generateScale(),1/(float)operationK));
 					break;
 				}
@@ -136,7 +135,7 @@ public class DecisionGenerator : MonoBehaviour {
 		Vector3 polylineNormal = p.calculateNormal ();
 		for (int i = 0; i < directionGenerationTries && !goodDirection; ++i) {
 			//auxiliarDirection = DecisionGenerator.Instance.changeDirection(direction);
-			auxiliarDirection = DecisionGenerator.Instance.generateDirection();
+			auxiliarDirection = generateDirection();
 			//auxiliarDirection = DecisionGenerator.Instance.generateDirection(polylineNormal);
 			//Avoid intersection and narrow halways between the old and new polylines by setting an angle limit
 			//(90 would produce a plane and greater than 90 would produce an intersection)
@@ -271,6 +270,59 @@ public class DecisionGenerator : MonoBehaviour {
 		sizeHole *= 2; //Must be a pair number!
 		sizeHole = Mathf.Min (sizeHole, holeMaxVertices);
 		firstIndex = Random.Range (0, numV);
+	}
+
+
+	public float holesMaxAngleDirection = 30.0f;
+	public void whereToDig(Polyline p, out int sizeHole, out int firstIndex) {
+		sizeHole = 0;
+		firstIndex = 0;
+		//Generate the approximate direction of the hole
+		Vector3 apprDir = generateDirection(p);
+		if (apprDir == Vector3.zero) //No random direction could be found
+			return;
+
+		Vector3 baricenter = p.calculateBaricenter ();
+
+		//valid <=> close to the approximate direction)
+		//Auxiliar variables
+		bool found = false;
+		int auxIndex = 0;
+		Vector3 auxDirection;
+
+		while (!found && auxIndex < p.getSize()) { //Get any vertex that is valid
+			auxDirection = p.getVertex (auxIndex).getPosition () - baricenter;
+			if (Vector3.Angle (auxDirection, apprDir) < holesMaxAngleDirection)
+				found = true;
+			else
+				++auxIndex;
+		}
+		if (!found) //None of the vertex are valid
+			return;
+
+		found = false;
+		while (!found) { //Get the first vertex to be valid to make the hole (clockwise!)
+			--auxIndex;
+			auxDirection = p.getVertex (auxIndex).getPosition () - baricenter;
+			if (Vector3.Angle (auxDirection, apprDir) >= holesMaxAngleDirection) {
+				auxIndex++;
+				firstIndex = auxIndex;
+				found = true;
+			}
+		}//This should not be an infinite loop as there will be always some vertex direction not too close to the approximate one
+
+		//Now check check all the vertices from the first until some no valid found, this will mark the end of the hole
+		found = false;
+		sizeHole = 1;
+		while (!found) {
+			auxDirection = p.getVertex (auxIndex).getPosition () - baricenter;
+			if (Vector3.Angle (auxDirection, apprDir) < holesMaxAngleDirection)
+				++sizeHole;
+			else
+				found = true;
+			++auxIndex;
+		}//This should not be an infinite loop as there will be always some vertex direction not too close to the approximate one
+		sizeHole *= 2;
 	}
 
 }

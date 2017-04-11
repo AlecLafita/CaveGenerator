@@ -31,6 +31,8 @@ namespace Geometry {
 
 		//******** Getters ********//
 		public Vertex getVertex(int i) {
+			if (i < 0)
+				i = mVertices.Length + i;
 			return mVertices [i % mVertices.Length];
 		}
 
