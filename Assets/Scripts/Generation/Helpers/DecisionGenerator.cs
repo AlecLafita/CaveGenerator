@@ -26,9 +26,8 @@ public class DecisionGenerator : MonoBehaviour {
 
 	public ExtrusionOperations generateNewOperation(Polyline p) {
 		ExtrusionOperations op = new ExtrusionOperations();
-		op.forceDistanceOperation (DecisionGenerator.Instance.generateDistance (true));
-		op.forceDirectionOperation (p.calculateNormal ());
-
+		op.forceDistanceOperation (1,DecisionGenerator.Instance.generateDistance (true));
+		op.forceDirectionOperation (0, p.calculateNormal (), p.calculateNormal ());
 		op.setCanIntersect(IntersectionsController.Instance.getLastBB());
 
 		return op;
@@ -38,16 +37,16 @@ public class DecisionGenerator : MonoBehaviour {
 		//op = new ExtrusionOperation();
 		//Change the distance as the first one is always bigger
 		//if (numExtrude == 0) 
-			op.forceDistanceOperation (generateDistance (false));
+			op.forceDistanceOperation (1,generateDistance (false));
 		//Decide to make hole or not
-		op.forceHoleOperation(makeHole (ref op, numExtrude, tunnelProb, holesCountdown));
+		op.forceHoleOperation(makeHole (numExtrude, tunnelProb, holesCountdown));
 
 		//Decide which operations to apply
 		generateNoHoleOperation (p, ref op, extrusionsSinceLastOperation);
 
 		//Distance for hole case
 		if (op.holeOperation()) {
-			op.forceDistanceOperation (generateDistance (true));
+			op.forceDistanceOperation (1,generateDistance (true));
 		}
 
 		//Update the counter
@@ -76,15 +75,14 @@ public class DecisionGenerator : MonoBehaviour {
 			switch (opPos) {
 			case(0): //Distance
 				{
-					op.forceDistanceOperation (generateDistance (false));
+					op.forceDistanceOperation (1,generateDistance (false));
 					break;
 				}
 			case(1): //Direction
 				{
-
 					Vector3 newDirection = generateDirection (p);
 					if (newDirection != Vector3.zero) { //Valid direction found
-						op.forceDirectionOperation(newDirection); //TODO: apply intervals
+						op.forceDirectionOperation(operationK, newDirection);
 						IntersectionsController.Instance.addActualBox ();
 						IntersectionsController.Instance.addPolyline (p);
 						op.setCanIntersect (IntersectionsController.Instance.getLastBB ());
@@ -175,7 +173,7 @@ public class DecisionGenerator : MonoBehaviour {
 		else
 			yDir = Random.Range (-1.0f, 1.0f);
 		float zDir = Random.Range (-1.0f, 1.0f);
-		return new Vector3(xDir, yDir, zDir);
+		return new Vector3(xDir, yDir, zDir).normalized;
 	}
 
 	[Range (0.0f,40.0f)] public float directionMaxAngle = 40.0f;
@@ -217,7 +215,7 @@ public class DecisionGenerator : MonoBehaviour {
 	}
 	public holeConditions holeCondition;
 
-	private bool makeHole(ref ExtrusionOperations op, int numExtrude, float tunnelProb, int holesCountdown) {
+	private bool makeHole(int numExtrude, float tunnelProb, int holesCountdown) {
 		//Check that the holes limit has not arrived
 		if (holesCountdown <= 0 ) 
 			return false;
@@ -278,7 +276,7 @@ public class DecisionGenerator : MonoBehaviour {
 		sizeHole = 0;
 		firstIndex = 0;
 		//Generate the approximate direction of the hole
-		Vector3 apprDir = generateDirection(p);
+		Vector3 apprDir = generateDirection();
 		if (apprDir == Vector3.zero) //No random direction could be found
 			return;
 

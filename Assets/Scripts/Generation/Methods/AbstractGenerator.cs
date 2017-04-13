@@ -39,9 +39,10 @@ abstract public class AbstractGenerator {
 
 		//Create the new polyline from the actual one
 		Polyline newPoly = new Polyline(originPoly.getSize());
+		Vector3 direction = operation.applyDirection ();
 		for (int i = 0; i < originPoly.getSize(); ++i) { //Generate the new vertices
 			//Add vertex to polyline
-			newPoly.extrudeVertex(i, originPoly.getVertex(i).getPosition(), operation.getDirection(), operation.getDistance());
+			newPoly.extrudeVertex(i, originPoly.getVertex(i).getPosition(), direction, operation.applyDistance());
 			//Add the index to vertex
 			newPoly.getVertex(i).setIndex(proceduralMesh.getNumVertices() + i);
 		}
@@ -75,10 +76,10 @@ abstract public class AbstractGenerator {
 		// Decide how and where the hole will be done, take advantatge indices
 		// on the two polylines are at the same order (the new is kind of a projection of the old)
 		int sizeHole; int firstIndex;
-		DecisionGenerator.Instance.whereToDig (originPoly.getSize(), out sizeHole, out firstIndex);
-		/*DecisionGenerator.Instance.whereToDig (originPoly, out sizeHole, out firstIndex);
-		if (sizeHole <= 1)
-			return null;*/
+		//DecisionGenerator.Instance.whereToDig (originPoly.getSize(), out sizeHole, out firstIndex);
+		DecisionGenerator.Instance.whereToDig (originPoly, out sizeHole, out firstIndex);
+		if (sizeHole <= 4)
+			return null;
 		
 		//Create the hole polyline by marking and adding the hole vertices (from old a new polylines)
 		InitialPolyline polyHole = new InitialPolyline (sizeHole);

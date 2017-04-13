@@ -12,7 +12,7 @@ public class ExtrusionOperations  {
 
 	private Operation<float> distance;
 
-	private Operation<Vector3> direction;
+	private LerpOperation direction;
 
 	private Operation<float> scale;
 
@@ -27,7 +27,7 @@ public class ExtrusionOperations  {
 	/** Creator, makes a just extrusion operation**/
 	public ExtrusionOperations() {
 		distance = new Operation<float> ();
-		direction = new Operation<Vector3> ();
+		direction = new LerpOperation ();
 		scale = new Operation<float> ();
 		rotate = new Operation<float> ();
 		canIntersect = -1;
@@ -48,18 +48,12 @@ public class ExtrusionOperations  {
 	public bool distanceOperation() {
 		return distance.getCountdown()>0;
 	}
-	public float getDistance() {
-		return distance.getValue ();
-	}
 
 	/** Returns if a direction change needs to be done **/
 	public bool directionOperation() {
 		return direction.getCountdown()>0;
 	}
-	public Vector3 getDirection() {
-		return direction.getValue ();
-	}
-
+		
 	/** Returns if a scale needs to be done **/
 	public bool scaleOperation() {
 		return scale.getCountdown()>0;
@@ -86,18 +80,19 @@ public class ExtrusionOperations  {
 		distance.setValue (value);
 	}
 
-	/** Forces to make a distance change**/
-	public void forceDistanceOperation(float value) {
-		distance.setValue (value);
-	}
-
-	public void forceDirectionOperation(int times, Vector3 value) {
+	/** Forces to make a direction change**/
+	public void forceDirectionOperation(int times, Vector3 valueIni, Vector3 valueFi) {
 		direction.setCountdown (times);
-		direction.setValue (value);
+		direction.setIniValue (valueIni);
+		direction.setFiValue (valueFi);
 	}
 
-	public void forceDirectionOperation(Vector3 value) {
-		direction.setValue (value);
+	/**Forces to make a direction change, only final direction is needed **/
+	public void forceDirectionOperation(int times, Vector3 valueFi) {
+		direction.setCountdown (times);
+		//Set as the initial one the previous final one, this way it will start the interpolation from it
+		direction.setIniValue (direction.getFiValue()); 
+		direction.setFiValue (valueFi);
 	}
 
 	/** Forces to make a scale **/
@@ -124,16 +119,22 @@ public class ExtrusionOperations  {
 
 	//*********Operations application**********//
 
-	/**Returns the distance value. Pre: need to check if a distance operation can be done **/
+	/**Returns the distance value. **/
 	public float applyDistance() {
-		//distance.decreaseCountdown ();
+		distance.decreaseCountdown ();
 		return distance.getValue ();
 	}
 
-	/**Returns the direction value. Pre: need to check if a direction operation can be done **/
+	/**Returns the direction value. **/
 	public Vector3 applyDirection() {
-		//direction.decreaseCountdown ();
-		return direction.getValue ();
+		//If a direction change is needed, it will be interpolated between the two directions,
+		if (directionOperation ()) {
+			direction.decreaseCountdown ();
+			return direction.applyLerp ();
+		} 
+		//Otherwise it will take the last direction applied
+		else
+			return direction.getFiValue ();
 	}
 
 	/**Returns the scale value. Pre: need to check if a scale operation can be done **/
