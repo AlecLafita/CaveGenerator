@@ -99,9 +99,16 @@ namespace Geometry {
 			foreach (Vertex v in mVertices) {
 				baricenter += v.getPosition ();
 			}
-			return baricenter/mVertices.Length;
+			return baricenter/(float)mVertices.Length;
 		}
 
+		public Vector2 calculateBaricenterUV() {
+			Vector2 baricenter = new Vector2 (0.0f,0.0f);
+			foreach (Vertex v in mVertices) {
+				baricenter += v.getUV ();
+			}
+			return baricenter/(float)mVertices.Length;
+		}
 
 		/** Computes the normal of the plane formed by the polyline's vertices. Each component is calculated from the 
 		 * area of the projection on the coordinate plane corresponding for the actual component.

@@ -37,5 +37,11 @@ namespace Geometry {
 			mVertices [mActualPos] = newV;
 			++mActualPos;
 		}
+
+		public void generateUVs () {
+			for (int i = 0; i < mVertices.Length; ++i) {
+				mVertices[i].setUV(new Vector2((float)i/(float)(mVertices.Length-1),0.0f));
+			}
+		}
 	}
 }

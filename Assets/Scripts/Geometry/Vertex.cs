@@ -10,6 +10,7 @@ namespace Geometry {
 		private Vector3 position; //Position of the vertex in world coords.
 		private int index; //Index of the vertex in the mesh
 		private bool inHole; //Does this vertex belongs to a hole?
+		private Vector2 UV; //Texture coordinates of this vertex
 
 		//******** Constructors ********//
 		public Vertex() {
@@ -31,6 +32,10 @@ namespace Geometry {
 			inHole = hole;
 		}
 
+		public void setUV(Vector2 UV) {
+			this.UV = UV;
+		}
+
 		//******** Getters ********//
 		public Vector3 getPosition() {
 			return position;
@@ -44,5 +49,8 @@ namespace Geometry {
 			return inHole;
 		}
 
+		public Vector2 getUV() {
+			return UV;
+		}
 	}
 }

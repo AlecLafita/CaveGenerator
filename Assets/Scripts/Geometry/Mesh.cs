@@ -28,7 +28,7 @@ namespace Geometry {
 			mTriangles = new List<int>();
 			mUVs = new List<Vector2> ();
 			for (int i = 0; i < iniPol.getSize (); ++i) {
-				addVertex (iniPol.getVertex (i).getPosition ());
+				addVertex (iniPol.getVertex (i));
 			}
 		}
 
@@ -66,11 +66,11 @@ namespace Geometry {
 
 		//******** Other functions ********//
 		/** Adds a new vertex to the mesh **/
-		public void addVertex(Vector3 v) {
-			mVertices.Add (v);
+		public void addVertex(Vertex v) {
+			mVertices.Add (v.getPosition());
 			//Generate random texture position TODO:Improve this
-			Vector2 uv = new Vector2 (Random.Range (0.0f, 1.0f), Random.Range (0.0f, 1.0f));
-			mUVs.Add (uv);
+			//Vector2 uv = new Vector2 (Random.Range (0.0f, 1.0f), Random.Range (0.0f, 1.0f));
+			mUVs.Add (v.getUV());
 		}
 
 		/** Adds a new triangle to the mesh**/
@@ -107,7 +107,9 @@ namespace Geometry {
 
 		/** Closes a polyline by triangulating all it's vertices with it's baricenter, visualizing it as a polygon**/
 		public void closePolyline(Polyline poly) {
-			Vector3 baricenter = poly.calculateBaricenter ();
+			Vertex baricenter = new Vertex ();
+			baricenter.setPosition (poly.calculateBaricenter ());
+			baricenter.setUV (poly.calculateBaricenterUV());
 			int baricenterIndex = getNumVertices();
 			addVertex (baricenter);
 			for (int i = 0; i < poly.getSize(); ++i) {

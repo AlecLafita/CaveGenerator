@@ -33,18 +33,29 @@ abstract public class AbstractGenerator {
 	public Geometry.Mesh getMesh() {
 		return proceduralMesh;
 	}
-		
+
+	public float UVfactor = 50.0f;
 	/**It creates a new polyline from an exsiting one, applying the corresponding operations**/
 	protected Polyline extrude(ExtrusionOperations operation, Polyline originPoly) {
 
 		//Create the new polyline from the actual one
 		Polyline newPoly = new Polyline(originPoly.getSize());
 		Vector3 direction = operation.applyDirection ();
+		float distance = operation.applyDistance ();
+		//Generate the UVS of the new polyline from the coordinates of the original and on the same
+		//same direction that the extrusion, as if it was a projection to XZ plane
+		Vector2 UVincr = new Vector2(direction.x,direction.z);
+		UVincr.Normalize ();
+		UVincr *= (distance / UVfactor);
 		for (int i = 0; i < originPoly.getSize(); ++i) { //Generate the new vertices
 			//Add vertex to polyline
-			newPoly.extrudeVertex(i, originPoly.getVertex(i).getPosition(), direction, operation.applyDistance());
+			newPoly.extrudeVertex(i, originPoly.getVertex(i).getPosition(), direction, distance);
 			//Add the index to vertex
 			newPoly.getVertex(i).setIndex(proceduralMesh.getNumVertices() + i);
+			//Add UV
+			//newPoly.getVertex(i).setUV(originPoly.getVertex(i).getUV() + new Vector2(0.0f,distance/UVfactor));
+			newPoly.getVertex(i).setUV(originPoly.getVertex(i).getUV() + UVincr);
+
 		}
 
 		//Apply operations, if any
@@ -63,7 +74,7 @@ abstract public class AbstractGenerator {
 		//Add new polyline to the mesh
 		for (int i = 0; i < originPoly.getSize (); ++i) {
 			//Add the new vertex to the mesh
-			proceduralMesh.addVertex(newPoly.getVertex(i).getPosition());
+			proceduralMesh.addVertex(newPoly.getVertex(i));
 		}
 
 		return newPoly;
