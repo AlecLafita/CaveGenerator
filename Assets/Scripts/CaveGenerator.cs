@@ -118,6 +118,9 @@ public class CaveGenerator : MonoBehaviour {
 		Debug.Log ("Vertices generated: " + proceduralMesh.getNumVertices ());
 		Debug.Log ("Triangles generated: " + proceduralMesh.getNumTriangles ());
 
+		//Smooth the mesh
+		proceduralMesh.smooth(1);
+
 		//Generation finished, assign the vertices and triangles created to a Unity mesh
 		UnityEngine.Mesh mesh = new UnityEngine.Mesh ();
 		//mesh.vertices = mVertices.ToArray(); //Slower

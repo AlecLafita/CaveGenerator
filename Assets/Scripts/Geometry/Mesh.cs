@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+using System.Linq;
+
 namespace Geometry {
 	
 	/** This class contains the mesh that will be dynamically generated. It's important then,
@@ -118,5 +120,60 @@ namespace Geometry {
 			}
 		}
 
+		/** Smooths the mesh by using the selected techique or filter. It must be called
+		 * after all the mesh is completely generated **/
+		public void smooth(int it) {
+
+			//Transform to array in order to have a direct index (const. time)
+			Vector3[] verticesArray = mVertices.ToArray (); //O(V)
+
+			//Get the adjacent vertices set list
+			HashSet<int>[] adjacentList = computeAdjacents();
+
+			//Apply the corresponding smooth techniques as many times as required
+			for (int i = 0; i < it; ++i) {
+				smoothLaplacian (verticesArray, adjacentList);
+			}
+
+			//Set the new vertices
+			mVertices = verticesArray.ToList();//O(V)
+		}
+
+		/**Get the list of the adjacent vertices(by index) of each vertex. O(V+T)**/
+		private HashSet<int>[] computeAdjacents() {
+			//Create the adjacent list
+			System.Collections.Generic.HashSet<int>[] finalList = new HashSet<int>[mVertices.Count];
+			for (int i = 0; i < finalList.Length; ++i) { //O(V)
+				finalList [i] = new HashSet<int> ();
+			}
+			//Transform to array in order to have a direct index (const. time)
+			int[] trianglesArray = mTriangles.ToArray(); //O(T)
+			//Generate the adjacent list
+			for (int i = 0; i < trianglesArray.Length; i += 3) { //O(T)
+				addAdjacents (finalList, trianglesArray[i],trianglesArray[i+1],trianglesArray[i+2]);
+				addAdjacents (finalList, trianglesArray[i+1],trianglesArray[i+2],trianglesArray[i]);
+				addAdjacents (finalList, trianglesArray[i+2],trianglesArray[i],trianglesArray[i+1]);
+			}
+
+			return finalList;
+		}
+
+		private void addAdjacents (HashSet<int>[] list, int position, int index1, int index2) {
+			list [position].Add (index1);
+			list [position].Add (index2);
+		}
+
+		/**Sets the new position of each vertex by taking the mean of its adjacent vertices. O(V*Adj) **/
+		private void smoothLaplacian(Vector3[] v, HashSet<int>[] adjacentV) {
+			for (int i = 0; i < v.Length; ++i) {
+				//Calculate the adjacents mean and set as the new vertex position
+				Vector3 newV = Vector3.zero;
+				foreach(int adj in adjacentV[i] ) {
+					newV += v [adj];
+				}
+				v [i] = newV / adjacentV [i].Count;
+			}
+
+		}
 	}
 }
