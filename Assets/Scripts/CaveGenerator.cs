@@ -17,6 +17,8 @@ public class CaveGenerator : MonoBehaviour {
 	public int maxHoles = 50; //How many times a hole can be extruded and behave like a tunnel
 	public int maxExtrudeTimes = 100; // How many times an extrusion can be applied from a hole initially
 
+	public int smoothIterations = 1;
+
 	public enum generationMethod
 	{
 		Recursive, IterativeStack, IterativeQueue
@@ -119,7 +121,7 @@ public class CaveGenerator : MonoBehaviour {
 		Debug.Log ("Triangles generated: " + proceduralMesh.getNumTriangles ());
 
 		//Smooth the mesh
-		proceduralMesh.smooth(1);
+		proceduralMesh.smooth(smoothIterations);
 
 		//Generation finished, assign the vertices and triangles created to a Unity mesh
 		UnityEngine.Mesh mesh = new UnityEngine.Mesh ();

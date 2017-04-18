@@ -132,7 +132,8 @@ namespace Geometry {
 
 			//Apply the corresponding smooth techniques as many times as required
 			for (int i = 0; i < it; ++i) {
-				smoothLaplacian (verticesArray, adjacentList);
+				//smoothLaplacian (verticesArray, adjacentList);
+				smoothLaplacianIncrement (verticesArray, adjacentList);
 			}
 
 			//Set the new vertices
@@ -173,7 +174,23 @@ namespace Geometry {
 				}
 				v [i] = newV / adjacentV [i].Count;
 			}
-
 		}
+
+		/**Sets the new position of each vertex by taking the difference with the weighted 
+		 * increment of the vertex and its adjacent vertices. O(V*Adj) **/
+		private float lambdaLaplacian = 0.1f;
+		private void smoothLaplacianIncrement(Vector3[] v, HashSet<int>[] adjacentV) {
+			for (int i = 0; i < v.Length; ++i) {
+				//Calculate the adjacents mean 
+				Vector3 newV = Vector3.zero;
+				foreach(int adj in adjacentV[i] ) {
+					newV += v [adj];
+				}
+				newV /= adjacentV [i].Count;
+				v [i] = v[i] + lambdaLaplacian * (newV - v[i]);
+			}
+		}
+
+		//TODO: cotangent weights
 	}
 }
