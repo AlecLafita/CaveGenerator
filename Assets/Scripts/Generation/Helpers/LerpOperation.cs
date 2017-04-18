@@ -50,4 +50,7 @@ public class LerpOperation {
 	public void decreaseCountdown() {
 		countdown--;
 	}
+	public void restartCountdown() {
+		countdown = numSteps;
+	}
 }

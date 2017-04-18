@@ -33,6 +33,7 @@ public class DecisionGenerator : MonoBehaviour {
 		return op;
 	}
 
+
 	public void generateNextOperation (Polyline p, ref ExtrusionOperations op, ref int extrusionsSinceLastOperation, int numExtrude, float tunnelProb, int holesCountdown) {
 		//op = new ExtrusionOperation();
 		//Change the distance as the first one is always bigger
@@ -261,6 +262,7 @@ public class DecisionGenerator : MonoBehaviour {
 		return false;
 	}
 
+	public int holeMinVertices = 4;
 	public int holeMaxVertices = 10;
 	public void whereToDig(int numV, out int sizeHole, out int firstIndex) {
 		//TODO: improve this to avoid intersections (artifacts)

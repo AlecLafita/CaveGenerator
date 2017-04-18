@@ -89,7 +89,7 @@ abstract public class AbstractGenerator {
 		int sizeHole; int firstIndex;
 		//DecisionGenerator.Instance.whereToDig (originPoly.getSize(), out sizeHole, out firstIndex);
 		DecisionGenerator.Instance.whereToDig (originPoly, out sizeHole, out firstIndex);
-		if (sizeHole <= 4)
+		if (sizeHole < DecisionGenerator.Instance.holeMinVertices || sizeHole > DecisionGenerator.Instance.holeMaxVertices)
 			return null;
 		
 		//Create the hole polyline by marking and adding the hole vertices (from old a new polylines)
