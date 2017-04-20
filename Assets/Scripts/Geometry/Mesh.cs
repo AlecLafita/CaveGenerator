@@ -67,8 +67,15 @@ namespace Geometry {
 		}
 
 		//******** Other functions ********//
+		/** Adds a polyline to the mesh **/
+		public void addPolyline (Polyline p) {
+			for (int i = 0; i < p.getSize (); ++i) {
+				addVertex(p.getVertex(i));
+			}
+		}
+
 		/** Adds a new vertex to the mesh **/
-		public void addVertex(Vertex v) {
+		private void addVertex(Vertex v) {
 			mVertices.Add (v.getPosition());
 			//Generate random texture position TODO:Improve this
 			//Vector2 uv = new Vector2 (Random.Range (0.0f, 1.0f), Random.Range (0.0f, 1.0f));

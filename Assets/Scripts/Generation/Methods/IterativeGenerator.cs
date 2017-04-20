@@ -41,6 +41,8 @@ abstract public class IterativeGenerator : AbstractGenerator {
 			//Generate the tunnel
 			while (actualExtrusionTimes <= maxExtrudeTimes) {
 				++actualExtrusionTimes;
+				//In case the hole is finally not done, same operation will need to be applied
+				ExtrusionOperations actualOpBackTrack = new ExtrusionOperations(operation); 
 				//Generate the new polyline applying the operation
 				newPoly = extrude (operation, originPoly);
 				if (newPoly == null) {
@@ -56,11 +58,18 @@ abstract public class IterativeGenerator : AbstractGenerator {
 					if (polyHole != null) {//Check the hole was done without problems
 						addElementToDataStructure (polyHole, IntersectionsController.Instance.getLastBB () + 1);
 						--maxHoles;
+					} else { //No hole could be done, reextrude
+						//Force to have little extrusion distance
+						actualOpBackTrack.forceDistanceOperation (1, DecisionGenerator.Instance.generateDistance (false));
+						//It can't be null if with bigger extrusion distance it wasn't already: if
+						//with bigger distance it didn't intersect, it can't intersect with a smaller one
+						newPoly = extrude (actualOpBackTrack, originPoly);
+						operation = actualOpBackTrack;
 					}
-					//TODO: ELSE, reextrude without hole (this is due to it is generated with big distance)
-
+					operation.forceHoleOperation (false);
 				}
-
+				//Adds the new polyline to the mesh, after all the changes previously done
+				actualMesh.addPolyline (newPoly);
 				//Triangulate from origin to new polyline as a tube/cave shape
 				actualMesh.triangulatePolylines (originPoly, newPoly);
 				//Set next operation and continue from the new polyline

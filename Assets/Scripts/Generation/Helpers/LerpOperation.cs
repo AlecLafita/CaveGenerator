@@ -17,6 +17,13 @@ public class LerpOperation {
 		countdown = numSteps = 0;
 	}
 
+	public LerpOperation(LerpOperation original) {
+		iniValue = original.iniValue;
+		fiValue = original.fiValue;
+		countdown = original.countdown;
+		numSteps = original.numSteps;
+	}
+
 	public void setIniValue(Vector3 newValue) {
 		iniValue = newValue;
 	}

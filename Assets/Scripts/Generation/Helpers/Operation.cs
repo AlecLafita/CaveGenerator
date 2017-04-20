@@ -10,6 +10,11 @@ public class Operation<T> {
 	public Operation() {
 	}
 
+	public Operation(Operation<T> original) {
+		countdown = original.countdown;
+		value = original.value;
+	}
+
 	public void reset() {
 		countdown = 0;
 	}

@@ -39,7 +39,8 @@ public class DecisionGenerator : MonoBehaviour {
 		//if (numExtrude == 0) 
 			op.forceDistanceOperation (1,generateDistance (false));
 		//Decide to make hole or not
-		op.forceHoleOperation(makeHole (numExtrude, tunnelProb, holesCountdown));
+		if (!op.holeOperation())
+			op.forceHoleOperation(makeHole (numExtrude, tunnelProb, holesCountdown));
 
 		//Decide which operations to apply
 		generateNoHoleOperation (p, op, extrusionsSinceLastOperation);
@@ -85,7 +86,8 @@ public class DecisionGenerator : MonoBehaviour {
 						op.forceDirectionOperation(operationK, newDirection);
 						IntersectionsController.Instance.addActualBox ();
 						IntersectionsController.Instance.addPolyline (p);
-						op.setCanIntersect (IntersectionsController.Instance.getLastBB ());
+						op.setCanIntersect (-1);
+						//op.setCanIntersect (IntersectionsController.Instance.getLastBB ());
 					}
 					break;
 				}

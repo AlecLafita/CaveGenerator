@@ -33,6 +33,16 @@ public class ExtrusionOperations  {
 		canIntersect = -1;
 	}
 
+	/**Clone creator **/
+	public ExtrusionOperations(ExtrusionOperations original) {
+		distance = new Operation<float> (original.distance);
+		direction = new LerpOperation (original.direction);
+		scale = new Operation<float> (original.scale);
+		rotate = new Operation<float> (original.rotate);
+		hole = original.hole;
+		canIntersect = original.canIntersect;
+	}
+
 	//*********Getters**********//
 	/**Returns how many different operations are **/
 	public int getNumOperations() {

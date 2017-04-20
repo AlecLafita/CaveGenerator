@@ -82,12 +82,6 @@ abstract public class AbstractGenerator {
 			return null;
 		}
 
-		//Add new polyline to the mesh
-		for (int i = 0; i < originPoly.getSize (); ++i) {
-			//Add the new vertex to the mesh
-			actualMesh.addVertex(newPoly.getVertex(i));
-		}
-
 		return newPoly;
 	}
 
