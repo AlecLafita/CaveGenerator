@@ -31,6 +31,7 @@ abstract public class IterativeGenerator : AbstractGenerator {
 			//new tunnel(hole) will be done, initialize all the data
 			//Case base is implicit, as the operation generation takes into account the maxHoles variables in order to stop generating holes
 			initializeDataStructure(ref noIntersection, ref originPoly);
+			Geometry.Mesh m = initializeTunnel(originPoly);
 			actualExtrusionTimes = 0;
 			extrusionsSinceOperation = -1; //Make sure the first two polylines are added as BB
 			ExtrusionOperations operation = DecisionGenerator.Instance.generateNewOperation (originPoly);
@@ -61,7 +62,7 @@ abstract public class IterativeGenerator : AbstractGenerator {
 				}
 
 				//Triangulate from origin to new polyline as a tube/cave shape
-				proceduralMesh.triangulatePolylines (originPoly, newPoly);
+				actualMesh.triangulatePolylines (originPoly, newPoly);
 				//Set next operation and continue from the new polyline
 				originPoly = newPoly;
 				//Add actual polyline to the next intersection BB ang get nexxt operation
@@ -69,7 +70,7 @@ abstract public class IterativeGenerator : AbstractGenerator {
 				DecisionGenerator.Instance.generateNextOperation(originPoly, ref operation, ref extrusionsSinceOperation,actualExtrusionTimes,holeProb, maxHoles);
 			}
 			IntersectionsController.Instance.addActualBox ();
-			proceduralMesh.closePolyline(originPoly);
+			actualMesh.closePolyline(originPoly);
 			holeProb -= 0.001f;
 		}
 	}

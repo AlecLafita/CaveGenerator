@@ -7,30 +7,42 @@ using Geometry;
 /** Abstract class that manages the cave generation. The differents subclasses differ on the why the holes/tunnels are extruded **/
 abstract public class AbstractGenerator {
 
-	protected Geometry.Mesh proceduralMesh;	//Mesh that will be modified during the cave generation
+	protected List<Geometry.Mesh> proceduralMesh;	//Mesh that will be modified during the cave generation
+	protected Geometry.Mesh actualMesh; //Mesh coresponding to the actual tunnel
 	protected float initialTunelHoleProb; //holes can be created depending on this probability [0-1]
 	protected int maxHoles; //How many times a hole can be extruded and behave like a tunnel, acts as a countdown
 	protected int maxExtrudeTimes;//TODO: consider to deccrement this value as holes are created, or some random function that handles this
-	protected Polyline gatePolyline; //Polyline where the cave starts from
+	protected InitialPolyline gatePolyline; //Polyline where the cave starts from
 
 	/**Creates the instance without initializing anything **/
 	public AbstractGenerator() {
+		proceduralMesh = new List<Geometry.Mesh> ();
 	}
 
 	/**Initialize, being the arguments are the needed parameters for the generator **/
-	public void initialize(Polyline iniPol, float initialTunelHoleProb, int maxHoles, int maxExtrudeTimes) {
-		proceduralMesh = new Geometry.Mesh (iniPol);
+	public void initialize(InitialPolyline iniPol, float initialTunelHoleProb, int maxHoles, int maxExtrudeTimes) {
+		//initializeTunnel (iniPol);
 		gatePolyline = iniPol;
 		this.initialTunelHoleProb = initialTunelHoleProb;
 		this.maxHoles = maxHoles;
 		this.maxExtrudeTimes = maxExtrudeTimes;
 	}
 
+	/**Initializes the tunnel initial polyline, returning the corresponding mesh and setting it as the actual one**/
+	protected Geometry.Mesh initializeTunnel(Polyline iniPol) {
+		((InitialPolyline)iniPol).initializeIndices();
+		((InitialPolyline)iniPol).generateUVs (); //TODO:Alternative: do a lerp!
+		Geometry.Mesh m = new Geometry.Mesh (iniPol);
+		proceduralMesh.Add (m);
+		actualMesh = m;
+		return m;
+	}
+
 	/**Generates the cave **/
 	abstract public void generate ();
 
 	/**Returns the generated mesh **/
-	public Geometry.Mesh getMesh() {
+	public List<Geometry.Mesh> getMesh() {
 		return proceduralMesh;
 	}
 
@@ -44,14 +56,15 @@ abstract public class AbstractGenerator {
 		float distance = operation.applyDistance ();
 		//Generate the UVS of the new polyline from the coordinates of the original and on the same
 		//same direction that the extrusion, as if it was a projection to XZ plane
-		Vector2 UVincr = new Vector2(direction.x,direction.z);
-		UVincr.Normalize ();
+		//Vector2 UVincr = new Vector2(direction.x,direction.z);
+		Vector2 UVincr = new Vector2(0.0f,1.0f);
+		//UVincr.Normalize ();
 		UVincr *= (distance / UVfactor);
 		for (int i = 0; i < originPoly.getSize(); ++i) { //Generate the new vertices
 			//Add vertex to polyline
 			newPoly.extrudeVertex(i, originPoly.getVertex(i).getPosition(), direction, distance);
 			//Add the index to vertex
-			newPoly.getVertex(i).setIndex(proceduralMesh.getNumVertices() + i);
+			newPoly.getVertex(i).setIndex(actualMesh.getNumVertices() + i);
 			//Add UV
 			//newPoly.getVertex(i).setUV(originPoly.getVertex(i).getUV() + new Vector2(0.0f,distance/UVfactor));
 			newPoly.getVertex(i).setUV(originPoly.getVertex(i).getUV() + UVincr);
@@ -74,7 +87,7 @@ abstract public class AbstractGenerator {
 		//Add new polyline to the mesh
 		for (int i = 0; i < originPoly.getSize (); ++i) {
 			//Add the new vertex to the mesh
-			proceduralMesh.addVertex(newPoly.getVertex(i));
+			actualMesh.addVertex(newPoly.getVertex(i));
 		}
 
 		return newPoly;

@@ -34,12 +34,13 @@ namespace Geometry {
 				Debug.Log ("Number of index bigger than size");
 				return;
 			}
-			mVertices [mActualPos] = newV;
+			mVertices [mActualPos] = new Vertex(newV);
 			++mActualPos;
 		}
 
 		public void generateUVs () {
 			for (int i = 0; i < mVertices.Length; ++i) {
+				//TODO:take into account distance between vertices
 				mVertices[i].setUV(new Vector2((float)i/(float)(mVertices.Length-1),0.0f));
 			}
 		}

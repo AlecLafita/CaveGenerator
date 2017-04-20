@@ -19,6 +19,13 @@ namespace Geometry {
 			position = new Vector3 ();
 		}
 
+		public Vertex (Vertex original) {
+			position = original.getPosition();
+			index = original.getIndex ();
+			inHole = original.getInHole ();
+			UV = original.getUV ();
+		}
+
 		//******** Setters ********//
 		public void setPosition(Vector3 position) {
 			this.position = new Vector3(position.x, position.y, position.z);

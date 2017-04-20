@@ -20,6 +20,7 @@ public class RecursiveGenerator : AbstractGenerator {
 		//TODO: change maxExtrudeTimes as holes are done (eg, random number between a rank)
 
 		//Generate the actual hallway/tunnel
+		Geometry.Mesh m = initializeTunnel(originPoly);
 		ExtrusionOperations actualOperation = DecisionGenerator.Instance.generateNewOperation (originPoly);
 		int extrusionsSinceOperation = -1; //Make sure the first two polylines are added as BB
 		//Add initial polyline to the BB
@@ -42,11 +43,12 @@ public class RecursiveGenerator : AbstractGenerator {
 					actualOperation.setCanIntersect(IntersectionsController.Instance.getLastBB()+1); //Avoid intersection check with hole first BB
 					generate (polyHole, holeProb - 0.001f);
 					IntersectionsController.Instance.addPolyline(originPoly);
+					actualMesh = m;
 				}
 				//TODO: ELSE, reextrude without hole (this is due to it is generated with big distance)
 			}
 			//Triangulate from origin to new polyline as a tube/cave shape
-			proceduralMesh.triangulatePolylines (originPoly, newPoly);
+			actualMesh.triangulatePolylines (originPoly, newPoly);
 			//Set next operation and continue from the new polyline
 			originPoly = newPoly;
 			//Add actual polyline to the next intersection BB and get next operation
@@ -55,7 +57,7 @@ public class RecursiveGenerator : AbstractGenerator {
 		}
 		//Finally, close the actual hallway/tunnel
 		IntersectionsController.Instance.addActualBox ();
-		proceduralMesh.closePolyline(originPoly);
+		actualMesh.closePolyline(originPoly);
 	}
 
 }

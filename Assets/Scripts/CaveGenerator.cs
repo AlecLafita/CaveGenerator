@@ -29,21 +29,24 @@ public class CaveGenerator : MonoBehaviour {
 
 	public GameObject player;
 
-	private Geometry.Mesh proceduralMesh;
+	private GameObject lines; //In order to have the lines classified on same group
+	private List<Geometry.Mesh> proceduralMesh;
+	public Material caveMaterial;
 
 	void Start () {
 		initialPoints = new InitialPolyline(gateSize);
 		pointsSelected = 0;
 		generatorCalled = false;
+		lines = new GameObject ("Start Lines");
 	}
 
 	/** Draw a line between start and end **/
 	void DrawLine(Vector3 start, Vector3 end, Color color, float duration = 0.2f)
 	{
 		GameObject myLine = new GameObject();
+		myLine.transform.parent = lines.transform;
 		myLine.transform.position = start;
-		myLine.AddComponent<LineRenderer>();
-		LineRenderer lr = myLine.GetComponent<LineRenderer>();
+		LineRenderer lr = myLine.AddComponent<LineRenderer>();
 		lr.material = new Material(Shader.Find("Particles/Alpha Blended Premultiply"));
 		lr.SetColors(color, color);
 		lr.SetWidth(0.05f, 0.05f);
@@ -77,8 +80,6 @@ public class CaveGenerator : MonoBehaviour {
 			cam.ResetProjectionMatrix();
 			Debug.Log("Starting generation");
 			//TODO:check it's clockwise. Otherwise, transform it
-			initialPoints.initializeIndices();
-			initialPoints.generateUVs ();
 			startGeneration(initialPoints);
 			generatorCalled = true;
 			Debug.Log ("Cave generated");
@@ -117,29 +118,44 @@ public class CaveGenerator : MonoBehaviour {
 		generator.generate ();
 		proceduralMesh = generator.getMesh ();
 
-		Debug.Log ("Vertices generated: " + proceduralMesh.getNumVertices ());
-		Debug.Log ("Triangles generated: " + proceduralMesh.getNumTriangles ());
+		//Debug.Log ("Vertices generated: " + proceduralMesh.getNumVertices ());
+		//Debug.Log ("Triangles generated: " + proceduralMesh.getNumTriangles ());
 
-		//Smooth the mesh
-		proceduralMesh.smooth(smoothIterations);
+		GameObject tunnels = new GameObject ("Tunnels");
+		foreach (Geometry.Mesh m in proceduralMesh) { 
+			//Smooth the mesh
+			//m.smooth (smoothIterations);
 
-		//Generation finished, assign the vertices and triangles created to a Unity mesh
-		UnityEngine.Mesh mesh = new UnityEngine.Mesh ();
-		//mesh.vertices = mVertices.ToArray(); //Slower
-		mesh.SetVertices (proceduralMesh.getVertices());
-		//mesh.triangles = mTriangles.ToArray ();
-		mesh.SetTriangles (proceduralMesh.getTriangles(),0);
-		mesh.SetUVs (0, proceduralMesh.getUVs ());
-		//http://schemingdeveloper.com/2014/10/17/better-method-recalculate-normals-unity/
-		mesh.RecalculateNormals ();
-		mesh.RecalculateBounds();
+			//Generation finished, assign the vertices and triangles created to a Unity mesh
+			UnityEngine.Mesh mesh = new UnityEngine.Mesh ();
+			//mesh.vertices = mVertices.ToArray(); //Slower
+			mesh.SetVertices (m.getVertices ());
+			//mesh.triangles = mTriangles.ToArray ();
+			mesh.SetTriangles (m.getTriangles (), 0);
+			mesh.SetUVs (0, m.getUVs ());
+			//http://schemingdeveloper.com/2014/10/17/better-method-recalculate-normals-unity/
+			mesh.RecalculateNormals ();
+			mesh.RecalculateBounds ();
 
+			//Add the new game object(tunnel)
+			GameObject tunnel = new GameObject ();
+			tunnel.transform.parent = tunnels.transform;
+			//Generate the needed components for the rendering and collision and attach them to the tunnel
+			MeshFilter filter = tunnel.AddComponent <MeshFilter>();
+			filter.mesh = mesh;
+			MeshCollider collider = tunnel.AddComponent <MeshCollider>();
+			collider.sharedMesh = mesh;
+			MeshRenderer renderer =  tunnel.AddComponent<MeshRenderer> ();
+			renderer.material = new Material (caveMaterial);
+			renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+		}
+		/*
 		//Assign the created mesh to the one we are storing and visualizing
 		GetComponent<MeshFilter> ().mesh = mesh;
 
 		//Assign the mesh to the collider
 		GetComponent<MeshCollider>().sharedMesh = mesh;
-
+		*/
 		preparePlayer (iniPol);
 
 	}
@@ -160,19 +176,20 @@ public class CaveGenerator : MonoBehaviour {
 		if (!Application.isPlaying) return; 
 
 		if (debugTriangles) {
-			//Draw triangles vertices
-			Vector3[] vertices = proceduralMesh.getVertices ().ToArray ();
-			for (int i = 0; i < vertices.Length; ++i) {
-				Gizmos.DrawWireSphere (vertices [i], 0.1f);
-			}
-
-			//Draw triangles edges
-			int[] triangles = proceduralMesh.getTriangles ().ToArray ();
-			Gizmos.color = Color.blue;
-			for (int i = 0; i < triangles.Length; i += 3) {
-				Gizmos.DrawLine (vertices [triangles [i]], vertices [triangles [i + 1]]);
-				Gizmos.DrawLine (vertices [triangles [i + 1]], vertices [triangles [i + 2]]);
-				Gizmos.DrawLine (vertices [triangles [i + 2]], vertices [triangles [i]]);
+			foreach (Geometry.Mesh m in proceduralMesh) {
+				//Draw triangles vertices
+				Vector3[] vertices = m.getVertices ().ToArray ();
+				for (int i = 0; i < vertices.Length; ++i) {
+					Gizmos.DrawWireSphere (vertices [i], 0.1f);
+				}
+				//Draw triangles edges
+				int[] triangles = m.getTriangles ().ToArray ();
+				Gizmos.color = Color.blue;
+				for (int i = 0; i < triangles.Length; i += 3) {
+					Gizmos.DrawLine (vertices [triangles [i]], vertices [triangles [i + 1]]);
+					Gizmos.DrawLine (vertices [triangles [i + 1]], vertices [triangles [i + 2]]);
+					Gizmos.DrawLine (vertices [triangles [i + 2]], vertices [triangles [i]]);
+				}
 			}
 		}
 		if (debugBB) {
