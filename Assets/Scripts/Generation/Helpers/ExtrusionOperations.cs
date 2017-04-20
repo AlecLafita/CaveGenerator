@@ -115,7 +115,6 @@ public class ExtrusionOperations  {
 	public void setCanIntersect(int newValue) {
 		canIntersect = newValue;
 	}
-	
 
 	//*********Operations application**********//
 

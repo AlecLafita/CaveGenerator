@@ -67,7 +67,7 @@ abstract public class IterativeGenerator : AbstractGenerator {
 				originPoly = newPoly;
 				//Add actual polyline to the next intersection BB ang get nexxt operation
 				IntersectionsController.Instance.addPolyline(originPoly);
-				DecisionGenerator.Instance.generateNextOperation(originPoly, ref operation, ref extrusionsSinceOperation,actualExtrusionTimes,holeProb, maxHoles);
+				DecisionGenerator.Instance.generateNextOperation(originPoly, operation, ref extrusionsSinceOperation,actualExtrusionTimes,holeProb, maxHoles);
 			}
 			IntersectionsController.Instance.addActualBox ();
 			actualMesh.closePolyline(originPoly);

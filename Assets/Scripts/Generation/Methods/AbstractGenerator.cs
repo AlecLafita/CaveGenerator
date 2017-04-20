@@ -7,11 +7,11 @@ using Geometry;
 /** Abstract class that manages the cave generation. The differents subclasses differ on the why the holes/tunnels are extruded **/
 abstract public class AbstractGenerator {
 
-	protected List<Geometry.Mesh> proceduralMesh;	//Mesh that will be modified during the cave generation
-	protected Geometry.Mesh actualMesh; //Mesh coresponding to the actual tunnel
+	protected List<Geometry.Mesh> proceduralMesh; //Mesh that will be modified during the cave generation
+	protected Geometry.Mesh actualMesh; //Mesh coresponding to the actual tunnel being generated
 	protected float initialTunelHoleProb; //holes can be created depending on this probability [0-1]
 	protected int maxHoles; //How many times a hole can be extruded and behave like a tunnel, acts as a countdown
-	protected int maxExtrudeTimes;//TODO: consider to deccrement this value as holes are created, or some random function that handles this
+	protected int maxExtrudeTimes; //TODO: consider to deccrement this value as holes are created, or some random function that handles this
 	protected InitialPolyline gatePolyline; //Polyline where the cave starts from
 
 	/**Creates the instance without initializing anything **/
@@ -58,7 +58,7 @@ abstract public class AbstractGenerator {
 		//same direction that the extrusion, as if it was a projection to XZ plane
 		//Vector2 UVincr = new Vector2(direction.x,direction.z);
 		Vector2 UVincr = new Vector2(0.0f,1.0f);
-		//UVincr.Normalize ();
+		UVincr.Normalize ();
 		UVincr *= (distance / UVfactor);
 		for (int i = 0; i < originPoly.getSize(); ++i) { //Generate the new vertices
 			//Add vertex to polyline
@@ -66,9 +66,7 @@ abstract public class AbstractGenerator {
 			//Add the index to vertex
 			newPoly.getVertex(i).setIndex(actualMesh.getNumVertices() + i);
 			//Add UV
-			//newPoly.getVertex(i).setUV(originPoly.getVertex(i).getUV() + new Vector2(0.0f,distance/UVfactor));
 			newPoly.getVertex(i).setUV(originPoly.getVertex(i).getUV() + UVincr);
-
 		}
 
 		//Apply operations, if any

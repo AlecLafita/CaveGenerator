@@ -53,7 +53,7 @@ public class RecursiveGenerator : AbstractGenerator {
 			originPoly = newPoly;
 			//Add actual polyline to the next intersection BB and get next operation
 			IntersectionsController.Instance.addPolyline(originPoly);
-			DecisionGenerator.Instance.generateNextOperation(originPoly, ref actualOperation, ref extrusionsSinceOperation,i,holeProb, maxHoles);
+			DecisionGenerator.Instance.generateNextOperation(originPoly, actualOperation, ref extrusionsSinceOperation,i,holeProb, maxHoles);
 		}
 		//Finally, close the actual hallway/tunnel
 		IntersectionsController.Instance.addActualBox ();

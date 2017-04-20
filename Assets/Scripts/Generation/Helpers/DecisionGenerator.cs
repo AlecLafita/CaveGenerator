@@ -26,15 +26,14 @@ public class DecisionGenerator : MonoBehaviour {
 
 	public ExtrusionOperations generateNewOperation(Polyline p) {
 		ExtrusionOperations op = new ExtrusionOperations();
-		op.forceDistanceOperation (1,DecisionGenerator.Instance.generateDistance (true));
+		op.forceDistanceOperation (1,DecisionGenerator.Instance.generateDistance (false));
 		op.forceDirectionOperation (0, p.calculateNormal (), p.calculateNormal ());
 		op.setCanIntersect(IntersectionsController.Instance.getLastBB());
 
 		return op;
 	}
-
-
-	public void generateNextOperation (Polyline p, ref ExtrusionOperations op, ref int extrusionsSinceLastOperation, int numExtrude, float tunnelProb, int holesCountdown) {
+		
+	public void generateNextOperation (Polyline p, ExtrusionOperations op, ref int extrusionsSinceLastOperation, int numExtrude, float tunnelProb, int holesCountdown) {
 		//op = new ExtrusionOperation();
 		//Change the distance as the first one is always bigger
 		//if (numExtrude == 0) 
@@ -43,7 +42,7 @@ public class DecisionGenerator : MonoBehaviour {
 		op.forceHoleOperation(makeHole (numExtrude, tunnelProb, holesCountdown));
 
 		//Decide which operations to apply
-		generateNoHoleOperation (p, ref op, extrusionsSinceLastOperation);
+		generateNoHoleOperation (p, op, extrusionsSinceLastOperation);
 
 		//Distance for hole case
 		if (op.holeOperation()) {
@@ -62,7 +61,7 @@ public class DecisionGenerator : MonoBehaviour {
 	//Changes each time the function is called!
 	private int operationMax = 2; //How many operations can be applied at a time
 	/**Decide which operations except from hole apply **/
-	private void generateNoHoleOperation(Polyline p, ref ExtrusionOperations op, int extrusionsSinceLastOperation) {
+	private void generateNoHoleOperation(Polyline p, ExtrusionOperations op, int extrusionsSinceLastOperation) {
 		//Check if a new operation can be done
 		//If it not satisfies the condition of generating an operation, return a just extrusion operation
 		int extrusionsNeeded = Random.Range(-operationDeviation, operationDeviation+1);
@@ -193,7 +192,7 @@ public class DecisionGenerator : MonoBehaviour {
 
 
 	//******** Scale ********//
-	[Range (0.0f,0.99f)] public float scaleLimit  = 0.5f;
+	[Range (0.0f,0.99f)] public float scaleLimit = 0.5f;
 	public float generateScale() {
 		return Random.Range (1.0f-scaleLimit, 1.0f + scaleLimit);
 	}
@@ -209,7 +208,6 @@ public class DecisionGenerator : MonoBehaviour {
 	[Range (0.0f,1.0f)] public float holeProb = 0.4f; //Initial probability to do a hole
 	public int holeK = 5; //For the k conditions
 	public float holeLambda = 0.02f; //How each extrusion weights to the to final decision
-
 
 	public enum holeConditions {
 		EachK, EachKProb, MoreExtrMoreProb, MoreExtrLessProb

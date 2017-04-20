@@ -92,20 +92,14 @@ public class CaveGenerator : MonoBehaviour {
 		//Start the generation
 		switch (method) {
 		case(generationMethod.Recursive): {
-				//generator = new CaveGenerator ();
-				//generateRecursive (iniPol, tunnelHoleProb,-1);
 				generator = new RecursiveGenerator ();
-
 				break;
 			}
 		case(generationMethod.IterativeStack): {
-				//generateIterativeStack (iniPol, tunnelHoleProb);
 				generator = new QueueGenerator ();
-
 				break;
 			}
 		case(generationMethod.IterativeQueue): {
-				//generateIterativeQueue (iniPol, tunnelHoleProb);
 				generator = new QueueGenerator ();
 				break;
 			}
@@ -122,15 +116,14 @@ public class CaveGenerator : MonoBehaviour {
 		//Debug.Log ("Triangles generated: " + proceduralMesh.getNumTriangles ());
 
 		GameObject tunnels = new GameObject ("Tunnels");
-		foreach (Geometry.Mesh m in proceduralMesh) { 
+		int actTunel = 0;
+		foreach (Geometry.Mesh m in proceduralMesh) { //Attach the generated mesh to Unity stuff
 			//Smooth the mesh
 			//m.smooth (smoothIterations);
 
 			//Generation finished, assign the vertices and triangles created to a Unity mesh
 			UnityEngine.Mesh mesh = new UnityEngine.Mesh ();
-			//mesh.vertices = mVertices.ToArray(); //Slower
 			mesh.SetVertices (m.getVertices ());
-			//mesh.triangles = mTriangles.ToArray ();
 			mesh.SetTriangles (m.getTriangles (), 0);
 			mesh.SetUVs (0, m.getUVs ());
 			//http://schemingdeveloper.com/2014/10/17/better-method-recalculate-normals-unity/
@@ -138,9 +131,9 @@ public class CaveGenerator : MonoBehaviour {
 			mesh.RecalculateBounds ();
 
 			//Add the new game object(tunnel)
-			GameObject tunnel = new GameObject ();
+			GameObject tunnel = new GameObject ("Tunnel " + actTunel);
 			tunnel.transform.parent = tunnels.transform;
-			//Generate the needed components for the rendering and collision and attach them to the tunnel
+			//Generate the needed components for the rendering and collision, and attach them to the tunnel
 			MeshFilter filter = tunnel.AddComponent <MeshFilter>();
 			filter.mesh = mesh;
 			MeshCollider collider = tunnel.AddComponent <MeshCollider>();
@@ -148,14 +141,9 @@ public class CaveGenerator : MonoBehaviour {
 			MeshRenderer renderer =  tunnel.AddComponent<MeshRenderer> ();
 			renderer.material = new Material (caveMaterial);
 			renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+			++actTunel;
 		}
-		/*
-		//Assign the created mesh to the one we are storing and visualizing
-		GetComponent<MeshFilter> ().mesh = mesh;
 
-		//Assign the mesh to the collider
-		GetComponent<MeshCollider>().sharedMesh = mesh;
-		*/
 		preparePlayer (iniPol);
 
 	}

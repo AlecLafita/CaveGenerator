@@ -155,7 +155,6 @@ namespace Geometry {
 				addAdjacents (finalList, trianglesArray[i+1],trianglesArray[i+2],trianglesArray[i]);
 				addAdjacents (finalList, trianglesArray[i+2],trianglesArray[i],trianglesArray[i+1]);
 			}
-
 			return finalList;
 		}
 
