@@ -111,7 +111,7 @@ namespace Geometry {
 		public void closePolyline(Polyline poly) {
 			Vertex baricenter = new Vertex ();
 			baricenter.setPosition (poly.calculateBaricenter ());
-			baricenter.setUV (poly.calculateBaricenterUV()/50.0f); //UVfactor value from AbstractGenerator
+			baricenter.setUV (poly.calculateBaricenterUV());
 			int baricenterIndex = getNumVertices();
 			addVertex (baricenter);
 			for (int i = 0; i < poly.getSize(); ++i) {
