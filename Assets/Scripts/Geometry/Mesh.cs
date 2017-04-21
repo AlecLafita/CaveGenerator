@@ -114,6 +114,18 @@ namespace Geometry {
 			}
 		}
 
+		/** Triangulate between two polylines as if they where convex hulls, very similar to D&C merge 
+		 * (Gift wrapping idea) from 3D Convex hull theory. Used for a tunnel start **/
+		public void triangulateTunnelStart(Polyline originPoly, Polyline destinyPoly) {
+			//TODO
+			//Start from a line between the first one of each polyline, by construction one is generated from the projection of the other
+			//This line ab will be triangulated with a point c either from one polyliline or the other, depending the one that has 
+			//smallest angle with ab line(A-winner or B-winner).c It's always an adjacent vertex, we can use they are clockwise sorted(lucky!)
+			//If it's A-winner(from first poly) a=c, if it's from b-Winner b = c
+			//Repeat until ab is the same as the beggining (O(A+B))
+
+		}
+
 		/** Closes a polyline by triangulating all it's vertices with it's baricenter, visualizing it as a polygon**/
 		public void closePolyline(Polyline poly) {
 			Vertex baricenter = new Vertex ();

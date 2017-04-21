@@ -72,14 +72,15 @@ abstract public class AbstractGenerator {
 			planePoly.getVertex(i).setIndex(actualMesh.getNumVertices()+i);
 		}
 
+		//Add the new polyline information to the mesh
+		m.addPolyline (planePoly);
+
+		///Triangulate between the hole and the projection
+		m.triangulateTunnelStart(iniPol,planePoly);
 
 		//Change the initial polyline to the one projected and smoothed, in order to treat it as the initial for the extrusions
 		IntersectionsController.Instance.addPolyline(iniPol);
 		iniPol = planePoly;
-		m.addPolyline (planePoly);
-
-		//TODO: Triangulate between the hole polyline, and the projected and smoothed new polyline, then start as a new tunnel
-
 
 		return m;
 	}
