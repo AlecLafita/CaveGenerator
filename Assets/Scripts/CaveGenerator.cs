@@ -88,6 +88,15 @@ public class CaveGenerator : MonoBehaviour {
 
 	/** Function to be called in order to start generating the cave **/
 	public void startGeneration (InitialPolyline iniPol) {
+		for (int i = 0; i < 3;++i)
+			iniPol.smoothMean ();
+
+		//DEBUG smooth line
+		for (int i = 0; i < iniPol.getSize (); ++i) {
+			DrawLine (iniPol.getVertex (i).getPosition ()-new Vector3(0.0f,0.0f,1.0f), 
+				iniPol.getVertex (i + 1).getPosition () -new Vector3(0.0f,0.0f,1.0f), Color.black, 30.0f);
+		}
+
 		AbstractGenerator generator;
 		//Start the generation
 		switch (method) {
@@ -112,12 +121,13 @@ public class CaveGenerator : MonoBehaviour {
 		generator.generate ();
 		proceduralMesh = generator.getMesh ();
 
-		//Debug.Log ("Vertices generated: " + proceduralMesh.getNumVertices ());
-		//Debug.Log ("Triangles generated: " + proceduralMesh.getNumTriangles ());
-
+		long verticesNum = 0;
+		long trianglesNum = 0;
 		GameObject tunnels = new GameObject ("Tunnels");
 		int actTunel = 0;
 		foreach (Geometry.Mesh m in proceduralMesh) { //Attach the generated mesh to Unity stuff
+			verticesNum += m.getNumVertices();
+			trianglesNum += m.getNumTriangles ();
 			//Smooth the mesh
 			//m.smooth (smoothIterations);
 
@@ -144,6 +154,11 @@ public class CaveGenerator : MonoBehaviour {
 			++actTunel;
 		}
 
+		//MEsh size
+		Debug.Log ("Vertices generated: " + verticesNum);
+		Debug.Log ("Triangles generated: " + trianglesNum);
+
+		//Put the player on scene
 		preparePlayer (iniPol);
 
 	}

@@ -30,6 +30,8 @@ abstract public class AbstractGenerator {
 
 	/**Initializes the tunnel initial polyline, returning the corresponding mesh and setting it as the actual one**/
 	protected Geometry.Mesh initializeTunnel(Polyline iniPol) {
+		//for (int i = 0; i < 3;++i)
+		//	((InitialPolyline)iniPol).smoothMean ();
 		((InitialPolyline)iniPol).initializeIndices();
 		((InitialPolyline)iniPol).generateUVs (); //TODO:Alternative: do a lerp!
 		Geometry.Mesh m = new Geometry.Mesh (iniPol);
