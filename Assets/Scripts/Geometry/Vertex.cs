@@ -59,5 +59,11 @@ namespace Geometry {
 		public Vector2 getUV() {
 			return UV;
 		}
+
+		/**Sets the vertex position and UV as the interpolation of two other vertices **/
+		public void Lerp(Vertex a, Vertex b, float t) {
+			position = Vector3.Lerp (a.position, b.position, t);
+			UV = Vector2.Lerp (a.UV, b.UV, t);
+		}
 	}
 }

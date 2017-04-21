@@ -52,8 +52,11 @@ namespace Geometry {
 				float distAux = Vector3.Distance (getVertex (i-1).getPosition (), getVertex (i).getPosition ());
 				Vector2 UV = mVertices [i - 1].getUV() + new Vector2 (distAux / distance, 0.0f);
 				mVertices [i].setUV (UV);
-				//mVertices[i].setUV(new Vector2((float)i/(float)(mVertices.Length-1),0.0f));
 			}
+
+			/*for (int i = 0; i < mVertices.Length-1;++i) {
+				mVertices[i].setUV(new Vector2((float)i/(float)(mVertices.Length-1),0.0f));
+			}*/
 		}
 
 		//******** Smooth ********//
@@ -63,24 +66,14 @@ namespace Geometry {
 			InitialPolyline newPolyline = new InitialPolyline (mVertices.Length * 2);
 			//Add new mid-points
 			for (int i = 0; i < mVertices.Length; ++i) {
-				//newPolyline.setVertex (i, mVertices [i / 2]);
-				newPolyline.addPosition (mVertices [i].getPosition ());
-				//Vertex newVertex = new Vertex ();
-				Vector3 newPosition = getVertex(i).getPosition () + getVertex(i+ 1).getPosition ();
-				newPosition /= 2;
-				//newVertex.setPosition (newPosition);
-				//newPolyline.setVertex(i+1,newVertex);
-				newPolyline.addPosition (newPosition);
+				newPolyline.addPosition (getVertex(i).getPosition ());
+				newPolyline.addPosition(new Vector3());
+				newPolyline.getVertex (i * 2+1).Lerp (getVertex(i), getVertex(i + 1), 0.5f);
 			}
 
 			//Take the mean of the vertices previously existing with the new vertices
 			for (int i = 0; i < newPolyline.getSize(); i+= 2) {
-				//Vertex newVertex = new Vertex ();
-				Vector3 newPosition = newPolyline.getVertex(i-1).getPosition () + newPolyline.getVertex(i + 1).getPosition ();
-				newPosition /= 2;
-				//newVertex.setPosition (newPosition);
-				//newPolyline.setVertex (i, newVertex);
-				newPolyline.getVertex(i).setPosition(newPosition);
+				newPolyline.getVertex (i).Lerp (newPolyline.getVertex (i - 1), newPolyline.getVertex (i + 1), 0.5f);
 			}
 			this.mVertices = newPolyline.mVertices;
 

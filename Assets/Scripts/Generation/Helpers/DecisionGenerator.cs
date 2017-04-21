@@ -29,7 +29,7 @@ public class DecisionGenerator : MonoBehaviour {
 		op.forceDistanceOperation (1,DecisionGenerator.Instance.generateDistance (false));
 		op.forceDirectionOperation (0, p.calculateNormal (), p.calculateNormal ());
 		op.setCanIntersect(IntersectionsController.Instance.getLastBB());
-
+		//op.forceScaleOperation (operationK,Mathf.Pow(2.0f,1/(float)operationK));
 		return op;
 	}
 		
@@ -323,6 +323,7 @@ public class DecisionGenerator : MonoBehaviour {
 			++auxIndex;
 		}//This should not be an infinite loop as there will be always some vertex direction not too close to the approximate one
 		sizeHole *= 2;
+		sizeHole = Mathf.Min (sizeHole, holeMaxVertices);
 	}
 
 }

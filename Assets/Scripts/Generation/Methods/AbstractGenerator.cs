@@ -19,9 +19,11 @@ abstract public class AbstractGenerator {
 		proceduralMesh = new List<Geometry.Mesh> ();
 	}
 
-	/**Initialize, being the arguments are the needed parameters for the generator **/
+	/**Initialize, being the arguments the needed parameters for the generator **/
 	public void initialize(InitialPolyline iniPol, float initialTunelHoleProb, int maxHoles, int maxExtrudeTimes) {
-		//initializeTunnel (iniPol);
+		initializeTunnel (iniPol);
+		((InitialPolyline)iniPol).generateUVs (); //TODO:Alternative: do a lerp!
+
 		gatePolyline = iniPol;
 		this.initialTunelHoleProb = initialTunelHoleProb;
 		this.maxHoles = maxHoles;
@@ -30,10 +32,10 @@ abstract public class AbstractGenerator {
 
 	/**Initializes the tunnel initial polyline, returning the corresponding mesh and setting it as the actual one**/
 	protected Geometry.Mesh initializeTunnel(Polyline iniPol) {
-		//for (int i = 0; i < 3;++i)
-		//	((InitialPolyline)iniPol).smoothMean ();
+		for (int i = 0; i < 2;++i)
+			((InitialPolyline)iniPol).smoothMean ();
 		((InitialPolyline)iniPol).initializeIndices();
-		((InitialPolyline)iniPol).generateUVs (); //TODO:Alternative: do a lerp!
+		//((InitialPolyline)iniPol).generateUVs (); //TODO:Alternative: do a lerp!
 		Geometry.Mesh m = new Geometry.Mesh (iniPol);
 		proceduralMesh.Add (m);
 		actualMesh = m;
@@ -58,8 +60,8 @@ abstract public class AbstractGenerator {
 		float distance = operation.applyDistance ();
 		//Generate the UVS of the new polyline from the coordinates of the original and on the same
 		//same direction that the extrusion, as if it was a projection to XZ plane
-		//Vector2 UVincr = new Vector2(direction.x,direction.z);
-		Vector2 UVincr = new Vector2(0.0f,1.0f);
+		Vector2 UVincr = new Vector2(direction.x,direction.z);
+		//Vector2 UVincr = new Vector2(0.0f,1.0f);
 		UVincr.Normalize ();
 		UVincr *= (distance / UVfactor);
 		for (int i = 0; i < originPoly.getSize(); ++i) { //Generate the new vertices
@@ -96,7 +98,7 @@ abstract public class AbstractGenerator {
 		int sizeHole; int firstIndex;
 		//DecisionGenerator.Instance.whereToDig (originPoly.getSize(), out sizeHole, out firstIndex);
 		DecisionGenerator.Instance.whereToDig (originPoly, out sizeHole, out firstIndex);
-		if (sizeHole < DecisionGenerator.Instance.holeMinVertices || sizeHole > DecisionGenerator.Instance.holeMaxVertices)
+		if (sizeHole < DecisionGenerator.Instance.holeMinVertices)
 			return null;
 		
 		//Create the hole polyline by marking and adding the hole vertices (from old a new polylines)
