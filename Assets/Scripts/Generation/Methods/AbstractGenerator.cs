@@ -32,63 +32,54 @@ abstract public class AbstractGenerator {
 
 	/**Initializes the tunnel initial polyline, returning the corresponding mesh and setting it as the actual one**/
 	protected Geometry.Mesh initializeTunnel(ref Polyline iniPol) {
-		
+		/*
 		for (int i = 0; i < 3;++i)
 			((InitialPolyline)iniPol).smoothMean ();
 		//((InitialPolyline)iniPol).generateUVs (); //TODO:Alternative: do a lerp!
+*/
+		//Smoth the hole polyline? (but should be smoothed too on the tunnel where the hole is done)
 
-		//Smoth the hole polyline? (but should be smoothed to on the tunnel where the hole is done)
-
-
+		//This piece of code is valid either for the projection and the no projection version
 		((InitialPolyline)iniPol).initializeIndices();
 		//Create the new mesh with the hole polyline
 		Geometry.Mesh m = new Geometry.Mesh (iniPol);
 		proceduralMesh.Add (m);
 		actualMesh = m;
 
+
 		//WIP:Project the polyline(3D) into a plane(2D) on the polyline normal direction, just n (not very big) vertices
-
-		//First get maximum "radius" on normal direction to know the distance to project
-		//As it's a polyline formed from an extrusion, they will always form two symmetric semicircles. Its enough then
-		//to check the first (or last) half of vertice
-		/*float radius = 0.0f;
-
-		//TODO GET RADIUS
-*/
-		/*float radius = 2.0f;
-		Vector3 planeNormal = iniPol.calculateNormal ();
-		Plane tunnelEntrance = new Plane (-planeNormal, iniPol.getVertex (0).getPosition() + planeNormal * radius);
+		//PROBLEM: Intersections are not being checked!
+		//Get the plane to project to
+		Plane tunnelEntrance = ((InitialPolyline)iniPol).generateNormalPlane ();
+		//Generate the polyline by projecting to the plane
 		InitialPolyline planePoly = new InitialPolyline (4); //n =4, change this as a parameter
+		planePoly.addPosition (((InitialPolyline)iniPol).getPlaneProjection (tunnelEntrance, iniPol.getVertex (0).getPosition ()));
+		planePoly.addPosition (((InitialPolyline)iniPol).getPlaneProjection (tunnelEntrance, iniPol.getVertex (iniPol.getSize()/2-1).getPosition ()));
+		planePoly.addPosition (((InitialPolyline)iniPol).getPlaneProjection (tunnelEntrance, iniPol.getVertex (iniPol.getSize()/2).getPosition ()));
+		planePoly.addPosition (((InitialPolyline)iniPol).getPlaneProjection (tunnelEntrance, iniPol.getVertex (iniPol.getSize()-1).getPosition ()));
 
-		Ray ray = new Ray (iniPol.getVertex (0).getPosition(), planeNormal);
-		float pointPlaneDistance;
-		tunnelEntrance.Raycast (ray, out pointPlaneDistance);
-		planePoly.addPosition (ray.GetPoint (pointPlaneDistance));
-
-		ray = new Ray (iniPol.getVertex (iniPol.getSize()/2-1).getPosition(), planeNormal);
-		tunnelEntrance.Raycast (ray, out pointPlaneDistance);
-		planePoly.addPosition (ray.GetPoint (pointPlaneDistance));
-
-		ray = new Ray (iniPol.getVertex (iniPol.getSize()/2).getPosition(), planeNormal);
-		tunnelEntrance.Raycast (ray, out pointPlaneDistance);
-		planePoly.addPosition (ray.GetPoint (pointPlaneDistance));
-
-		ray = new Ray (iniPol.getVertex (iniPol.getSize()-1).getPosition(), planeNormal);
-		tunnelEntrance.Raycast (ray, out pointPlaneDistance);
-		planePoly.addPosition (ray.GetPoint (pointPlaneDistance));
-
-		//Once projected, smooth the projection, and put the indices as the second tunnel mesh polyliline
+		//Once projected, smooth the projection, 
 		for (int i = 0; i < 3;++i)
 			planePoly.smoothMean ();
+		//reescale to an approximate size of the real hole size,
+		float maxActualRadius = planePoly.computeRadius();
+		float destinyRadius = ((InitialPolyline)iniPol).computeProjectionRadius ();
+		planePoly.scale (destinyRadius / maxActualRadius);
+		//generate new UVs coordinates,
 		planePoly.generateUVs ();
+		//and put the corresponding indices
 		for (int i = 0; i < planePoly.getSize (); ++i) {
 			planePoly.getVertex(i).setIndex(actualMesh.getNumVertices()+i);
 		}
+
+
 		//Change the initial polyline to the one projected and smoothed, in order to treat it as the initial for the extrusions
+		IntersectionsController.Instance.addPolyline(iniPol);
 		iniPol = planePoly;
-		m.addPolyline (planePoly);*/
+		m.addPolyline (planePoly);
 
 		//TODO: Triangulate between the hole polyline, and the projected and smoothed new polyline, then start as a new tunnel
+
 
 		return m;
 	}
@@ -111,8 +102,8 @@ abstract public class AbstractGenerator {
 		float distance = operation.applyDistance ();
 		//Generate the UVS of the new polyline from the coordinates of the original and on the same
 		//same direction that the extrusion, as if it was a projection to XZ plane
-		Vector2 UVincr = new Vector2(direction.x,direction.z);
-		//Vector2 UVincr = new Vector2(0.0f,1.0f);
+		//Vector2 UVincr = new Vector2(direction.x,direction.z);
+		Vector2 UVincr = new Vector2(0.0f,1.0f);
 		UVincr.Normalize ();
 		UVincr *= (distance / UVfactor);
 		for (int i = 0; i < originPoly.getSize(); ++i) { //Generate the new vertices
@@ -143,6 +134,7 @@ abstract public class AbstractGenerator {
 	/** Makes a hole betwen two polylines and return this hole as a new polyline **/
 	protected Polyline makeHole(Polyline originPoly, Polyline destinyPoly) {
 		//TODO: more than one hole, Make two holes on same polylines pairs can cause intersections!
+			//could take the negate direction of the already make hole and try to do a new one
 
 		// Decide how and where the hole will be done, take advantatge indices
 		// on the two polylines are at the same order (the new is kind of a projection of the old)
@@ -197,6 +189,5 @@ abstract public class AbstractGenerator {
 		}
 
 		return invalidHole;
-	}
-		
+	}		
 }

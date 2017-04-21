@@ -46,6 +46,18 @@ namespace Geometry {
 			mVertices [v].setPosition (originPos + direction * distance);
 		}
 
+		/**Gets the maximum distance between baricenter and some vertex, in 3D**/
+		public float computeRadius() {
+			Vector3 b = calculateBaricenter ();
+			float radius = 0.0f;
+			foreach (Vertex v in mVertices) {
+				float distanceAux = Vector3.Distance (b, v.getPosition());
+				if (distanceAux > radius)
+					radius = distanceAux;
+			}
+			return radius;
+		}
+
 		/** Scales all the polyline vertices taking the baricenter as origin **/
 		public void scale(float scaleValue) {
 			Vector3 b = calculateBaricenter ();

@@ -59,8 +59,46 @@ namespace Geometry {
 			}*/
 		}
 
-		//******** Smooth ********//
+		/** Gets the plane generated on the normal direction of the polyline and to a TODO distance **/
+		public Plane generateNormalPlane() {
+			//First get maximum "radius" on normal direction to know the distance to project
+			//As it's polyline formed from an extrusion, they will always form two symmetric semicircles. Its enough then
+			//to check the first (or last) half of vertice
+			/*float radius = 0.0f;
 
+					//TODO GET RADIUS
+			*/
+
+			float distance = 5.0f;
+			Vector3 planeNormal = calculateNormal ();
+			Vector3 b = calculateBaricenter ();
+			Plane result = new Plane (-planeNormal, b + planeNormal * distance);
+			return result;
+		}
+
+		/**TODO: put this on some generic geometric fucntions class. Gets the projection position of some point to some plane, on the plane direction **/
+		public Vector3 getPlaneProjection(Plane p, Vector3 originalPoint) {
+			Ray ray = new Ray (originalPoint, -p.normal);
+			float pointPlane;
+			p.Raycast (ray, out pointPlane);
+			return ray.GetPoint (pointPlane);
+		}
+
+		/**Gets the maximum distance between baricenter and some vertex, in 2D projection on normal direction**/
+		public float computeProjectionRadius() {
+			Plane p = generateNormalPlane ();
+			Vector3 b = calculateBaricenter ();
+			b = getPlaneProjection (p, b);
+			float radius = 0.0f;
+			foreach (Vertex v in mVertices) {
+				float distanceAux = Vector3.Distance (b, getPlaneProjection(p,v.getPosition()));
+				if (distanceAux > radius)
+					radius = distanceAux;
+			}
+			return radius;
+		}
+
+		//******** Smooth ********//
 
 		public void smoothMean() {
 			InitialPolyline newPolyline = new InitialPolyline (mVertices.Length * 2);
@@ -93,7 +131,7 @@ namespace Geometry {
 			//Generate the knot vector
 
 			//Vector3[] controlPoints = mVertices;
-
+			//TODO
 
 		}
 	}
