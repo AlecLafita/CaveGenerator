@@ -20,7 +20,8 @@ public class RecursiveGenerator : AbstractGenerator {
 		//TODO: change maxExtrudeTimes as holes are done (eg, random number between a rank)
 
 		//Generate the actual hallway/tunnel
-		Geometry.Mesh m = initializeTunnel(originPoly);
+		Geometry.Mesh m = initializeTunnel(ref originPoly);
+
 		ExtrusionOperations actualOperation = DecisionGenerator.Instance.generateNewOperation (originPoly);
 		int extrusionsSinceOperation = -1; //Make sure the first two polylines are added as BB
 		//Add initial polyline to the BB

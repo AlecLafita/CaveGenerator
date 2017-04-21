@@ -21,7 +21,7 @@ abstract public class AbstractGenerator {
 
 	/**Initialize, being the arguments the needed parameters for the generator **/
 	public void initialize(InitialPolyline iniPol, float initialTunelHoleProb, int maxHoles, int maxExtrudeTimes) {
-		initializeTunnel (iniPol);
+		//initializeTunnel (iniPol);
 		((InitialPolyline)iniPol).generateUVs (); //TODO:Alternative: do a lerp!
 
 		gatePolyline = iniPol;
@@ -31,14 +31,65 @@ abstract public class AbstractGenerator {
 	}
 
 	/**Initializes the tunnel initial polyline, returning the corresponding mesh and setting it as the actual one**/
-	protected Geometry.Mesh initializeTunnel(Polyline iniPol) {
-		for (int i = 0; i < 2;++i)
+	protected Geometry.Mesh initializeTunnel(ref Polyline iniPol) {
+		
+		for (int i = 0; i < 3;++i)
 			((InitialPolyline)iniPol).smoothMean ();
-		((InitialPolyline)iniPol).initializeIndices();
 		//((InitialPolyline)iniPol).generateUVs (); //TODO:Alternative: do a lerp!
+
+		//Smoth the hole polyline? (but should be smoothed to on the tunnel where the hole is done)
+
+
+		((InitialPolyline)iniPol).initializeIndices();
+		//Create the new mesh with the hole polyline
 		Geometry.Mesh m = new Geometry.Mesh (iniPol);
 		proceduralMesh.Add (m);
 		actualMesh = m;
+
+		//WIP:Project the polyline(3D) into a plane(2D) on the polyline normal direction, just n (not very big) vertices
+
+		//First get maximum "radius" on normal direction to know the distance to project
+		//As it's a polyline formed from an extrusion, they will always form two symmetric semicircles. Its enough then
+		//to check the first (or last) half of vertice
+		/*float radius = 0.0f;
+
+		//TODO GET RADIUS
+*/
+		/*float radius = 2.0f;
+		Vector3 planeNormal = iniPol.calculateNormal ();
+		Plane tunnelEntrance = new Plane (-planeNormal, iniPol.getVertex (0).getPosition() + planeNormal * radius);
+		InitialPolyline planePoly = new InitialPolyline (4); //n =4, change this as a parameter
+
+		Ray ray = new Ray (iniPol.getVertex (0).getPosition(), planeNormal);
+		float pointPlaneDistance;
+		tunnelEntrance.Raycast (ray, out pointPlaneDistance);
+		planePoly.addPosition (ray.GetPoint (pointPlaneDistance));
+
+		ray = new Ray (iniPol.getVertex (iniPol.getSize()/2-1).getPosition(), planeNormal);
+		tunnelEntrance.Raycast (ray, out pointPlaneDistance);
+		planePoly.addPosition (ray.GetPoint (pointPlaneDistance));
+
+		ray = new Ray (iniPol.getVertex (iniPol.getSize()/2).getPosition(), planeNormal);
+		tunnelEntrance.Raycast (ray, out pointPlaneDistance);
+		planePoly.addPosition (ray.GetPoint (pointPlaneDistance));
+
+		ray = new Ray (iniPol.getVertex (iniPol.getSize()-1).getPosition(), planeNormal);
+		tunnelEntrance.Raycast (ray, out pointPlaneDistance);
+		planePoly.addPosition (ray.GetPoint (pointPlaneDistance));
+
+		//Once projected, smooth the projection, and put the indices as the second tunnel mesh polyliline
+		for (int i = 0; i < 3;++i)
+			planePoly.smoothMean ();
+		planePoly.generateUVs ();
+		for (int i = 0; i < planePoly.getSize (); ++i) {
+			planePoly.getVertex(i).setIndex(actualMesh.getNumVertices()+i);
+		}
+		//Change the initial polyline to the one projected and smoothed, in order to treat it as the initial for the extrusions
+		iniPol = planePoly;
+		m.addPolyline (planePoly);*/
+
+		//TODO: Triangulate between the hole polyline, and the projected and smoothed new polyline, then start as a new tunnel
+
 		return m;
 	}
 
