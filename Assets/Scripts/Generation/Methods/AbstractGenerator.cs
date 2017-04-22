@@ -19,10 +19,11 @@ abstract public class AbstractGenerator {
 		proceduralMesh = new List<Geometry.Mesh> ();
 	}
 
+	private int smoothIterations = 3;
 	/**Initialize, being the arguments the needed parameters for the generator **/
 	public void initialize(InitialPolyline iniPol, float initialTunelHoleProb, int maxHoles, int maxExtrudeTimes) {
-		//initializeTunnel (iniPol);
-		((InitialPolyline)iniPol).generateUVs (); //TODO:Alternative: do a lerp!
+		//initializeTunnel (ref iniPol);
+		((InitialPolyline)iniPol).generateUVs ();
 
 		gatePolyline = iniPol;
 		this.initialTunelHoleProb = initialTunelHoleProb;
@@ -33,9 +34,9 @@ abstract public class AbstractGenerator {
 	/**Initializes the tunnel initial polyline, returning the corresponding mesh and setting it as the actual one**/
 	protected Geometry.Mesh initializeTunnel(ref Polyline iniPol) {
 		/*
-		for (int i = 0; i < 3;++i)
+		for (int i = 0; i < smoothIterations;++i)
 			((InitialPolyline)iniPol).smoothMean ();
-		//((InitialPolyline)iniPol).generateUVs (); //TODO:Alternative: do a lerp!
+		//((InitialPolyline)iniPol).generateUVs ();
 */
 		//Smoth the hole polyline? (but should be smoothed too on the tunnel where the hole is done)
 
@@ -52,14 +53,14 @@ abstract public class AbstractGenerator {
 		//Get the plane to project to
 		Plane tunnelEntrance = ((InitialPolyline)iniPol).generateNormalPlane ();
 		//Generate the polyline by projecting to the plane
-		InitialPolyline planePoly = new InitialPolyline (4); //n =4, change this as a parameter
+		InitialPolyline planePoly = new InitialPolyline (4); //n =4, TODO change this as a parameter(must be pair?)
 		planePoly.addPosition (((InitialPolyline)iniPol).getPlaneProjection (tunnelEntrance, iniPol.getVertex (0).getPosition ()));
 		planePoly.addPosition (((InitialPolyline)iniPol).getPlaneProjection (tunnelEntrance, iniPol.getVertex (iniPol.getSize()/2-1).getPosition ()));
 		planePoly.addPosition (((InitialPolyline)iniPol).getPlaneProjection (tunnelEntrance, iniPol.getVertex (iniPol.getSize()/2).getPosition ()));
 		planePoly.addPosition (((InitialPolyline)iniPol).getPlaneProjection (tunnelEntrance, iniPol.getVertex (iniPol.getSize()-1).getPosition ()));
 
 		//Once projected, smooth the projection, 
-		for (int i = 0; i < 3;++i)
+		for (int i = 0; i < smoothIterations;++i)
 			planePoly.smoothMean ();
 		//reescale to an approximate size of the real hole size,
 		float maxActualRadius = planePoly.computeRadius();

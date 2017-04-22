@@ -119,11 +119,48 @@ namespace Geometry {
 		public void triangulateTunnelStart(Polyline originPoly, Polyline destinyPoly) {
 			//TODO
 			//Start from a line between the first one of each polyline, by construction one is generated from the projection of the other
-			//This line ab will be triangulated with a point c either from one polyliline or the other, depending the one that has 
-			//smallest angle with ab line(A-winner or B-winner).c It's always an adjacent vertex, we can use they are clockwise sorted(lucky!)
-			//If it's A-winner(from first poly) a=c, if it's from b-Winner b = c
-			//Repeat until ab is the same as the beggining (O(A+B))
-
+			Vertex a = originPoly.getVertex(0);
+			Vertex b = destinyPoly.getVertex (0);
+			int aIndex = 1;
+			int bIndex = 1;
+			while (aIndex <= originPoly.getSize () && bIndex <= destinyPoly.getSize ()) {
+				//This line ab will be triangulated with a point c either from one polyliline or the other, depending the one that has 
+				//smallest angle with ab line(A-winner or B-winner).c It's always an adjacent vertex, we can use they are clockwise sorted(lucky!)
+				Vector3 ab = b.getPosition() - a.getPosition();
+				//Check the B polylilne candidate
+				Vertex bWinner = destinyPoly.getVertex(bIndex);
+				float bAngle = Vector3.Angle (-ab, bWinner.getPosition()-b.getPosition());
+				//Check the A polylilne candidate
+				Vertex aWinner = originPoly.getVertex(aIndex);
+				float aAngle = Vector3.Angle (ab, aWinner.getPosition()-a.getPosition());
+				//If it's A-winner(from first poly) a=c, if it's from b-Winner b = c
+				if (aAngle < bAngle) { //A wins!
+					addTriangle(a.getIndex(), aWinner.getIndex(), b.getIndex());
+					a = aWinner;
+					++aIndex;
+				}
+				else { //B wins!
+					addTriangle(a.getIndex(), bWinner.getIndex(), b.getIndex());
+					b = bWinner;
+					++bIndex;
+				}
+			}
+			//Repeat until ab we arrive to some of the polylines start, then triangulate with a or b constant(depends on polyline)
+			if (aIndex > originPoly.getSize ()) {
+				while (bIndex <= destinyPoly.getSize ()) {
+					Vertex bWinner = destinyPoly.getVertex(bIndex);
+					addTriangle(a.getIndex(), bWinner.getIndex(), b.getIndex());
+					b = bWinner;
+					++bIndex;
+				}
+			} else if (bIndex > destinyPoly.getSize ()) {
+				while (aIndex <= originPoly.getSize()){
+					Vertex aWinner = destinyPoly.getVertex(bIndex);
+					addTriangle(a.getIndex(), aWinner.getIndex(), b.getIndex());
+					a = aWinner;
+					++aIndex;
+				}
+			} 
 		}
 
 		/** Closes a polyline by triangulating all it's vertices with it's baricenter, visualizing it as a polygon**/
