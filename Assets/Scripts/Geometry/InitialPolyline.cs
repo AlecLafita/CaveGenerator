@@ -49,12 +49,28 @@ namespace Geometry {
 			mVertices [0].setUV (new Vector2 (0.0f, 0.0f));
 			for (int i = 1; i < mVertices.Length; ++i) {
 				float distAux = Vector3.Distance (getVertex (i-1).getPosition (), getVertex (i).getPosition ());
-				Vector2 UV = mVertices [i - 1].getUV() + new Vector2 (distAux / distance, 0.0f);
-				mVertices [i].setUV (UV);
+				Vector2 UV = getVertex(i-1).getUV() + new Vector2 (distAux / distance, 0.0f);
+				getVertex(i).setUV (UV);
 			}
+
 			/*for (int i = 0; i < mVertices.Length-1;++i) {
 				mVertices[i].setUV(new Vector2((float)i/(float)(mVertices.Length-1),0.0f));
 			}*/
+		}
+		public void generateUVs (float yCoord) {
+			//Get the accumulate distance
+			float distance = 0.0f;
+			for (int i = 0; i < mVertices.Length; ++i) {
+				distance += Vector3.Distance (getVertex (i).getPosition (), getVertex (i + 1).getPosition ());
+			}
+			//Set the UV proportional to the distance, as if the polyline was being mapped to x axis proportionally
+			//and between 0 and 1
+			mVertices [0].setUV (new Vector2 (0.0f, yCoord));
+			for (int i = 1; i < mVertices.Length; ++i) {
+				float distAux = Vector3.Distance (getVertex (i-1).getPosition (), getVertex (i).getPosition ());
+				Vector2 UV = getVertex(i-1).getUV() + new Vector2 (distAux / distance, 0.0f);
+				getVertex(i).setUV (UV);
+			}
 		}
 
 		/** Gets the plane generated on the normal direction of the polyline and to a TODO distance **/

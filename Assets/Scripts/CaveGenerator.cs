@@ -24,8 +24,6 @@ public class CaveGenerator : MonoBehaviour {
 		Recursive, IterativeStack, IterativeQueue
 	}
 	public generationMethod method = generationMethod.Recursive;
-	public bool debugBB = false;
-	public bool debugTriangles = false;
 
 	public GameObject player;
 
@@ -143,6 +141,8 @@ public class CaveGenerator : MonoBehaviour {
 			//Add the new game object(tunnel)
 			GameObject tunnel = new GameObject ("Tunnel " + actTunel);
 			tunnel.transform.parent = tunnels.transform;
+			//Debug script
+			tunnel.AddComponent<DebugTunnel>();
 			//Generate the needed components for the rendering and collision, and attach them to the tunnel
 			MeshFilter filter = tunnel.AddComponent <MeshFilter>();
 			filter.mesh = mesh;
@@ -173,34 +173,4 @@ public class CaveGenerator : MonoBehaviour {
 		cam.GetComponent<AudioListener> ().enabled = false;
 	}
 
-	/** For debug purposes **/
-	void OnDrawGizmos() { 
-		//Avoid error messages after stopping
-		if (!Application.isPlaying) return; 
-
-		if (debugTriangles) {
-			foreach (Geometry.Mesh m in proceduralMesh) {
-				//Draw triangles vertices
-				Vector3[] vertices = m.getVertices ().ToArray ();
-				for (int i = 0; i < vertices.Length; ++i) {
-					Gizmos.DrawWireSphere (vertices [i], 0.1f);
-				}
-				//Draw triangles edges
-				int[] triangles = m.getTriangles ().ToArray ();
-				Gizmos.color = Color.blue;
-				for (int i = 0; i < triangles.Length; i += 3) {
-					Gizmos.DrawLine (vertices [triangles [i]], vertices [triangles [i + 1]]);
-					Gizmos.DrawLine (vertices [triangles [i + 1]], vertices [triangles [i + 2]]);
-					Gizmos.DrawLine (vertices [triangles [i + 2]], vertices [triangles [i]]);
-				}
-			}
-		}
-		if (debugBB) {
-			//Draw intersection BBs
-			List<Bounds> BBs = IntersectionsController.Instance.getBBs ();
-			foreach (Bounds BB in BBs) {
-				Gizmos.DrawCube (BB.center, BB.size);
-			}
-		}
-	}
 }

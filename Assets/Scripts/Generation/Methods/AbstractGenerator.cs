@@ -49,7 +49,7 @@ abstract public class AbstractGenerator {
 
 
 		//WIP:Project the polyline(3D) into a plane(2D) on the polyline normal direction, just n (not very big) vertices
-		//PROBLEM: Intersections are not being checked!
+		//PROBLEM: Intersections are not being checked!, triangulation not work with artifacts
 		//Get the plane to project to
 		Plane tunnelEntrance = ((InitialPolyline)iniPol).generateNormalPlane ();
 		//Generate the polyline by projecting to the plane
@@ -66,8 +66,9 @@ abstract public class AbstractGenerator {
 		float maxActualRadius = planePoly.computeRadius();
 		float destinyRadius = ((InitialPolyline)iniPol).computeProjectionRadius ();
 		planePoly.scale (destinyRadius / maxActualRadius);
-		//generate new UVs coordinates,
-		planePoly.generateUVs ();
+		//generate new UVs coordinates, from y coord of the hole
+		float yCoord = (iniPol.getVertex(0).getUV().y);// + iniPol.getVertex(-1).getUV().y)/2;
+		planePoly.generateUVs (yCoord);
 		//and put the corresponding indices
 		for (int i = 0; i < planePoly.getSize (); ++i) {
 			planePoly.getVertex(i).setIndex(actualMesh.getNumVertices()+i);
