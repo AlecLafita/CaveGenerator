@@ -144,8 +144,8 @@ namespace Geometry {
 					b = bWinner;
 					++bIndex;
 				}
-			}
-			//Repeat until ab we arrive to some of the polylines start, then triangulate with a or b constant(depends on polyline)
+			}//Repeat until ab we arrive to some of the polylines start, then triangulate with a or b constant(depends on polyline)
+
 			if (aIndex > originPoly.getSize ()) {
 				while (bIndex <= destinyPoly.getSize ()) {
 					Vertex bWinner = destinyPoly.getVertex(bIndex);
@@ -155,7 +155,7 @@ namespace Geometry {
 				}
 			} else if (bIndex > destinyPoly.getSize ()) {
 				while (aIndex <= originPoly.getSize()){
-					Vertex aWinner = destinyPoly.getVertex(bIndex);
+					Vertex aWinner = originPoly.getVertex(aIndex);
 					addTriangle(a.getIndex(), aWinner.getIndex(), b.getIndex());
 					a = aWinner;
 					++aIndex;
