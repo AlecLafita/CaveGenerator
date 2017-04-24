@@ -91,22 +91,16 @@ namespace Geometry {
 			return result;
 		}
 
-		/**TODO: put this on some generic geometric fucntions class. Gets the projection position of some point to some plane, on the plane direction **/
-		public Vector3 getPlaneProjection(Plane p, Vector3 originalPoint) {
-			Ray ray = new Ray (originalPoint, -p.normal);
-			float pointPlane;
-			p.Raycast (ray, out pointPlane);
-			return ray.GetPoint (pointPlane);
-		}
+
 
 		/**Gets the maximum distance between baricenter and some vertex, in 2D projection on normal direction**/
 		public float computeProjectionRadius() {
 			Plane p = generateNormalPlane ();
 			Vector3 b = calculateBaricenter ();
-			b = getPlaneProjection (p, b);
+			b = Geometry.Utils.getPlaneProjection (p, b);
 			float radius = 0.0f;
 			foreach (Vertex v in mVertices) {
-				float distanceAux = Vector3.Distance (b, getPlaneProjection(p,v.getPosition()));
+				float distanceAux = Vector3.Distance (b, Geometry.Utils.getPlaneProjection(p,v.getPosition()));
 				if (distanceAux > radius)
 					radius = distanceAux;
 			}

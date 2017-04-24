@@ -145,22 +145,8 @@ abstract public class AbstractGenerator {
 		}
 
 		//FOURTH: Do the hole smooth: Project the polyline(3D) into a plane(2D) on the polyline normal direction, just n (not very big) vertices
-		//Get the plane to project to
-		Plane tunnelEntrance = ((InitialPolyline)polyHole).generateNormalPlane ();
-		//Generate the polyline by projecting to the plane
-		InitialPolyline planePoly = new InitialPolyline (4); //n =4, TODO change this as a parameter(must be pair?)
-		planePoly.addPosition (((InitialPolyline)polyHole).getPlaneProjection (tunnelEntrance, polyHole.getVertex (0).getPosition ()));
-		planePoly.addPosition (((InitialPolyline)polyHole).getPlaneProjection (tunnelEntrance, polyHole.getVertex (polyHole.getSize()/2-1).getPosition ()));
-		planePoly.addPosition (((InitialPolyline)polyHole).getPlaneProjection (tunnelEntrance, polyHole.getVertex (polyHole.getSize()/2).getPosition ()));
-		planePoly.addPosition (((InitialPolyline)polyHole).getPlaneProjection (tunnelEntrance, polyHole.getVertex (polyHole.getSize()-1).getPosition ()));
+		InitialPolyline planePoly = generateProjection(polyHole, 4);
 
-		//Once projected, smooth the projection, 
-		for (int j = 0; j < smoothIterations;++j)
-			planePoly.smoothMean ();
-		//reescale to an approximate size of the real hole size,
-		float maxActualRadius = planePoly.computeRadius();
-		float destinyRadius = ((InitialPolyline)polyHole).computeProjectionRadius ();
-		planePoly.scale (destinyRadius / maxActualRadius);
 		//FIFTH: Last check if hole is really valid (intersection stuff)
 		if (IntersectionsController.Instance.doIntersect(polyHole,planePoly,-1)) {
 			for (int j = 0; j < sizeHole/2; ++j) {
@@ -173,22 +159,48 @@ abstract public class AbstractGenerator {
 		// (needed for triangulate correctly between the hole and the projection)
 		actualMesh.addPolyline (destinyPoly);
 
-		//generate new UVs coordinates, from y coord of the hole
+		//SIXTH: Final propoerties of the projection
+		//Generate new UVs coordinates of the projection, from y coord of the hole
 		float yCoord = (polyHole.getVertex(0).getUV().y + polyHole.getVertex(-1).getUV().y)/2;
 		planePoly.generateUVs (yCoord);
-		//and put the corresponding indices
+		//And put the corresponding indices
 		for (int j = 0; j < planePoly.getSize (); ++j) {
 			planePoly.getVertex(j).setIndex(actualMesh.getNumVertices()+j);
 		}
-
 		//Add the new polyline information to the mesh
 		actualMesh.addPolyline (planePoly);
 
-		///FINALLY: Triangulate between the hole and the projection
+		///FINALLY: Triangulate between the hole and the projection and add the projection to the B intersections
 		actualMesh.triangulateTunnelStart(polyHole,planePoly);
+		IntersectionsController.Instance.addPolyline (planePoly);
 
 		return planePoly;
 	}
+
+	/** From existing polyline, generates a new one by projecting the original to a plane on it's normal direction.
+	 * It is also smoothed and scaled **/
+	protected InitialPolyline generateProjection(InitialPolyline polyHole, int projectionSize = 4) {
+		//Get the plane to project to
+		Plane tunnelEntrance = polyHole.generateNormalPlane ();
+		//Generate the polyline by projecting to the plane
+		InitialPolyline planePoly = new InitialPolyline (4); //n =4, TODO change this as a parameter(must be pair?)
+		planePoly.addPosition (Geometry.Utils.getPlaneProjection (tunnelEntrance, polyHole.getVertex (0).getPosition ()));
+		planePoly.addPosition (Geometry.Utils.getPlaneProjection (tunnelEntrance, polyHole.getVertex (polyHole.getSize()/2-1).getPosition ()));
+		planePoly.addPosition (Geometry.Utils.getPlaneProjection (tunnelEntrance, polyHole.getVertex (polyHole.getSize()/2).getPosition ()));
+		planePoly.addPosition (Geometry.Utils.getPlaneProjection (tunnelEntrance, polyHole.getVertex (polyHole.getSize()-1).getPosition ()));
+
+		//Smooth it
+		for (int j = 0; j < smoothIterations;++j)
+			planePoly.smoothMean ();
+		
+		//Scale to an approximate size of the real size of the original
+		float maxActualRadius = planePoly.computeRadius();
+		float destinyRadius = polyHole.computeProjectionRadius ();
+		planePoly.scale (destinyRadius / maxActualRadius);
+
+		return planePoly;
+	}
+
 
 	protected bool checkInvalidWalk(Polyline tunelStartPoly) {
 		if (!DecisionGenerator.Instance.directionJustWalk)
@@ -203,5 +215,27 @@ abstract public class AbstractGenerator {
 		}
 
 		return invalidHole;
-	}		
+	}
+
+	protected bool checkArtifacts (Polyline polyHole) {
+		//TODO: IMprove this, maybe check directly with y coord is not good enough
+		Plane projection = ((InitialPolyline)polyHole).generateNormalPlane ();
+		//As its a hole polyline, first and second half are symmetric, there is need to just check one
+		//If one half projected does not has all vertices on descendant or ascendant order, it will sure generate an aritfact
+		if (Geometry.Utils.getPlaneProjection(projection, polyHole.getVertex (0).getPosition ()).y < 
+			Geometry.Utils.getPlaneProjection(projection, polyHole.getVertex (1).getPosition ()).y) { //ascendant
+			for (int i = 1; i < polyHole.getSize () / 2; ++i) {
+				if (Geometry.Utils.getPlaneProjection (projection, polyHole.getVertex (i).getPosition ()).y >
+				    Geometry.Utils.getPlaneProjection (projection, polyHole.getVertex (i + 1).getPosition ()).y)
+					return true;
+			}
+		} else { //descendent
+			for (int i = 1; i < polyHole.getSize () / 2; ++i) {
+				if (Geometry.Utils.getPlaneProjection (projection, polyHole.getVertex (i).getPosition ()).y <
+					Geometry.Utils.getPlaneProjection (projection, polyHole.getVertex (i + 1).getPosition ()).y)
+					return true;
+			}
+		}
+		return false;
+	}
 }
