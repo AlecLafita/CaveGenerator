@@ -117,7 +117,6 @@ namespace Geometry {
 		/** Triangulate between two polylines as if they where convex hulls, very similar to D&C merge 
 		 * (Gift wrapping idea) from 3D Convex hull theory. Used for a tunnel start **/
 		public void triangulateTunnelStart(Polyline originPoly, Polyline destinyPoly) {
-			//TODO
 			//Start from a line between the first one of each polyline, by construction one is generated from the projection of the other
 			Vertex a = originPoly.getVertex(0);
 			Vertex b = destinyPoly.getVertex (0);
@@ -161,6 +160,9 @@ namespace Geometry {
 					++aIndex;
 				}
 			} 
+
+			//TODO: check strange artifacts cases,
+			//may be procuduced by winner decision, maybe smallest angle is not the best choice(or checking worng angle)
 		}
 
 		/** Closes a polyline by triangulating all it's vertices with it's baricenter, visualizing it as a polygon**/

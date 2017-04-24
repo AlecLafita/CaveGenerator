@@ -137,7 +137,6 @@ public class CaveGenerator : MonoBehaviour {
 			//http://schemingdeveloper.com/2014/10/17/better-method-recalculate-normals-unity/
 			mesh.RecalculateNormals ();
 			mesh.RecalculateBounds ();
-
 			//Add the new game object(tunnel)
 			GameObject tunnel = new GameObject ("Tunnel " + actTunel);
 			tunnel.transform.parent = tunnels.transform;

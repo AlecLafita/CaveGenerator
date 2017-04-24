@@ -38,13 +38,14 @@ public class RecursiveGenerator : AbstractGenerator {
 				continue;
 			}
 			//Make hole?
-			if (actualOperation.holeOperation()) {
+			if (actualOperation.holeOperation ()) {
 				Polyline polyHole = makeHole (originPoly, newPoly);
 				if (polyHole != null) { //Check the hole was done without problems
+					IntersectionsController.Instance.addPolyline(newPoly);
 					IntersectionsController.Instance.addActualBox ();
-					actualOperation.setCanIntersect (IntersectionsController.Instance.getLastBB () + 1); //Avoid intersection check with hole first BB
+					actualOperation.setCanIntersect (IntersectionsController.Instance.getLastBB ()); //Avoid intersection check with own extrusion BB
 					generate (polyHole, holeProb - 0.001f);
-					IntersectionsController.Instance.addPolyline (originPoly);
+					//IntersectionsController.Instance.addPolyline (originPoly);
 					actualMesh = m;
 				} else { //No hole could be done, reextrude
 					//Force to have little extrusion distance
@@ -53,11 +54,13 @@ public class RecursiveGenerator : AbstractGenerator {
 					//with bigger distance it didn't intersect, it can't intersect with a smaller one
 					newPoly = extrude (actualOpBackTrack, originPoly);
 					actualOperation = actualOpBackTrack;
+					actualMesh.addPolyline (newPoly);
 				}
 				actualOperation.forceHoleOperation (false);
+			} else {
+				//Adds the new polyline to the mesh, after all the changes previously done
+				actualMesh.addPolyline (newPoly);
 			}
-			//Adds the new polyline to the mesh, after all the changes previously done
-			actualMesh.addPolyline (newPoly);
 			//Triangulate from origin to new polyline as a tube/cave shape
 			actualMesh.triangulatePolylines (originPoly, newPoly);
 			//Set next operation and continue from the new polyline

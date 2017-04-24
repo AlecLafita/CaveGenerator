@@ -52,6 +52,7 @@ namespace Geometry {
 				Vector2 UV = getVertex(i-1).getUV() + new Vector2 (distAux / distance, 0.0f);
 				getVertex(i).setUV (UV);
 			}
+			mVertices [0].setUV (new Vector2 (0.0f, 1.0f));
 
 			/*for (int i = 0; i < mVertices.Length-1;++i) {
 				mVertices[i].setUV(new Vector2((float)i/(float)(mVertices.Length-1),0.0f));

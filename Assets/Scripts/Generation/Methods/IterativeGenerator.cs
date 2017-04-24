@@ -51,7 +51,7 @@ abstract public class IterativeGenerator : AbstractGenerator {
 					continue;
 				}
 				//Make hole?
-				if (operation.holeOperation()) {
+				if (operation.holeOperation ()) {
 					noIntersection = -1;
 					operation.setCanIntersect (noIntersection);
 					Polyline polyHole = makeHole (originPoly, newPoly);
@@ -65,11 +65,13 @@ abstract public class IterativeGenerator : AbstractGenerator {
 						//with bigger distance it didn't intersect, it can't intersect with a smaller one
 						newPoly = extrude (actualOpBackTrack, originPoly);
 						operation = actualOpBackTrack;
+						actualMesh.addPolyline (newPoly);
 					}
 					operation.forceHoleOperation (false);
+				} else {
+					//Adds the new polyline to the mesh, after all the changes previously done
+					actualMesh.addPolyline (newPoly);
 				}
-				//Adds the new polyline to the mesh, after all the changes previously done
-				actualMesh.addPolyline (newPoly);
 				//Triangulate from origin to new polyline as a tube/cave shape
 				actualMesh.triangulatePolylines (originPoly, newPoly);
 				//Set next operation and continue from the new polyline
