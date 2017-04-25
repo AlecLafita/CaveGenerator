@@ -184,16 +184,24 @@ abstract public class AbstractGenerator {
 	}
 
 	/** From existing polyline, generates a new one by projecting the original to a plane on it's normal direction.
-	 * It is also smoothed and scaled **/
+	 * It is also smoothed and scaled.  **/
 	protected InitialPolyline generateProjection(InitialPolyline polyHole, int projectionSize = 4) {
+		//projectionSize must be pair!
 		//Get the plane to project to
 		Plane tunnelEntrance = polyHole.generateNormalPlane ();
 		//Generate the polyline by projecting to the plane
-		InitialPolyline planePoly = new InitialPolyline (4); //n =4, TODO change this as a parameter(must be pair?)
-		planePoly.addPosition (Geometry.Utils.getPlaneProjection (tunnelEntrance, polyHole.getVertex (0).getPosition ()));
-		planePoly.addPosition (Geometry.Utils.getPlaneProjection (tunnelEntrance, polyHole.getVertex (polyHole.getSize()/2-1).getPosition ()));
-		planePoly.addPosition (Geometry.Utils.getPlaneProjection (tunnelEntrance, polyHole.getVertex (polyHole.getSize()/2).getPosition ()));
-		planePoly.addPosition (Geometry.Utils.getPlaneProjection (tunnelEntrance, polyHole.getVertex (polyHole.getSize()-1).getPosition ()));
+		InitialPolyline planePoly = new InitialPolyline (projectionSize);
+		int holePos = 0;
+		int incr = ((polyHole.getSize ()/2)-1)/ ((projectionSize / 2)-1);
+		for (int i = 0; i < projectionSize / 2; ++i) {
+			planePoly.addPosition (Geometry.Utils.getPlaneProjection (tunnelEntrance, polyHole.getVertex (holePos).getPosition ()));
+			holePos += incr;
+		}
+		holePos = polyHole.getSize () / 2;
+		for (int i = 0; i < projectionSize / 2; ++i) {
+			planePoly.addPosition (Geometry.Utils.getPlaneProjection (tunnelEntrance, polyHole.getVertex (holePos).getPosition ()));
+			holePos += incr;
+		}
 
 		//Smooth it
 		for (int j = 0; j < smoothIterations;++j)
