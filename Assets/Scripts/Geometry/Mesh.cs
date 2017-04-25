@@ -17,11 +17,15 @@ namespace Geometry {
 									  //uses the vertices indices
 		private List<Vector2> mUVs; //UVs coordinates. Position corresponding for each vertex
 
+		private HashSet<int> mholeIndices; //Indices of the vertices that form holes. Used to smooth later
+
+
 		//******** Constructors ********//
 		public Mesh() {
 			mVertices = new List<Vector3>();
 			mTriangles = new List<int>();
 			mUVs = new List<Vector2> ();
+			mholeIndices = new HashSet<int> ();
 		}
 
 		/** Creates the mesh intializating it with a polyline's vertices **/
@@ -29,6 +33,7 @@ namespace Geometry {
 			mVertices = new List<Vector3>();
 			mTriangles = new List<int>();
 			mUVs = new List<Vector2> ();
+			mholeIndices = new HashSet<int> ();
 			for (int i = 0; i < iniPol.getSize (); ++i) {
 				addVertex (iniPol.getVertex (i));
 			}
@@ -53,6 +58,10 @@ namespace Geometry {
 			return mUVs;
 		}
 
+		public HashSet<int> getHoleVertices() {
+			return mholeIndices;
+		}
+
 		//******** Setters ********//
 		public void setVertices(List<Vector3> vertices) {
 			mVertices = vertices;
@@ -64,6 +73,10 @@ namespace Geometry {
 
 		public void setUVs(List<Vector2> uvs) {
 			mUVs = uvs;
+		}
+
+		public void setHoleVertices(HashSet<int> indices) {
+			mholeIndices = indices;
 		}
 
 		//******** Other functions ********//
@@ -178,6 +191,11 @@ namespace Geometry {
 			}
 		}
 
+		/** Adds a new vertex hole **/
+		public void addHoleIndex(int index) {
+			mholeIndices.Add (index);
+		}
+
 		/** Smooths the mesh by using the selected techique or filter. It must be called
 		 * after all the mesh is completely generated **/
 		public void smooth(int it) {
@@ -186,7 +204,7 @@ namespace Geometry {
 			Vector3[] verticesArray = mVertices.ToArray (); //O(V)
 
 			//Get the adjacent vertices set list
-			HashSet<int>[] adjacentList = computeAdjacents();
+			Dictionary<int, HashSet<int>> adjacentList = computeAdjacents();
 
 			//Apply the corresponding smooth techniques as many times as required
 			for (int i = 0; i < it; ++i) {
@@ -198,14 +216,15 @@ namespace Geometry {
 			mVertices = verticesArray.ToList();//O(V)
 		}
 
-		/**Get the list of the adjacent vertices(by index) of each vertex. O(V+T)**/
-		private HashSet<int>[] computeAdjacents() {
-			//Create the adjacent list
-			System.Collections.Generic.HashSet<int>[] finalList = new HashSet<int>[mVertices.Count];
-			for (int i = 0; i < finalList.Length; ++i) { //O(V)
-				finalList [i] = new HashSet<int> ();
+		/**Get the list of the adjacent vertices(by index) of each vertex that belongs to a hole. O(V+T)**/
+		private Dictionary<int, HashSet<int>> computeAdjacents() {
+			//Create the adjacent list 
+			//TODO: Could change HashSet to a simple List¿ (check element insert complexity)
+			Dictionary<int, HashSet<int>> finalList = new Dictionary<int,HashSet<int>>(mholeIndices.Count); 
+			foreach (int l in mholeIndices) { //O(V)
+				finalList.Add(l,new HashSet<int> ());
 			}
-			//Transform to array in order to have a direct index (const. time)
+			//Transform to array in order to have a direct index (for have const. time)
 			int[] trianglesArray = mTriangles.ToArray(); //O(T)
 			//Generate the adjacent list
 			for (int i = 0; i < trianglesArray.Length; i += 3) { //O(T)
@@ -216,35 +235,39 @@ namespace Geometry {
 			return finalList;
 		}
 
-		private void addAdjacents (HashSet<int>[] list, int position, int index1, int index2) {
-			list [position].Add (index1);
-			list [position].Add (index2);
+		private void addAdjacents (Dictionary<int, HashSet<int>> list, int position, int index1, int index2) {
+			if (mholeIndices.Contains (position)) {
+				list[position].Add (index1);
+				list[position].Add (index2);
+			}
 		}
 
 		/**Sets the new position of each vertex by taking the mean of its adjacent vertices. O(V*Adj) **/
-		private void smoothLaplacian(Vector3[] v, HashSet<int>[] adjacentV) {
-			for (int i = 0; i < v.Length; ++i) {
-				//Calculate the adjacents mean and set as the new vertex position
+		private void smoothLaplacian(Vector3[] v, Dictionary<int, HashSet<int>> adjacentV) {
+			foreach (int holeV in adjacentV.Keys) {
 				Vector3 newV = Vector3.zero;
-				foreach(int adj in adjacentV[i] ) {
+				HashSet<int> actualAdj = adjacentV [holeV];
+				//Calculate the adjacents mean 
+				foreach(int adj in actualAdj ) {
 					newV += v [adj];
 				}
-				v [i] = newV / adjacentV [i].Count;
+				v [holeV] = newV / actualAdj.Count;
 			}
 		}
 
 		/**Sets the new position of each vertex by taking the difference with the weighted 
 		 * increment of the vertex and its adjacent vertices. O(V*Adj) **/
 		private float lambdaLaplacian = 0.1f;
-		private void smoothLaplacianIncrement(Vector3[] v, HashSet<int>[] adjacentV) {
-			for (int i = 0; i < v.Length; ++i) {
-				//Calculate the adjacents mean 
+		private void smoothLaplacianIncrement(Vector3[] v, Dictionary<int, HashSet<int>> adjacentV) {
+			foreach (int holeV in adjacentV.Keys) {
 				Vector3 newV = Vector3.zero;
-				foreach(int adj in adjacentV[i] ) {
+				HashSet<int> actualAdj = adjacentV [holeV];
+				//Calculate the adjacents mean 
+				foreach(int adj in actualAdj ) {
 					newV += v [adj];
 				}
-				newV /= adjacentV [i].Count;
-				v [i] = v[i] + lambdaLaplacian * (newV - v[i]);
+				newV /= actualAdj.Count;
+				v [holeV] = v[holeV] + lambdaLaplacian * (newV - v[holeV]);
 			}
 		}
 

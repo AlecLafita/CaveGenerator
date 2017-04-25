@@ -61,7 +61,7 @@ abstract public class AbstractGenerator {
 		return proceduralMesh;
 	}
 
-	public float UVfactor = 50.0f;
+	public float UVfactor = 70.0f;
 	/**It creates a new polyline from an exsiting one, applying the corresponding operations**/
 	protected Polyline extrude(ExtrusionOperations operation, Polyline originPoly) {
 
@@ -158,10 +158,16 @@ abstract public class AbstractGenerator {
 		//In case the hole can really be done, add the extruded polyline to the mesh
 		// (needed for triangulate correctly between the hole and the projection)
 		actualMesh.addPolyline (destinyPoly);
+		//And the corresponding hole vertices
+		for (int j = 0; j < polyHole.getSize (); ++j) {
+			actualMesh.addHoleIndex (polyHole.getVertex (j).getIndex ());
+		}
 
 		//SIXTH: Final propoerties of the projection
 		//Generate new UVs coordinates of the projection, from y coord of the hole
 		float yCoord = (polyHole.getVertex(0).getUV().y + polyHole.getVertex(-1).getUV().y)/2;
+		//float projDistance = Vector3.Distance (polyHole.calculateBaricenter (), planePoly.calculateBaricenter ());
+		//yCoord += projDistance / UVfactor;
 		planePoly.generateUVs (yCoord);
 		//And put the corresponding indices
 		for (int j = 0; j < planePoly.getSize (); ++j) {

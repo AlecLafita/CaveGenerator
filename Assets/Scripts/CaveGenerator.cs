@@ -127,7 +127,7 @@ public class CaveGenerator : MonoBehaviour {
 			verticesNum += m.getNumVertices();
 			trianglesNum += m.getNumTriangles ();
 			//Smooth the mesh
-			//m.smooth (smoothIterations);
+			m.smooth (smoothIterations);
 
 			//Generation finished, assign the vertices and triangles created to a Unity mesh
 			UnityEngine.Mesh mesh = new UnityEngine.Mesh ();

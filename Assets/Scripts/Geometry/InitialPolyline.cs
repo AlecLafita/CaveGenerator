@@ -91,8 +91,6 @@ namespace Geometry {
 			return result;
 		}
 
-
-
 		/**Gets the maximum distance between baricenter and some vertex, in 2D projection on normal direction**/
 		public float computeProjectionRadius() {
 			Plane p = generateNormalPlane ();
