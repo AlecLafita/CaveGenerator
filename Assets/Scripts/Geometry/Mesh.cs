@@ -192,7 +192,7 @@ namespace Geometry {
 			//may be procuduced by winner decision, maybe smallest angle is not the best choice(or checking worng angle)
 		}
 
-		/** Closes a polyline by triangulating all it's vertices with it's baricenter, visualizing it as a polygon**/
+		/** Closes a polyline by triangulating all it's vertices with it's baricenter, visualizing it as a polygon FROM INSIDE**/
 		public void closePolyline(Polyline poly) {
 			Vertex baricenter = new Vertex ();
 			baricenter.setPosition (poly.calculateBaricenter ());
@@ -202,6 +202,18 @@ namespace Geometry {
 			for (int i = 0; i < poly.getSize(); ++i) {
 				//Left-hand!!
 				addTriangle(poly.getVertex (i).getIndex(), poly.getVertex (i + 1).getIndex(), baricenterIndex);
+			}
+		}
+		/** Closes a polyline by triangulating all it's vertices with it's baricenter, visualizing it as a polygon FROM OUTSIDE**/
+		public void closePolylineOutside(Polyline poly) {
+			Vertex baricenter = new Vertex ();
+			baricenter.setPosition (poly.calculateBaricenter ());
+			baricenter.setUV (poly.calculateBaricenterUV());
+			int baricenterIndex = getNumVertices();
+			addVertex (baricenter);
+			for (int i = 0; i < poly.getSize(); ++i) {
+				//Left-hand!!
+				addTriangle(poly.getVertex (i + 1).getIndex(),poly.getVertex (i).getIndex(),  baricenterIndex);
 			}
 		}
 

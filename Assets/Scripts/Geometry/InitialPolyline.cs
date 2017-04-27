@@ -12,6 +12,7 @@ namespace Geometry {
 		//******** Constructors ********//
 		public InitialPolyline() : base() {}
 		public InitialPolyline(int numV) : base(numV){}
+		public InitialPolyline(Polyline original) : base(original){}
 
 		//******** Setters ********//
 		public void initializeIndices() {

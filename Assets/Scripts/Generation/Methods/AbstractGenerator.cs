@@ -258,18 +258,28 @@ abstract public class AbstractGenerator {
 				stalgmAngle = auxAngle;
 			}
 		}
+		//TODO: If angle with up is very high, cancel stalgmite creation
+
+		//Add the first stalagmite polyline to the special stalagmite mesh, with the correct indices
+		InitialPolyline actualStalagmiteIni = new InitialPolyline(stalgmPoly);
+		actualStalagmiteIni.generateUVs ();
+		for (int i = 0; i < 4; ++i) {
+			actualStalagmiteIni.getVertex (i).setIndex (stalagmitesMesh.getNumVertices () + i);
+		}
+		Polyline actualStalagmite = actualStalagmiteIni;
+		stalagmitesMesh.addPolyline (actualStalagmite);
+		//Prepare generation varibles
+		Vector3 stalgmDirection = actualStalagmite.calculateNormal ();
+		//TODO: generate this values better, try not to go until the other extrusion side
+		float stalgmDistance = 2.0f;
+		float minRadius = 0.1f;
+		Vector2 UVincr = new Vector2(0.0f,-1.0f);
+		UVincr.Normalize ();
+		UVincr *= (stalgmDistance / UVfactor);
+		//float scaleFactor = some random value
 		//Now we have the start of the stalgmite, it needs to be extruded, scaled, extruded,scaled... until very small polyline is produced
 		bool stalgmFinished = false;
-		//Add the first stalagmite polyline to the special stalagmite mesh, with the correct indices
-		Polyline actualStalagmite = new Polyline(stalgmPoly);
-		for (int i = 0; i < 4; ++i) {
-			actualStalagmite.getVertex (i).setIndex (stalagmitesMesh.getNumVertices () + i);
-		}
-		stalagmitesMesh.addPolyline (actualStalagmite);
-		Vector3 stalgmDirection = actualStalagmite.calculateNormal ();
-		float stalgmDistance = 2.0f;
-		//float scaleFactor = some random value
-		//while (!stalgmFinished) {
+		while (!stalgmFinished) {
 			Polyline newStalgPoly = new Polyline (4);
 			for (int i = 0; i < 4; ++i) {
 				//Add vertex to polyline
@@ -277,20 +287,22 @@ abstract public class AbstractGenerator {
 				//Add the index to vertex
 				newStalgPoly.getVertex(i).setIndex(actualStalagmite.getVertex(i).getIndex() + 4);
 				//TODO: stalgmite UV -> maybe use another mesh for all the stalgmites, with another material
+				newStalgPoly.getVertex(i).setUV(actualStalagmite.getVertex(i).getUV() + UVincr);
 			}
 			newStalgPoly.setMinRadius(0.0f);
 			newStalgPoly.scale (0.5f);
 			//Check the stalagmite is not too small
-			/*if (newStalgPoly.) {
+			if (newStalgPoly.computeRadius() < minRadius) {
 				stalgmFinished = true;
 				continue;
-			}*/
+			}
 			//Triangulate the new stalgmite part
 			stalagmitesMesh.addPolyline(newStalgPoly);
 			stalagmitesMesh.triangulatePolylinesOutside(actualStalagmite,newStalgPoly);
 
 			actualStalagmite = newStalgPoly;
+		}
 
-		//}
+		stalagmitesMesh.closePolylineOutside (actualStalagmite);
 	}
 }
