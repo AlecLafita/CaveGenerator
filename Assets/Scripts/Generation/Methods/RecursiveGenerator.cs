@@ -47,7 +47,7 @@ public class RecursiveGenerator : AbstractGenerator {
 					generate (polyHole, holeProb - 0.001f);
 					//IntersectionsController.Instance.addPolyline (originPoly);
 					actualMesh = m;
-				} else { //No hole could be done, reextrude
+				} else { //No hole could be done, reextrude will smaller distance
 					//Force to have little extrusion distance
 					actualOpBackTrack.forceDistanceOperation (1, DecisionGenerator.Instance.generateDistance (false));
 					//It can't be null if with bigger extrusion distance it wasn't already: if
@@ -63,6 +63,11 @@ public class RecursiveGenerator : AbstractGenerator {
 			}
 			//Triangulate from origin to new polyline as a tube/cave shape
 			actualMesh.triangulatePolylines (originPoly, newPoly);
+			//Make stalagmite?
+			if (actualOperation.stalagmiteOperation ()) {
+				makeStalagmite (originPoly, newPoly);
+				actualOperation.forceStalagmiteOperation (false);
+			}
 			//Set next operation and continue from the new polyline
 			originPoly = newPoly;
 			//Add actual polyline to the next intersection BB and get next operation

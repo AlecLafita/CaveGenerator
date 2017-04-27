@@ -21,6 +21,9 @@ public class ExtrusionOperations  {
 	//To make a hole on this extrusion or not
 	private bool hole; 
 
+	//To make an stalgmite on this extrusion or not
+	private bool stalagmite;
+
 	//Index of the BB this extrusion can intersect with
 	private int canIntersect;
 
@@ -40,6 +43,7 @@ public class ExtrusionOperations  {
 		scale = new Operation<float> (original.scale);
 		rotate = new Operation<float> (original.rotate);
 		hole = original.hole;
+		stalagmite = original.stalagmite;
 		canIntersect = original.canIntersect;
 	}
 
@@ -77,6 +81,11 @@ public class ExtrusionOperations  {
 	/** Returns if a hole needs to be done **/
 	public bool holeOperation() {
 		return hole;
+	}
+
+	/**Returns if a stalagmite needs to be done **/
+	public bool stalagmiteOperation() {
+		return stalagmite;
 	}
 
 	public int getCanIntersect() {
@@ -120,7 +129,12 @@ public class ExtrusionOperations  {
 	/** Forces to make a hole **/
 	public void forceHoleOperation(bool value) {
 		hole = value;
-	}	
+	}
+
+	/** Forces to make an stalagmite **/
+	public void forceStalagmiteOperation(bool value) {
+		stalagmite = value;
+	}
 
 	public void setCanIntersect(int newValue) {
 		canIntersect = newValue;

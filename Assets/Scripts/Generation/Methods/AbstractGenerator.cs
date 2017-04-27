@@ -9,6 +9,7 @@ abstract public class AbstractGenerator {
 
 	protected List<Geometry.Mesh> proceduralMesh; //Mesh that will be modified during the cave generation
 	protected Geometry.Mesh actualMesh; //Mesh coresponding to the actual tunnel being generated
+	protected Geometry.Mesh stalagmitesMesh; //Mesh corresponding to the stalagmites and so 
 	protected float initialTunelHoleProb; //holes can be created depending on this probability [0-1]
 	protected int maxHoles; //How many times a hole can be extruded and behave like a tunnel, acts as a countdown
 	protected int maxExtrudeTimes; //TODO: consider to deccrement this value as holes are created, or some random function that handles this
@@ -17,6 +18,8 @@ abstract public class AbstractGenerator {
 	/**Creates the instance without initializing anything **/
 	public AbstractGenerator() {
 		proceduralMesh = new List<Geometry.Mesh> ();
+		stalagmitesMesh = new Geometry.Mesh ();
+		proceduralMesh.Add (stalagmitesMesh);
 	}
 
 	private int smoothIterations = 3;
@@ -25,7 +28,6 @@ abstract public class AbstractGenerator {
 		for (int i = 0; i < smoothIterations;++i)
 			((InitialPolyline)iniPol).smoothMean ();
 		((InitialPolyline)iniPol).generateUVs ();
-		//initializeTunnel (ref iniPol);
 
 		gatePolyline = iniPol;
 		this.initialTunelHoleProb = initialTunelHoleProb;
@@ -35,21 +37,11 @@ abstract public class AbstractGenerator {
 
 	/**Initializes the tunnel initial polyline, returning the corresponding mesh and setting it as the actual one**/
 	protected Geometry.Mesh initializeTunnel(ref Polyline iniPol) {
-		/*
-		for (int i = 0; i < smoothIterations;++i)
-			((InitialPolyline)iniPol).smoothMean ();
-		//((InitialPolyline)iniPol).generateUVs ();
-*/
-		//Smoth the hole polyline? (but should be smoothed too on the tunnel where the hole is done)
-
-		//This piece of code is valid either for the projection and the no projection version
 		((InitialPolyline)iniPol).initializeIndices();
 		//Create the new mesh with the hole polyline
 		Geometry.Mesh m = new Geometry.Mesh (iniPol);
 		proceduralMesh.Add (m);
 		actualMesh = m;
-
-
 		return m;
 	}
 
@@ -64,7 +56,6 @@ abstract public class AbstractGenerator {
 	public float UVfactor = 70.0f;
 	/**It creates a new polyline from an exsiting one, applying the corresponding operations**/
 	protected Polyline extrude(ExtrusionOperations operation, Polyline originPoly) {
-
 		//Create the new polyline from the actual one
 		Polyline newPoly = new Polyline(originPoly.getSize());
 		Vector3 direction = operation.applyDirection ();
@@ -214,8 +205,7 @@ abstract public class AbstractGenerator {
 
 		return planePoly;
 	}
-
-
+		
 	protected bool checkInvalidWalk(Polyline tunelStartPoly) {
 		if (!DecisionGenerator.Instance.directionJustWalk)
 			return false;
@@ -251,5 +241,56 @@ abstract public class AbstractGenerator {
 			}
 		}
 		return false;
+	}
+
+	/** Makes a stalagmite between the two polylilnes (through the extrusion) **/
+	protected void makeStalagmite (Polyline originPoly, Polyline newPoly){
+		//Check each group of 4 adjacent vertices and get the best candidate (normal distance nearer to -up)
+		InitialPolyline stalgmPoly = new InitialPolyline(4);
+		float stalgmAngle = float.MaxValue;
+		for (int i = 0; i < originPoly.getSize (); ++i) {
+			InitialPolyline auxPoly = new InitialPolyline (4);
+			auxPoly.addVertex (originPoly.getVertex (i)); auxPoly.addVertex (newPoly.getVertex (i));
+			auxPoly.addVertex (newPoly.getVertex (i+1)); auxPoly.addVertex (originPoly.getVertex (i+1)); 
+			float auxAngle = Vector3.Angle (auxPoly.calculateNormal (), Vector3.down);
+			if ( auxAngle < stalgmAngle) {
+				stalgmPoly = auxPoly;
+				stalgmAngle = auxAngle;
+			}
+		}
+		//Now we have the start of the stalgmite, it needs to be extruded, scaled, extruded,scaled... until very small polyline is produced
+		bool stalgmFinished = false;
+		//Add the first stalagmite polyline to the special stalagmite mesh, with the correct indices
+		Polyline actualStalagmite = new Polyline(stalgmPoly);
+		for (int i = 0; i < 4; ++i) {
+			actualStalagmite.getVertex (i).setIndex (stalagmitesMesh.getNumVertices () + i);
+		}
+		stalagmitesMesh.addPolyline (actualStalagmite);
+		Vector3 stalgmDirection = actualStalagmite.calculateNormal ();
+		float stalgmDistance = 2.0f;
+		//float scaleFactor = some random value
+		//while (!stalgmFinished) {
+			Polyline newStalgPoly = new Polyline (4);
+			for (int i = 0; i < 4; ++i) {
+				//Add vertex to polyline
+				newStalgPoly.extrudeVertex(i, actualStalagmite.getVertex(i).getPosition(), stalgmDirection, stalgmDistance);
+				//Add the index to vertex
+				newStalgPoly.getVertex(i).setIndex(actualStalagmite.getVertex(i).getIndex() + 4);
+				//TODO: stalgmite UV -> maybe use another mesh for all the stalgmites, with another material
+			}
+			newStalgPoly.setMinRadius(0.0f);
+			newStalgPoly.scale (0.5f);
+			//Check the stalagmite is not too small
+			/*if (newStalgPoly.) {
+				stalgmFinished = true;
+				continue;
+			}*/
+			//Triangulate the new stalgmite part
+			stalagmitesMesh.addPolyline(newStalgPoly);
+			stalagmitesMesh.triangulatePolylinesOutside(actualStalagmite,newStalgPoly);
+
+			actualStalagmite = newStalgPoly;
+
+		//}
 	}
 }

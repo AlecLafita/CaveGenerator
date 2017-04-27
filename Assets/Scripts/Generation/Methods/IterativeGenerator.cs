@@ -74,6 +74,11 @@ abstract public class IterativeGenerator : AbstractGenerator {
 				}
 				//Triangulate from origin to new polyline as a tube/cave shape
 				actualMesh.triangulatePolylines (originPoly, newPoly);
+				//Make stalagmite?
+				if (operation.stalagmiteOperation ()) {
+					makeStalagmite (originPoly, newPoly);
+					operation.forceStalagmiteOperation (false);
+				}
 				//Set next operation and continue from the new polyline
 				originPoly = newPoly;
 				//Add actual polyline to the next intersection BB ang get nexxt operation

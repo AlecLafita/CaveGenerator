@@ -46,8 +46,10 @@ public class DecisionGenerator : MonoBehaviour {
 		generateNoHoleOperation (p, op, extrusionsSinceLastOperation);
 
 		//Distance for hole case
-		if (op.holeOperation()) {
-			op.forceDistanceOperation (1,generateDistance (true));
+		if (op.holeOperation ()) {
+			op.forceDistanceOperation (1, generateDistance (true));
+		} else { //Generate stalgmites?
+			generateStalagmOperation(op, numExtrude);
 		}
 
 		//Update the counter
@@ -103,7 +105,14 @@ public class DecisionGenerator : MonoBehaviour {
 				}
 			}
 		}
+	}
 
+	/**Decide to make or not an stalagmite, stalagtite and so on operation **/
+	private void generateStalagmOperation(ExtrusionOperations op, int numExtrude) {
+		int eachKStalamg = 5;
+		if (numExtrude % eachKStalamg == 0) {
+			op.forceStalagmiteOperation (true);
+		}
 	}
 		
 	//******** Distance to extrude ********//
@@ -144,11 +153,7 @@ public class DecisionGenerator : MonoBehaviour {
 				result = auxiliarDirection;
 			}
 		}
-		//if (!goodDirection)
-		//Debug.Log ("BAD DIRECITON");
-
 		return result;
-
 	}
 
 	private Vector3 changeDirection(Vector3 dir) {
@@ -189,10 +194,8 @@ public class DecisionGenerator : MonoBehaviour {
 			//TODO
 		}
 		return result.normalized;
-
 	}
-
-
+		
 	//******** Scale ********//
 	[Range (0.0f,0.99f)] public float scaleLimit = 0.5f;
 	public float generateScale() {

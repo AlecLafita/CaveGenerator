@@ -114,7 +114,7 @@ namespace Geometry {
 			}
 		}
 
-		/** Makes the triangulation between two polylines with same size. The order of
+		/** Seen from Inside triangulation. Makes the triangulation between two polylines with same size. The order of
 		 * the vertices has to be the same. This is used then for neighbour polylines **/
 		public void triangulatePolylines(Polyline pol1, Polyline pol2) {
 			if (pol1.getSize () != pol2.getSize ()) { //TODO : throw exception
@@ -124,6 +124,20 @@ namespace Geometry {
 			for (int i = 0; i < pol1.getSize(); ++i) {
 				triangulateQuad(pol1.getVertex(i), pol1.getVertex(i+1), pol2.getVertex(i), pol2.getVertex(i+1));//Clockwise
 				//triangulateQuad(pol1.getVertex(i+1), pol1.getVertex(i), pol2.getVertex(i+1),pol2.getVertex(i));//Counter-Clockwise
+			}
+		}
+
+		/** Seen from Outside triangulation. Makes the triangulation between two polylines with same size. The order of
+		 * the vertices has to be the same. This is used then for neighbour polylines **/
+		public void triangulatePolylinesOutside(Polyline pol1, Polyline pol2) {
+			if (pol1.getSize () != pol2.getSize ()) { //TODO : throw exception
+				Debug.Log ("The two polylines do not have the same length!");
+				return;
+			}
+			for (int i = 0; i < pol1.getSize(); ++i) {
+				triangulateQuad(pol1.getVertex(i+1), pol1.getVertex(i), pol2.getVertex(i+1),pol2.getVertex(i));//Clockwise
+				//triangulateQuad(pol1.getVertex(i), pol1.getVertex(i+1), pol2.getVertex(i), pol2.getVertex(i+1));//COunter- Clockwise
+
 			}
 		}
 

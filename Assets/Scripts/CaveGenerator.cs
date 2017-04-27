@@ -153,7 +153,7 @@ public class CaveGenerator : MonoBehaviour {
 			++actTunel;
 		}
 
-		//MEsh size
+		//Mesh size
 		Debug.Log ("Vertices generated: " + verticesNum);
 		Debug.Log ("Triangles generated: " + trianglesNum);
 

@@ -24,9 +24,22 @@ namespace Geometry {
 			}
 		}
 
+		public Polyline(Polyline original) {
+			mVertices = new Vertex[original.getSize ()];
+			for (int i = 0; i < mVertices.Length; ++i) {
+				mVertices [i] = new Vertex (original.getVertex (i));
+			}
+			minRadius = original.minRadius;
+			maxRadius = original.maxRadius;
+		}
+
 		//******** Setters ********//
 		public void setVertex(int i, Vertex v) {
 			mVertices [i] = v; //This does not create a new instance! Sharing same vertex
+		}
+
+		public void setMinRadius(float newValue) {
+			minRadius = newValue;
 		}
 
 		//******** Getters ********//
