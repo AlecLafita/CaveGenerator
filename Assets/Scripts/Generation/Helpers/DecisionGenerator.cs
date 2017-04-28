@@ -36,10 +36,10 @@ public class DecisionGenerator : MonoBehaviour {
 	public int scaleKDesv = 1;
 	public int rotationKBase = 15;
 	public int rotationKDesv = 2;
-	public int holeKBase = 3;
-	public int holeKDesv = 0;
+	public int stalgmKBase = 5;
+	public int stalgmKDesv = 4;
 
-	/** Generates a new operation instance, as it was as the beggining of a tunnel **/
+	/** Generates a new operation instance, as it was the beggining of a tunnel **/
 	public ExtrusionOperations generateNewOperation(Polyline p) {
 		ExtrusionOperations op = new ExtrusionOperations();
 		op.forceDistanceOperation (1,DecisionGenerator.Instance.generateDistance (false));
@@ -50,6 +50,7 @@ public class DecisionGenerator : MonoBehaviour {
 		op.setDirectionWait(generateFromRange(directionKBase,directionKDesv));
 		op.setScaleWait (generateFromRange (scaleKBase, scaleKDesv));
 		op.setRotateWait (generateFromRange (rotationKBase, rotationKDesv));
+		op.setStalagmWait (generateFromRange (stalgmKBase, stalgmKDesv));
 		return op;
 	}
 
@@ -61,15 +62,14 @@ public class DecisionGenerator : MonoBehaviour {
 		if (!op.holeOperation())
 			op.forceHoleOperation(makeHole (numExtrude, tunnelProb, holesCountdown));
 
-		//Decide which operations to apply
+		//Decide which operations generate and apply on next extrusions
 		generateNoHoleOperation (p, op);
 
 		//Distance for hole case
 		if (op.holeOperation ()) {
 			op.forceDistanceOperation (1, generateDistance (true));
-		} else { //Generate stalgmites?
-			generateStalagmOperation(op, numExtrude);
 		}
+		//TODO: Distance for stalagmite case?
 
 		//Update the wait counter
 		op.decreaseWait();
@@ -85,7 +85,6 @@ public class DecisionGenerator : MonoBehaviour {
 				duration = generateFromRange(directionExtrBase,directionExtrDesv);
 				op.forceDirectionOperation(duration, newDirection);
 				op.setDirectionWait(duration + generateFromRange(directionKBase,directionKDesv));
-
 				IntersectionsController.Instance.addActualBox ();
 				IntersectionsController.Instance.addPolyline (p);
 				//op.setCanIntersect (-1);
@@ -97,25 +96,24 @@ public class DecisionGenerator : MonoBehaviour {
 			duration = generateFromRange (scaleExtrBase, scaleExtrDesv);
 			op.forceScaleOperation (duration,Mathf.Pow(generateScale(),1/(float)duration));
 			op.setScaleWait (duration + generateFromRange (scaleKBase, scaleKDesv));
-
 		}
+
 		if (op.generateRotation ()) {
 			duration = generateFromRange(rotationExtrBase,rotationExtrDesv);
 			op.forceRotationOperation(duration,generateRotation ()/duration);
 			op.setRotateWait (duration + generateFromRange (rotationKBase, rotationKDesv));
 		}
 
-	}
-
-	/**Decide to make or not an stalagmite, stalagtite and so on operation **/
-	private void generateStalagmOperation(ExtrusionOperations op, int numExtrude) {
-		int eachKStalamg = 5;
-		if (numExtrude % eachKStalamg == 0) {
-			op.forceStalagmiteOperation (true);
+		if (!op.holeOperation() && op.generateStalagmite()) {
+			//TODO:Generate all types of stalagmites
+			duration = generateFromRange(stalgmKBase,stalgmKDesv);
+			op.forceStalagmiteOperation (ExtrusionOperations.stalgmOp.Stalagmite);
+			op.setStalagmWait (1 + duration);
 		}
+		//TODO: add stones, grass,...
 	}
 
-	/** Generatea a random value between k-d and k+d, both inclusive **/
+	/** Generates a random value between k-d and k+d, both inclusive **/
 	private int generateFromRange(int k, int d) {
 		return Random.Range(k-d,k+d+1);
 	}
@@ -197,6 +195,7 @@ public class DecisionGenerator : MonoBehaviour {
 	}
 
 	//******** Holes ********//
+	public int holeK = 3;
 	private int minExtrusionsForHole = 3; //Number of extrusions to wait to make hole
 	[Range (0.0f,1.0f)] public float holeProb = 0.4f; //Initial probability to do a hole
 	public float holeLambda = 0.02f; //How each extrusion weights to the to final decision
@@ -223,13 +222,13 @@ public class DecisionGenerator : MonoBehaviour {
 		r = Random.value;
 		switch (holeCondition) {
 		case (holeConditions.EachKDesv) :{
-				if (numExtrude % holeKBase == 0) { //TODO:Change this
+				if (numExtrude % holeK == 0) { //TODO:Change this
 					return true;
 				}
 				break;
 			}
 		case (holeConditions.EachKDesvProb): {
-				if ((numExtrude % holeKBase == 0) && r <= holeProb){
+				if ((numExtrude % holeK == 0) && r <= holeProb){
 					return true;
 				}
 				break;
@@ -314,7 +313,7 @@ public class DecisionGenerator : MonoBehaviour {
 				found = true;
 			++auxIndex;
 		}//This should not be an infinite loop as there will be always some vertex direction not too close to the approximate one
-		sizeHole *= 2;
+		sizeHole *= 2; //Same vertices on the two polylines
 		sizeHole = Mathf.Min (sizeHole, holeMaxVertices);
 	}
 

@@ -75,8 +75,8 @@ abstract public class IterativeGenerator : AbstractGenerator {
 				actualMesh.triangulatePolylines (originPoly, newPoly);
 				//Make stalagmite?
 				if (operation.stalagmiteOperation ()) {
-					makeStalagmite (originPoly, newPoly);
-					operation.forceStalagmiteOperation (false);
+					makeStalagmite (operation.applyStalagmite(), originPoly, newPoly);
+					//operation.forceStalagmiteOperation (false);
 				}
 				//Set next operation and continue from the new polyline
 				originPoly = newPoly;

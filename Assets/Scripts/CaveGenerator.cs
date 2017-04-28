@@ -115,7 +115,7 @@ public class CaveGenerator : MonoBehaviour {
 		}
 
 		float tunnelHoleProb = 0.8f;
-		generator.initialize (iniPol, tunnelHoleProb, maxHoles, maxExtrudeTimes);
+		generator.initialize (gateSize, iniPol, tunnelHoleProb, maxHoles, maxExtrudeTimes);
 		generator.generate ();
 		proceduralMesh = generator.getMesh ();
 

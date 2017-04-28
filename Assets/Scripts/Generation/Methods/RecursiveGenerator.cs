@@ -64,8 +64,8 @@ public class RecursiveGenerator : AbstractGenerator {
 			actualMesh.triangulatePolylines (originPoly, newPoly);
 			//Make stalagmite?
 			if (actualOperation.stalagmiteOperation ()) {
-				makeStalagmite (originPoly, newPoly);
-				actualOperation.forceStalagmiteOperation (false);
+				makeStalagmite (actualOperation.applyStalagmite(), originPoly, newPoly);
+				//actualOperation.forceStalagmiteOperation (false);
 			}
 			//Set next operation and continue from the new polyline
 			originPoly = newPoly;

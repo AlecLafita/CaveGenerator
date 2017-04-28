@@ -14,6 +14,7 @@ abstract public class AbstractGenerator {
 	protected int maxHoles; //How many times a hole can be extruded and behave like a tunnel, acts as a countdown
 	protected int maxExtrudeTimes; //TODO: consider to deccrement this value as holes are created, or some random function that handles this
 	protected InitialPolyline gatePolyline; //Polyline where the cave starts from
+	protected int entranceSize; //Number of vertices of a tunnel entrance
 
 	/**Creates the instance without initializing anything **/
 	public AbstractGenerator() {
@@ -24,7 +25,7 @@ abstract public class AbstractGenerator {
 
 	private int smoothIterations = 3;
 	/**Initialize, being the arguments the needed parameters for the generator **/
-	public void initialize(InitialPolyline iniPol, float initialTunelHoleProb, int maxHoles, int maxExtrudeTimes) {
+	public void initialize(int gateSize, InitialPolyline iniPol, float initialTunelHoleProb, int maxHoles, int maxExtrudeTimes) {
 		for (int i = 0; i < smoothIterations;++i)
 			((InitialPolyline)iniPol).smoothMean ();
 		((InitialPolyline)iniPol).generateUVs ();
@@ -33,6 +34,9 @@ abstract public class AbstractGenerator {
 		this.initialTunelHoleProb = initialTunelHoleProb;
 		this.maxHoles = maxHoles;
 		this.maxExtrudeTimes = maxExtrudeTimes;
+		entranceSize = gateSize;
+		if (entranceSize % 2 != 0) //Force it to be pair
+			++entranceSize;
 	}
 
 	/**Initializes the tunnel initial polyline, returning the corresponding mesh and setting it as the actual one**/
@@ -136,7 +140,7 @@ abstract public class AbstractGenerator {
 		}
 
 		//FOURTH: Do the hole smooth: Project the polyline(3D) into a plane(2D) on the polyline normal direction, just n (not very big) vertices
-		InitialPolyline planePoly = generateProjection(polyHole, 4);
+		InitialPolyline planePoly = generateProjection(polyHole, entranceSize);
 
 		//FIFTH: Last check if hole is really valid (intersection stuff)
 		if (IntersectionsController.Instance.doIntersect(polyHole,planePoly,-1)) {
@@ -242,7 +246,9 @@ abstract public class AbstractGenerator {
 	}
 
 	/** Makes a stalagmite between the two polylilnes (through the extrusion) **/
-	protected void makeStalagmite (Polyline originPoly, Polyline newPoly){
+	protected void makeStalagmite (ExtrusionOperations.stalgmOp stalgmType, Polyline originPoly, Polyline newPoly){
+		//TODO: other types of stalagmites
+
 		//Check each group of 4 adjacent vertices and get the best candidate (normal distance nearer to -up)
 		InitialPolyline stalgmPoly = new InitialPolyline(4);
 		float stalgmAngle = float.MaxValue;

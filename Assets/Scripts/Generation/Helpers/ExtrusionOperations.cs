@@ -5,6 +5,10 @@ using UnityEngine;
 /** Represent all the operations to apply to a extrusion **/
 public class ExtrusionOperations  {
 
+	public enum stalgmOp {
+		Stalagmite, Stalactite, Pillar
+	}
+
 	//Number of different operations
 	private const int numOperations = 4;
 
@@ -22,7 +26,8 @@ public class ExtrusionOperations  {
 	private bool hole; 
 
 	//To make an stalgmite on this extrusion or not
-	private bool stalagmite;
+	private Operation<stalgmOp> stalagmite;
+	//private bool stalagmite;
 
 	//Index of the BB this extrusion can intersect with
 	private int canIntersect;
@@ -33,6 +38,7 @@ public class ExtrusionOperations  {
 		direction = new LerpOperation ();
 		scale = new Operation<float> ();
 		rotate = new Operation<float> ();
+		stalagmite = new Operation<stalgmOp> ();
 		canIntersect = -1;
 	}
 
@@ -43,7 +49,7 @@ public class ExtrusionOperations  {
 		scale = new Operation<float> (original.scale);
 		rotate = new Operation<float> (original.rotate);
 		hole = original.hole;
-		stalagmite = original.stalagmite;
+		stalagmite = new Operation<stalgmOp>(original.stalagmite);
 		canIntersect = original.canIntersect;
 	}
 
@@ -99,9 +105,13 @@ public class ExtrusionOperations  {
 		return hole;
 	}
 
+	/**Returns if a stalagmite has to be generated**/
+	public bool generateStalagmite() {
+		return !stalagmiteOperation() && (stalagmite.getWait () <= 0);
+	}
 	/**Returns if a stalagmite needs to be done **/
 	public bool stalagmiteOperation() {
-		return stalagmite;
+		return stalagmite.getCountdown()>0;
 	}
 
 	public int getCanIntersect() {
@@ -115,6 +125,7 @@ public class ExtrusionOperations  {
 		direction.decreaseWait ();
 		scale.decreaseWait ();
 		rotate.decreaseWait ();
+		stalagmite.decreaseWait ();
 	}
 
 	/**Sets extrusion waits for distance operation **/
@@ -170,9 +181,14 @@ public class ExtrusionOperations  {
 		hole = value;
 	}
 
+	/**Sets extrusion waits for stalagmite operation **/
+	public void setStalagmWait(int waitExtr) {
+		stalagmite.setWait (waitExtr);
+	}
 	/** Forces to make an stalagmite **/
-	public void forceStalagmiteOperation(bool value) {
-		stalagmite = value;
+	public void forceStalagmiteOperation(stalgmOp value) {
+		stalagmite.setCountdown (1);
+		stalagmite.setValue(value);
 	}
 
 	public void setCanIntersect(int newValue) {
@@ -210,5 +226,12 @@ public class ExtrusionOperations  {
 		rotate.decreaseCountdown ();
 		return rotate.getValue ();
 	}
+
+	public stalgmOp applyStalagmite() {
+		stalagmite.decreaseCountdown ();
+		return stalagmite.getValue ();
+	}
+
+
 
 }
