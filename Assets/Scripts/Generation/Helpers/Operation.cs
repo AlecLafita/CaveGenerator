@@ -6,6 +6,7 @@ public class Operation<T> {
 
 	private int countdown;
 	private T value;
+	private int waitExtrusions;
 
 	public Operation() {
 	}
@@ -13,6 +14,7 @@ public class Operation<T> {
 	public Operation(Operation<T> original) {
 		countdown = original.countdown;
 		value = original.value;
+		waitExtrusions = original.waitExtrusions;
 	}
 
 	public void reset() {
@@ -27,6 +29,10 @@ public class Operation<T> {
 		return countdown;
 	}
 
+	public int getWait() {
+		return waitExtrusions;
+	}
+
 
 	public void setValue(T newValue) {
 		value = newValue;
@@ -37,6 +43,13 @@ public class Operation<T> {
 	}
 	public void decreaseCountdown() {
 		countdown--;
+	}
+
+	public void setWait(int newWait) {
+		waitExtrusions = newWait;
+	}
+	public void decreaseWait() {
+		waitExtrusions--;
 	}
 }
 

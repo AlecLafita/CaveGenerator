@@ -23,7 +23,6 @@ public class RecursiveGenerator : AbstractGenerator {
 		Geometry.Mesh m = initializeTunnel(ref originPoly);
 
 		ExtrusionOperations actualOperation = DecisionGenerator.Instance.generateNewOperation (originPoly);
-		int extrusionsSinceOperation = -1; //Make sure the first two polylines are added as BB
 		//Add initial polyline to the BB
 		IntersectionsController.Instance.addPolyline(originPoly);
 		for (int i = 0; i < maxExtrudeTimes; ++i) {
@@ -33,7 +32,7 @@ public class RecursiveGenerator : AbstractGenerator {
 			Polyline newPoly = extrude (actualOperation, originPoly);
 			if (newPoly == null) { //Intersection produced
 				//TODO: improve this
-				//DecisionGenerator.Instance.generateNextOperation(originPoly, ref actualOperation, ref extrusionsSinceOperation,i,holeProb);
+				//DecisionGenerator.Instance.generateNextOperation(originPoly, ref actualOperation,i,holeProb);
 				actualOperation = DecisionGenerator.Instance.generateNewOperation (originPoly);
 				continue;
 			}
@@ -72,7 +71,7 @@ public class RecursiveGenerator : AbstractGenerator {
 			originPoly = newPoly;
 			//Add actual polyline to the next intersection BB and get next operation
 			IntersectionsController.Instance.addPolyline(originPoly);
-			DecisionGenerator.Instance.generateNextOperation(originPoly, actualOperation, ref extrusionsSinceOperation,i,holeProb, maxHoles);
+			DecisionGenerator.Instance.generateNextOperation(originPoly, actualOperation,i,holeProb, maxHoles);
 		}
 		//Finally, close the actual hallway/tunnel
 		IntersectionsController.Instance.addActualBox ();

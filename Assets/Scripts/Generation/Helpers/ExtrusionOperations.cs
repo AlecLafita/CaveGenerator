@@ -58,21 +58,37 @@ public class ExtrusionOperations  {
 		return (distanceOperation() || directionOperation() || scaleOperation() || rotationOperation() || holeOperation());
 	}
 
+	/**Returns if a distance value has to be generated**/
+	public bool generateDistance() {
+		return !distanceOperation() && (distance.getWait () <= 0);
+	} 
 	/** Returns if a distance change needs to be done **/
 	public bool distanceOperation() {
 		return distance.getCountdown()>0;
 	}
 
+	/**Returns if a direction value has to be generated**/
+	public bool generateDirection() {
+		return !directionOperation() && (direction.getWait () <= 0);
+	}
 	/** Returns if a direction change needs to be done **/
 	public bool directionOperation() {
 		return direction.getCountdown()>0;
 	}
-		
+
+	/**Returns if a scale value has to be generated**/
+	public bool generateScale() {
+		return !scaleOperation() && (scale.getWait () <= 0);
+	}
 	/** Returns if a scale needs to be done **/
 	public bool scaleOperation() {
 		return scale.getCountdown()>0;
 	}
 
+	/**Returns if a rotation value has to be generated**/
+	public bool generateRotation() {
+		return !rotationOperation() && (rotate.getWait () <= 0);
+	}
 	/** Returns if a rotation needs to be done **/
 	public bool rotationOperation() {
 		return rotate.getCountdown()>0;
@@ -93,19 +109,34 @@ public class ExtrusionOperations  {
 	}
 
 	//*********Setters**********//
+	/**Decreases the extrusion wait counter for all operations **/
+	public void decreaseWait() {
+		distance.decreaseWait ();
+		direction.decreaseWait ();
+		scale.decreaseWait ();
+		rotate.decreaseWait ();
+	}
+
+	/**Sets extrusion waits for distance operation **/
+	public void setDistanceWait(int waitExtr) {
+		distance.setWait (waitExtr);
+	}
 	/** Forces to make a distance change**/
 	public void forceDistanceOperation(int times, float value) {
 		distance.setCountdown (times);
 		distance.setValue (value);
 	}
 
+	/**Sets extrusion waits for direction operation **/
+	public void setDirectionWait(int waitExtr) {
+		direction.setWait (waitExtr);
+	}
 	/** Forces to make a direction change**/
 	public void forceDirectionOperation(int times, Vector3 valueIni, Vector3 valueFi) {
 		direction.setCountdown (times);
 		direction.setIniValue (valueIni);
 		direction.setFiValue (valueFi);
 	}
-
 	/**Forces to make a direction change, only final direction is needed **/
 	public void forceDirectionOperation(int times, Vector3 valueFi) {
 		direction.setCountdown (times);
@@ -114,12 +145,20 @@ public class ExtrusionOperations  {
 		direction.setFiValue (valueFi);
 	}
 
+	/**Sets extrusion waits for scale operation **/
+	public void setScaleWait(int waitExtr) {
+		scale.setWait (waitExtr);
+	}
 	/** Forces to make a scale **/
 	public void forceScaleOperation(int times, float value) {
 		scale.setCountdown (times);
 		scale.setValue (value);
 	}
 
+	/**Sets extrusion waits for rotate operation **/
+	public void setRotateWait(int waitExtr) {
+		rotate.setWait (waitExtr);
+	}
 	/** Forces to make a rotation **/
 	public void forceRotationOperation(int times, float value) {
 		rotate.setCountdown (times);

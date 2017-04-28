@@ -25,7 +25,7 @@ abstract public class IterativeGenerator : AbstractGenerator {
 
 	protected void generate(Polyline originPoly, float holeProb) {
 		Polyline newPoly;
-		int actualExtrusionTimes, extrusionsSinceOperation, noIntersection;
+		int actualExtrusionTimes, noIntersection;
 		noIntersection = -1;
 		while (isDataStructureEmpty()) {
 			//new tunnel(hole) will be done, initialize all the data
@@ -33,7 +33,6 @@ abstract public class IterativeGenerator : AbstractGenerator {
 			initializeDataStructure(ref noIntersection, ref originPoly);
 			Geometry.Mesh m = initializeTunnel(ref originPoly);
 			actualExtrusionTimes = 0;
-			extrusionsSinceOperation = -1; //Make sure the first two polylines are added as BB
 			ExtrusionOperations operation = DecisionGenerator.Instance.generateNewOperation (originPoly);
 			operation.setCanIntersect (noIntersection);
 			//Add first polyline to the intersection BB
@@ -46,7 +45,7 @@ abstract public class IterativeGenerator : AbstractGenerator {
 				//Generate the new polyline applying the operation
 				newPoly = extrude (operation, originPoly);
 				if (newPoly == null) {
-					//DecisionGenerator.Instance.generateNextOperation (ref operation, ref extrusionsSinceOperation, actualExtrusionTimes, holeProb);
+					//DecisionGenerator.Instance.generateNextOperation (ref operation, actualExtrusionTimes, holeProb);
 					operation = DecisionGenerator.Instance.generateNewOperation (originPoly);
 					continue;
 				}
@@ -83,7 +82,7 @@ abstract public class IterativeGenerator : AbstractGenerator {
 				originPoly = newPoly;
 				//Add actual polyline to the next intersection BB ang get nexxt operation
 				IntersectionsController.Instance.addPolyline(originPoly);
-				DecisionGenerator.Instance.generateNextOperation(originPoly, operation, ref extrusionsSinceOperation,actualExtrusionTimes,holeProb, maxHoles);
+				DecisionGenerator.Instance.generateNextOperation(originPoly, operation,actualExtrusionTimes,holeProb, maxHoles);
 			}
 			IntersectionsController.Instance.addActualBox ();
 			actualMesh.closePolyline(originPoly);

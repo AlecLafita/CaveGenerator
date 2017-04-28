@@ -22,26 +22,47 @@ public class DecisionGenerator : MonoBehaviour {
 	}
 
 	//******** Next operation decision********//
-	/**Decide which operations apply to the next extrusion **/
+	//Duration of each operation
+	public int directionExtrBase = 20;
+	public int directionExtrDesv = 5;
+	public int scaleExtrBase = 20;
+	public int scaleExtrDesv = 3;
+	public int rotationExtrBase = 30;
+	public int rotationExtrDesv = 5;
+	//How many extrusions to wait from last operation application
+	public int directionKBase = 5;
+	public int directionKDesv = 1;
+	public int scaleKBase = 5;
+	public int scaleKDesv = 1;
+	public int rotationKBase = 15;
+	public int rotationKDesv = 2;
+	public int holeKBase = 3;
+	public int holeKDesv = 0;
 
+	/** Generates a new operation instance, as it was as the beggining of a tunnel **/
 	public ExtrusionOperations generateNewOperation(Polyline p) {
 		ExtrusionOperations op = new ExtrusionOperations();
 		op.forceDistanceOperation (1,DecisionGenerator.Instance.generateDistance (false));
 		op.forceDirectionOperation (0, p.calculateNormal (), p.calculateNormal ());
 		op.setCanIntersect(IntersectionsController.Instance.getLastBB());
 		//op.forceScaleOperation (operationK,Mathf.Pow(2.0f,1/(float)operationK));
+		//Generate extrusion wait for each operation
+		op.setDirectionWait(generateFromRange(directionKBase,directionKDesv));
+		op.setScaleWait (generateFromRange (scaleKBase, scaleKDesv));
+		op.setRotateWait (generateFromRange (rotationKBase, rotationKDesv));
 		return op;
 	}
-		
-	public void generateNextOperation (Polyline p, ExtrusionOperations op, ref int extrusionsSinceLastOperation, int numExtrude, float tunnelProb, int holesCountdown) {
-		//Change the distance always, in order to introduce more iiregularity
+
+	/**Decide which operations apply to the next extrusion **/
+	public void generateNextOperation (Polyline p, ExtrusionOperations op, int numExtrude, float tunnelProb, int holesCountdown) {
+		//Change the distance always, in order to introduce more irregularity
 		op.forceDistanceOperation (1,generateDistance (false));
 		//Decide to make hole or not
 		if (!op.holeOperation())
 			op.forceHoleOperation(makeHole (numExtrude, tunnelProb, holesCountdown));
 
 		//Decide which operations to apply
-		generateNoHoleOperation (p, op, extrusionsSinceLastOperation);
+		generateNoHoleOperation (p, op);
 
 		//Distance for hole case
 		if (op.holeOperation ()) {
@@ -50,60 +71,40 @@ public class DecisionGenerator : MonoBehaviour {
 			generateStalagmOperation(op, numExtrude);
 		}
 
-		//Update the counter
-		if (op.justExtrude ())
-			++extrusionsSinceLastOperation;
-		else
-			extrusionsSinceLastOperation = 0;
+		//Update the wait counter
+		op.decreaseWait();
 	}
-
-	public int operationK = 4; // Every k extrusions, operation can be done
-	public int operationDeviation = 0; // Add more range to make extrusions, each random value between [k-deviation,k+deviation]
-	//Changes each time the function is called!
-	private int operationMax = 2; //How many operations can be applied at a time
+		
 	/**Decide which operations except from hole apply **/
-	private void generateNoHoleOperation(Polyline p, ExtrusionOperations op, int extrusionsSinceLastOperation) {
-		//Check if a new operation can be done
-		//If it not satisfies the condition of generating an operation, return a just extrusion operation
-		int extrusionsNeeded = Random.Range(-operationDeviation, operationDeviation+1);
-		if ((extrusionsSinceLastOperation % operationK + extrusionsNeeded) != 0) {
-			return;
-		}
-		int numOperations = op.getNumOperations ();
-		int operationsToDo = Random.Range (1, operationMax + 1);
-		for (int i = 0; i < operationsToDo;++i) {
-			int opPos = Random.Range (0, numOperations);
-			opPos = 1;
-			switch (opPos) {
-			case(0): //Distance
-				{
-					op.forceDistanceOperation (1,generateDistance (false));
-					break;
-				}
-			case(1): //Direction
-				{
-					Vector3 newDirection = generateDirection (p);
-					if (newDirection != Vector3.zero) { //Valid direction found
-						op.forceDirectionOperation(operationK, newDirection);
-						IntersectionsController.Instance.addActualBox ();
-						IntersectionsController.Instance.addPolyline (p);
-						op.setCanIntersect (-1);
-						//op.setCanIntersect (IntersectionsController.Instance.getLastBB ());
-					}
-					break;
-				}
-			case(2): //Scale
-				{
-					op.forceScaleOperation (operationK,Mathf.Pow(generateScale(),1/(float)operationK));
-					break;
-				}
-			case(3): //Rotation
-				{
-					op.forceRotationOperation(operationK,generateRotation ()/operationK);
-					break;
-				}
+	private void generateNoHoleOperation(Polyline p, ExtrusionOperations op) {
+		//Check each different operation one by one
+		int duration;
+		if (op.generateDirection()) {
+			Vector3 newDirection = generateDirection (p);
+			if (newDirection != Vector3.zero) { //Valid direction found
+				duration = generateFromRange(directionExtrBase,directionExtrDesv);
+				op.forceDirectionOperation(duration, newDirection);
+				op.setDirectionWait(duration + generateFromRange(directionKBase,directionKDesv));
+
+				IntersectionsController.Instance.addActualBox ();
+				IntersectionsController.Instance.addPolyline (p);
+				//op.setCanIntersect (-1);
+				op.setCanIntersect (IntersectionsController.Instance.getLastBB ());
 			}
 		}
+
+		if (op.generateScale ()) {
+			duration = generateFromRange (scaleExtrBase, scaleExtrDesv);
+			op.forceScaleOperation (duration,Mathf.Pow(generateScale(),1/(float)duration));
+			op.setScaleWait (duration + generateFromRange (scaleKBase, scaleKDesv));
+
+		}
+		if (op.generateRotation ()) {
+			duration = generateFromRange(rotationExtrBase,rotationExtrDesv);
+			op.forceRotationOperation(duration,generateRotation ()/duration);
+			op.setRotateWait (duration + generateFromRange (rotationKBase, rotationKDesv));
+		}
+
 	}
 
 	/**Decide to make or not an stalagmite, stalagtite and so on operation **/
@@ -112,6 +113,11 @@ public class DecisionGenerator : MonoBehaviour {
 		if (numExtrude % eachKStalamg == 0) {
 			op.forceStalagmiteOperation (true);
 		}
+	}
+
+	/** Generatea a random value between k-d and k+d, both inclusive **/
+	private int generateFromRange(int k, int d) {
+		return Random.Range(k-d,k+d+1);
 	}
 		
 	//******** Distance to extrude ********//
@@ -131,7 +137,7 @@ public class DecisionGenerator : MonoBehaviour {
 	public float directionMinChange = 0.2f;
 	public float directionMaxChange = 0.5f;
 	[Range (0.0f,1.0f)] public float directionYWalkLimit = 0.35f;
-	public float directionMaxAngle = 40.0f;
+	[Range (0.0f,40.0f)] public float directionMaxAngle = 40.0f;
 
 	private const int directionGenerationTries = 3;
 	/** Generates a new extrusion direction for a polylilne. It check it's not too far from it's normal **/
@@ -143,9 +149,8 @@ public class DecisionGenerator : MonoBehaviour {
 		Vector3 result = Vector3.zero;
 		Vector3 polylineNormal = p.calculateNormal ();
 		for (int i = 0; i < directionGenerationTries && !goodDirection; ++i) {
-			//auxiliarDirection = changeDirection(direction);
+			//auxiliarDirection = changeDirection(polylineNormal);
 			auxiliarDirection = generateDirection();
-			//auxiliarDirection = generateDirection(polylineNormal);
 			//Avoid intersection and narrow halways between the old and new polylines by setting an angle limit
 			//(90 would produce a plane and greater than 90 would produce an intersection)
 			if (Vector3.Angle (auxiliarDirection, polylineNormal) < directionMaxAngle) {
@@ -179,7 +184,6 @@ public class DecisionGenerator : MonoBehaviour {
 		return new Vector3(xDir, yDir, zDir).normalized;
 	}
 		
-		
 	//******** Scale ********//
 	[Range (0.0f,0.99f)] public float scaleLimit = 0.5f;
 	public float generateScale() {
@@ -187,7 +191,7 @@ public class DecisionGenerator : MonoBehaviour {
 	}
 
 	//******** Rotation ********//
-	public int rotationLimit = 30;
+	[Range (0.0f,35.0f)] public int rotationLimit = 30;
 	public float generateRotation() {
 		return (float)Random.Range (-rotationLimit, rotationLimit);
 	}
@@ -195,11 +199,10 @@ public class DecisionGenerator : MonoBehaviour {
 	//******** Holes ********//
 	private int minExtrusionsForHole = 3; //Number of extrusions to wait to make hole
 	[Range (0.0f,1.0f)] public float holeProb = 0.4f; //Initial probability to do a hole
-	public int holeK = 5; //For the k conditions
 	public float holeLambda = 0.02f; //How each extrusion weights to the to final decision
 
 	public enum holeConditions {
-		EachK, EachKProb, MoreExtrMoreProb, MoreExtrLessProb
+		EachKDesv, EachKDesvProb, MoreExtrMoreProb, MoreExtrLessProb
 	}
 	public holeConditions holeCondition;
 
@@ -219,14 +222,14 @@ public class DecisionGenerator : MonoBehaviour {
 		//Then apply differents decisions to make holes (or not)
 		r = Random.value;
 		switch (holeCondition) {
-		case (holeConditions.EachK) :{
-				if (numExtrude % holeK == 0) {
+		case (holeConditions.EachKDesv) :{
+				if (numExtrude % holeKBase == 0) { //TODO:Change this
 					return true;
 				}
 				break;
 			}
-		case (holeConditions.EachKProb): {
-				if ((numExtrude % holeK == 0) && r <= holeProb){
+		case (holeConditions.EachKDesvProb): {
+				if ((numExtrude % holeKBase == 0) && r <= holeProb){
 					return true;
 				}
 				break;

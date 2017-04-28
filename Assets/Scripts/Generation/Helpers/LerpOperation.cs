@@ -10,6 +10,7 @@ public class LerpOperation {
 
 	private int countdown;
 	private int numSteps;
+	private int waitExtrusions;
 
 	public LerpOperation() {
 		iniValue = Vector3.zero;
@@ -22,7 +23,26 @@ public class LerpOperation {
 		fiValue = original.fiValue;
 		countdown = original.countdown;
 		numSteps = original.numSteps;
+		waitExtrusions = original.waitExtrusions;
 	}
+
+
+	public Vector3 getInitialValue() {
+		return iniValue;
+	}
+
+	public Vector3 getFiValue() {
+		return fiValue;
+	}
+
+	public int getCountdown() {
+		return countdown;
+	}
+
+	public int getWait() {
+		return waitExtrusions;
+	}
+
 
 	public void setIniValue(Vector3 newValue) {
 		iniValue = newValue;
@@ -36,28 +56,24 @@ public class LerpOperation {
 		countdown = newCountdown;
 		numSteps = newCountdown;
 	}
-
-	public Vector3 applyLerp() {
-		float weight = ((float)numSteps-(float)countdown)/(float)numSteps;//Between 0 and 1, interpolation weigth
-		Vector3 value =  Vector3.Slerp (iniValue, fiValue, weight);
-		return value.normalized;
-	}
-
-	public Vector3 getInitialValue() {
-		return iniValue;
-	}
-
-	public Vector3 getFiValue() {
-		return fiValue;
-	}
-
-	public int getCountdown() {
-		return countdown;
-	}
 	public void decreaseCountdown() {
 		countdown--;
 	}
 	public void restartCountdown() {
 		countdown = numSteps;
 	}
+
+	public void setWait(int newWait) {
+		waitExtrusions = newWait;
+	}
+	public void decreaseWait() {
+		waitExtrusions--;
+	}
+
+	public Vector3 applyLerp() {
+		float weight = ((float)numSteps-(float)countdown)/(float)numSteps;//Between 0 and 1, interpolation weigth
+		Vector3 value =  Vector3.Slerp (iniValue, fiValue, weight);
+		return value.normalized;
+	}
+		
 }
