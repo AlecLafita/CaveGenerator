@@ -205,11 +205,9 @@ abstract public class AbstractGenerator {
 
 		return planePoly;
 	}
-		
-	protected bool checkInvalidWalk(Polyline tunelStartPoly) {
-		if (!DecisionGenerator.Instance.directionJustWalk)
-			return false;
 
+	/** Checks if a generated hole has it's extrusion direction too high (from the parameters limits) **/
+	protected bool checkInvalidWalk(Polyline tunelStartPoly) {
 		bool invalidHole = false;
 		Vector3 normal = tunelStartPoly.calculateNormal ();
 		if (normal.y < 0) {

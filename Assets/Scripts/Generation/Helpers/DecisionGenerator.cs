@@ -34,10 +34,8 @@ public class DecisionGenerator : MonoBehaviour {
 	}
 		
 	public void generateNextOperation (Polyline p, ExtrusionOperations op, ref int extrusionsSinceLastOperation, int numExtrude, float tunnelProb, int holesCountdown) {
-		//op = new ExtrusionOperation();
-		//Change the distance as the first one is always bigger
-		//if (numExtrude == 0) 
-			op.forceDistanceOperation (1,generateDistance (false));
+		//Change the distance always, in order to introduce more iiregularity
+		op.forceDistanceOperation (1,generateDistance (false));
 		//Decide to make hole or not
 		if (!op.holeOperation())
 			op.forceHoleOperation(makeHole (numExtrude, tunnelProb, holesCountdown));
@@ -75,6 +73,7 @@ public class DecisionGenerator : MonoBehaviour {
 		int operationsToDo = Random.Range (1, operationMax + 1);
 		for (int i = 0; i < operationsToDo;++i) {
 			int opPos = Random.Range (0, numOperations);
+			opPos = 1;
 			switch (opPos) {
 			case(0): //Distance
 				{
@@ -131,10 +130,11 @@ public class DecisionGenerator : MonoBehaviour {
 	//******** Direction ********//
 	public float directionMinChange = 0.2f;
 	public float directionMaxChange = 0.5f;
-	public bool directionJustWalk = false;
-	public float directionYWalkLimit = 0.35f;
+	[Range (0.0f,1.0f)] public float directionYWalkLimit = 0.35f;
+	public float directionMaxAngle = 40.0f;
 
 	private const int directionGenerationTries = 3;
+	/** Generates a new extrusion direction for a polylilne. It check it's not too far from it's normal **/
 	public Vector3 generateDirection(Polyline p) {
 		//This does not change the normal! The normal is always the same as all the points of a polyline are generated at 
 		//the same distance that it's predecessor polyline (at the moment at least)
@@ -143,12 +143,12 @@ public class DecisionGenerator : MonoBehaviour {
 		Vector3 result = Vector3.zero;
 		Vector3 polylineNormal = p.calculateNormal ();
 		for (int i = 0; i < directionGenerationTries && !goodDirection; ++i) {
-			//auxiliarDirection = DecisionGenerator.Instance.changeDirection(direction);
+			//auxiliarDirection = changeDirection(direction);
 			auxiliarDirection = generateDirection();
-			//auxiliarDirection = DecisionGenerator.Instance.generateDirection(polylineNormal);
+			//auxiliarDirection = generateDirection(polylineNormal);
 			//Avoid intersection and narrow halways between the old and new polylines by setting an angle limit
 			//(90 would produce a plane and greater than 90 would produce an intersection)
-			if (Vector3.Angle (auxiliarDirection, polylineNormal) < DecisionGenerator.Instance.directionMaxAngle) {
+			if (Vector3.Angle (auxiliarDirection, polylineNormal) < directionMaxAngle) {
 				goodDirection = true;
 				result = auxiliarDirection;
 			}
@@ -156,6 +156,7 @@ public class DecisionGenerator : MonoBehaviour {
 		return result;
 	}
 
+	/** Generates a new direction by changing a bit an existing one **/
 	private Vector3 changeDirection(Vector3 dir) {
 		int xChange = Random.Range (-1, 2);
 		int yChange = Random.Range (-1, 2);
@@ -163,38 +164,21 @@ public class DecisionGenerator : MonoBehaviour {
 		dir += new Vector3 (xChange *Random.Range(directionMinChange,directionMaxChange), 
 			yChange*Random.Range(directionMinChange,directionMaxChange),
 			zChange*Random.Range(directionMinChange,directionMaxChange));
-		if (directionJustWalk) {
-			if (dir.y < 0)
-				dir.y = Mathf.Max (dir.y, -directionYWalkLimit);
-			else if (dir.y > 0)
-				dir.y = Mathf.Min (dir.y, directionYWalkLimit);
-		}
+		if (dir.y < 0)
+			dir.y = Mathf.Max (dir.y, -directionYWalkLimit);
+		else if (dir.y > 0)
+			dir.y = Mathf.Min (dir.y, directionYWalkLimit);
 		return dir.normalized;
 	}
 
+	/** Generates a raw new direction **/
 	private Vector3 generateDirection() {
 		float xDir = Random.Range (-1.0f, 1.0f);
-		float yDir;
-		if (directionJustWalk)
-			yDir = Random.Range (-directionYWalkLimit, directionYWalkLimit);
-		else
-			yDir = Random.Range (-1.0f, 1.0f);
+		float yDir = Random.Range (-directionYWalkLimit, directionYWalkLimit);
 		float zDir = Random.Range (-1.0f, 1.0f);
 		return new Vector3(xDir, yDir, zDir).normalized;
 	}
-
-	[Range (0.0f,40.0f)] public float directionMaxAngle = 40.0f;
-	private Vector3 generateDirection(Vector3 normal) {
-		float xValue = Random.Range (normal.x - directionMaxAngle / 90.0f, normal.x + directionMaxAngle / 90.0f);
-		float yValue = Random.Range (normal.y - directionMaxAngle / 90.0f, normal.y + directionMaxAngle / 90.0f);
-		float zValue = Random.Range (normal.z - directionMaxAngle / 90.0f, normal.z + directionMaxAngle / 90.0f);
-
-		Vector3 result =  new Vector3(xValue,yValue,zValue);
-		if (directionJustWalk) {
-			//TODO
-		}
-		return result.normalized;
-	}
+		
 		
 	//******** Scale ********//
 	[Range (0.0f,0.99f)] public float scaleLimit = 0.5f;
@@ -267,16 +251,18 @@ public class DecisionGenerator : MonoBehaviour {
 
 	public int holeMinVertices = 4;
 	public int holeMaxVertices = 10;
+	/*
 	public void whereToDig(int numV, out int sizeHole, out int firstIndex) {
 		//TODO: improve this to avoid intersections (artifacts)
 		sizeHole = Random.Range(3,numV/2);
 		sizeHole *= 2; //Must be a pair number!
 		sizeHole = Mathf.Min (sizeHole, holeMaxVertices);
 		firstIndex = Random.Range (0, numV);
-	}
+	}*/
 
 
 	public float holesMaxAngleDirection = 30.0f;
+	/** Generates the first index of a vertex and how many vertices from it use to make a hole **/
 	public void whereToDig(Polyline p, out int sizeHole, out int firstIndex) {
 		sizeHole = 0;
 		firstIndex = 0;
