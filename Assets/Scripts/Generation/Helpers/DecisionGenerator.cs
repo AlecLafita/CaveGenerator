@@ -105,9 +105,14 @@ public class DecisionGenerator : MonoBehaviour {
 		}
 
 		if (!op.holeOperation() && op.generateStalagmite()) {
-			//TODO:Generate all types of stalagmites
+			//TODO:Generate all types of stalagmites, add more than one stalagmite at a time
 			duration = generateFromRange(stalgmKBase,stalgmKDesv);
-			op.forceStalagmiteOperation (ExtrusionOperations.stalgmOp.Stalagmite);
+
+			int type = Random.Range(0,10);
+			if (type < 6) 
+				op.forceStalagmiteOperation (ExtrusionOperations.stalgmOp.Stalagmite);
+			else 
+				op.forceStalagmiteOperation (ExtrusionOperations.stalgmOp.Stalactite);
 			op.setStalagmWait (1 + duration);
 		}
 		//TODO: add stones, grass,...

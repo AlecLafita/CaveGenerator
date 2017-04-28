@@ -139,6 +139,7 @@ public class CaveGenerator : MonoBehaviour {
 			mesh.RecalculateBounds ();
 			//Add the new game object(tunnel)
 			GameObject tunnel = new GameObject ("Tunnel " + actTunel);
+			if (actTunel == 0) tunnel.name = "Estalagmites";
 			tunnel.transform.parent = tunnels.transform;
 			//Debug script
 			tunnel.AddComponent<DebugTunnel>();
