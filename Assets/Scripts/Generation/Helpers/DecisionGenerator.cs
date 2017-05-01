@@ -14,7 +14,6 @@ public class DecisionGenerator : MonoBehaviour {
 		mInstace = this;
 		//Random.seed = 5; //With this setted the result will always be the same
 	}
-
 	public static DecisionGenerator Instance {
 		get {
 			return mInstace;
@@ -40,26 +39,27 @@ public class DecisionGenerator : MonoBehaviour {
 	public int stalgmKDesv = 4;
 	public int pointLightKBase = 12;
 	public int pointLightKDesv = 5;
+
 	/** Generates a new operation instance, as it was the beggining of a tunnel **/
 	public ExtrusionOperations generateNewOperation(Polyline p) {
 		ExtrusionOperations op = new ExtrusionOperations();
-		op.forceDistanceOperation (1,DecisionGenerator.Instance.generateDistance (false));
-		op.forceDirectionOperation (0, p.calculateNormal (), p.calculateNormal ());
+		op.distanceOperation().forceOperation(1,DecisionGenerator.Instance.generateDistance (false));
+		op.directionOperation().forceOperation(0, p.calculateNormal (), p.calculateNormal ());
 		op.setCanIntersect(IntersectionsController.Instance.getLastBB());
-		//op.forceScaleOperation (operationK,Mathf.Pow(2.0f,1/(float)operationK));
+		//op.scaleOperation().forceOperation (operationK,Mathf.Pow(2.0f,1/(float)operationK));
 		//Generate extrusion wait for each operation
-		op.setDirectionWait(generateFromRange(directionKBase,directionKDesv));
-		op.setScaleWait (generateFromRange (scaleKBase, scaleKDesv));
-		op.setRotateWait (generateFromRange (rotationKBase, rotationKDesv));
-		op.setStalagmWait (generateFromRange (stalgmKBase, stalgmKDesv));
-		op.setPointLightWait (generateFromRange (pointLightKBase, pointLightKDesv));
+		op.directionOperation().setWait(generateFromRange(directionKBase,directionKDesv));
+		op.scaleOperation().setWait(generateFromRange (scaleKBase, scaleKDesv));
+		op.rotateOperation().setWait (generateFromRange (rotationKBase, rotationKDesv));
+		op.stalagmiteOperation().setWait (generateFromRange (stalgmKBase, stalgmKDesv));
+		op.pointLightOperation().setWait (generateFromRange (pointLightKBase, pointLightKDesv));
 		return op;
 	}
 
 	/**Decide which operations apply to the next extrusion **/
 	public void generateNextOperation (Polyline p, ExtrusionOperations op, int numExtrude, float tunnelProb, int holesCountdown) {
 		//Change the distance always, in order to introduce more irregularity
-		op.forceDistanceOperation (1,generateDistance (false));
+		op.distanceOperation().forceOperation(1,generateDistance (false));
 		//Decide to make hole or not
 		if (!op.holeOperation())
 			op.forceHoleOperation(makeHole (numExtrude, tunnelProb, holesCountdown));
@@ -69,7 +69,7 @@ public class DecisionGenerator : MonoBehaviour {
 
 		//Distance for hole case
 		if (op.holeOperation ()) {
-			op.forceDistanceOperation (1, generateDistance (true));
+			op.distanceOperation().forceOperation(1, generateDistance (true));
 		}
 		//TODO: Distance for stalagmite case?
 
@@ -81,12 +81,12 @@ public class DecisionGenerator : MonoBehaviour {
 	private void generateNoHoleOperation(Polyline p, ExtrusionOperations op) {
 		//Check each different operation one by one
 		int duration;
-		if (op.generateDirection()) {
+		if (op.directionOperation().needGenerate()) {
 			Vector3 newDirection = generateDirection (p);
 			if (newDirection != Vector3.zero) { //Valid direction found
 				duration = generateFromRange(directionExtrBase,directionExtrDesv);
-				op.forceDirectionOperation(duration, newDirection);
-				op.setDirectionWait(duration + generateFromRange(directionKBase,directionKDesv));
+				op.directionOperation().forceOperation(duration, newDirection);
+				op.directionOperation().setWait(duration + generateFromRange(directionKBase,directionKDesv));
 				IntersectionsController.Instance.addActualBox ();
 				IntersectionsController.Instance.addPolyline (p);
 				//op.setCanIntersect (-1);
@@ -94,30 +94,30 @@ public class DecisionGenerator : MonoBehaviour {
 			}
 		}
 
-		if (op.generateScale ()) {
+		if (op.scaleOperation().needGenerate()) {
 			duration = generateFromRange (scaleExtrBase, scaleExtrDesv);
-			op.forceScaleOperation (duration,Mathf.Pow(generateScale(),1/(float)duration));
-			op.setScaleWait (duration + generateFromRange (scaleKBase, scaleKDesv));
+			op.scaleOperation().forceOperation(duration,Mathf.Pow(generateScale(),1/(float)duration));
+			op.scaleOperation().setWait (duration + generateFromRange (scaleKBase, scaleKDesv));
 		}
 
-		if (op.generateRotation ()) {
+		if (op.rotateOperation().needGenerate()) {
 			duration = generateFromRange(rotationExtrBase,rotationExtrDesv);
-			op.forceRotationOperation(duration,generateRotation ()/duration);
-			op.setRotateWait (duration + generateFromRange (rotationKBase, rotationKDesv));
+			op.rotateOperation().forceOperation(duration,generateRotation ()/duration);
+			op.rotateOperation().setWait(duration + generateFromRange (rotationKBase, rotationKDesv));
 		}
 
-		if (!op.holeOperation() && op.generateStalagmite()) {
+		if (!op.holeOperation() && op.stalagmiteOperation().needGenerate()) {
 			//TODO:Generate all types of stalagmites, add more than one stalagmite at a time
 			int type = Random.Range(0,10);
 			if (type < 6) 
-				op.forceStalagmiteOperation (ExtrusionOperations.stalgmOp.Stalagmite);
+				op.stalagmiteOperation().forceOperation(1,ExtrusionOperations.stalgmOp.Stalagmite);
 			else 
-				op.forceStalagmiteOperation (ExtrusionOperations.stalgmOp.Stalactite);
-			op.setStalagmWait (1 + generateFromRange(stalgmKBase,stalgmKDesv));
+				op.stalagmiteOperation().forceOperation(1,ExtrusionOperations.stalgmOp.Stalactite);
+			op.stalagmiteOperation().setWait(1 + generateFromRange(stalgmKBase,stalgmKDesv));
 		}
-		if (op.generatePointLight ()) {
-			op.forcePointLightOperation (true);
-			op.setPointLightWait (1 + generateFromRange (pointLightKBase, pointLightKDesv));
+		if (op.pointLightOperation().needGenerate()) {
+			op.pointLightOperation().forceOperation(1,true);
+			op.pointLightOperation().setWait(1 + generateFromRange (pointLightKBase, pointLightKDesv));
 		}
 		//TODO: add stones, grass,...
 	}

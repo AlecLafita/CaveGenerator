@@ -64,8 +64,8 @@ abstract public class AbstractGenerator {
 	protected Polyline extrude(ExtrusionOperations operation, Polyline originPoly) {
 		//Create the new polyline from the actual one
 		Polyline newPoly = new Polyline(originPoly.getSize());
-		Vector3 direction = operation.applyDirection ();
-		float distance = operation.applyDistance ();
+		Vector3 direction = operation.directionOperation().apply();
+		float distance = operation.distanceOperation().apply();
 		//Generate the UVS of the new polyline from the coordinates of the original and on the same
 		//same direction that the extrusion, as if it was a projection to XZ plane
 		//Vector2 UVincr = new Vector2(direction.x,direction.z);
@@ -82,11 +82,11 @@ abstract public class AbstractGenerator {
 		}
 
 		//Apply operations, if any
-		if (operation.scaleOperation()) {
-			newPoly.scale(operation.applyScale ());
+		if (operation.scaleOperation().needApply()) {
+			newPoly.scale(operation.scaleOperation().apply());
 		}
-		if (operation.rotationOperation ()) {
-			newPoly.rotate(operation.applyRotate ());
+		if (operation.rotateOperation().needApply() ) {
+			newPoly.rotate(operation.rotateOperation().apply());
 		}
 			
 		//Check there is no intersection

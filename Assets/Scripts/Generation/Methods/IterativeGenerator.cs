@@ -59,7 +59,7 @@ abstract public class IterativeGenerator : AbstractGenerator {
 						--maxHoles;
 					} else { //No hole could be done, reextrude
 						//Force to have little extrusion distance
-						actualOpBackTrack.forceDistanceOperation (1, DecisionGenerator.Instance.generateDistance (false));
+						actualOpBackTrack.distanceOperation().forceOperation(1, DecisionGenerator.Instance.generateDistance (false));
 						//It can't be null if with bigger extrusion distance it wasn't already: if
 						//with bigger distance it didn't intersect, it can't intersect with a smaller one
 						newPoly = extrude (actualOpBackTrack, originPoly);
@@ -74,12 +74,13 @@ abstract public class IterativeGenerator : AbstractGenerator {
 				//Triangulate from origin to new polyline as a tube/cave shape
 				actualMesh.triangulatePolylines (originPoly, newPoly);
 				//Make stalagmite?
-				if (operation.stalagmiteOperation ()) {
-					makeStalagmite (operation.applyStalagmite(), originPoly, newPoly);
-					//operation.forceStalagmiteOperation (false);
+				if (operation.stalagmiteOperation ().needApply()) {
+					makeStalagmite (operation.stalagmiteOperation().apply(), originPoly, newPoly);
+					//actualOperation.forceStalagmiteOperation (false);
 				}
-				if (operation.pointLightOperation()) {
-					operation.applyPointLight ();
+				//Make light?
+				if (operation.pointLightOperation().needApply()) {
+					operation.pointLightOperation().apply();
 					makePointLight(originPoly,newPoly);
 				}
 				//Set next operation and continue from the new polyline

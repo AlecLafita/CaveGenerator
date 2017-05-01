@@ -48,7 +48,7 @@ public class RecursiveGenerator : AbstractGenerator {
 					actualMesh = m;
 				} else { //No hole could be done, reextrude will smaller distance
 					//Force to have little extrusion distance
-					actualOpBackTrack.forceDistanceOperation (1, DecisionGenerator.Instance.generateDistance (false));
+					actualOpBackTrack.distanceOperation().forceOperation(1, DecisionGenerator.Instance.generateDistance (false));
 					//It can't be null if with bigger extrusion distance it wasn't already: if
 					//with bigger distance it didn't intersect, it can't intersect with a smaller one
 					newPoly = extrude (actualOpBackTrack, originPoly);
@@ -63,13 +63,12 @@ public class RecursiveGenerator : AbstractGenerator {
 			//Triangulate from origin to new polyline as a tube/cave shape
 			actualMesh.triangulatePolylines (originPoly, newPoly);
 			//Make stalagmite?
-			if (actualOperation.stalagmiteOperation ()) {
-				makeStalagmite (actualOperation.applyStalagmite(), originPoly, newPoly);
-				//actualOperation.forceStalagmiteOperation (false);
+			if (actualOperation.stalagmiteOperation ().needApply()) {
+				makeStalagmite (actualOperation.stalagmiteOperation().apply(), originPoly, newPoly);
 			}
 			//Make light?
-			if (actualOperation.pointLightOperation()) {
-				actualOperation.applyPointLight ();
+			if (actualOperation.pointLightOperation().needApply()) {
+				actualOperation.pointLightOperation().apply();
 				makePointLight(originPoly,newPoly);
 			}
 			//Set next operation and continue from the new polyline
