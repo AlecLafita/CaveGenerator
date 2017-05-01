@@ -99,7 +99,6 @@ abstract public class AbstractGenerator {
 
 	/** Makes a hole betwen two polylines and return this hole as a new polyline **/
 	protected Polyline makeHole(Polyline originPoly, Polyline destinyPoly) {
-
 		//TODO: more than one hole, Make two holes on same polylines pairs can cause intersections!
 			//could take the negate direction of the already make hole and try to do a new one
 
@@ -127,11 +126,12 @@ abstract public class AbstractGenerator {
 			destinyPoly.getVertex (firstIndex+i).setInHole (true);
 			polyHole.addVertex (destinyPoly.getVertex (firstIndex+i));
 		}
+
 		//THIRD: Check is a valid hole: no artifacts will be produced, 
 		bool invalidHole = false;
-		//invalidHole = checkArtifacts (polyHole);
+		//invalidHole = Geometry.Utils.checkArtifacts (polyHole);
 		//and in the walking case, check if the hole is not too upwards or downwards(y component)
-		invalidHole = invalidHole || checkInvalidWalk(polyHole);
+		invalidHole = invalidHole || Geometry.Utils.checkInvalidWalk(polyHole);
 		//Undo hole if invalid
 		if (invalidHole) {
 			for (int j = 0; j < sizeHole/2; ++j) {
@@ -142,7 +142,7 @@ abstract public class AbstractGenerator {
 		}
 
 		//FOURTH: Do the hole smooth: Project the polyline(3D) into a plane(2D) on the polyline normal direction, just n (not very big) vertices
-		InitialPolyline planePoly = generateProjection(polyHole, entranceSize);
+		InitialPolyline planePoly =Geometry.Utils.generateProjection(polyHole, entranceSize,smoothIterations);
 
 		//FIFTH: Last check if hole is really valid (intersection stuff)
 		if (IntersectionsController.Instance.doIntersect(polyHole,planePoly,-1)) {
@@ -178,73 +178,6 @@ abstract public class AbstractGenerator {
 		IntersectionsController.Instance.addPolyline (planePoly);
 
 		return planePoly;
-	}
-
-	/** From existing polyline, generates a new one by projecting the original to a plane on it's normal direction.
-	 * It is also smoothed and scaled.  **/
-	protected InitialPolyline generateProjection(InitialPolyline polyHole, int projectionSize = 4) {
-		//projectionSize must be pair!
-		//Get the plane to project to
-		Plane tunnelEntrance = polyHole.generateNormalPlane ();
-		//Generate the polyline by projecting to the plane
-		InitialPolyline planePoly = new InitialPolyline (projectionSize);
-		int holePos = 0;
-		int incr = ((polyHole.getSize ()/2)-1)/ ((projectionSize / 2)-1);
-		for (int i = 0; i < projectionSize / 2; ++i) {
-			planePoly.addPosition (Geometry.Utils.getPlaneProjection (tunnelEntrance, polyHole.getVertex (holePos).getPosition ()));
-			holePos += incr;
-		}
-		holePos = polyHole.getSize () / 2;
-		for (int i = 0; i < projectionSize / 2; ++i) {
-			planePoly.addPosition (Geometry.Utils.getPlaneProjection (tunnelEntrance, polyHole.getVertex (holePos).getPosition ()));
-			holePos += incr;
-		}
-
-		//Smooth it
-		for (int j = 0; j < smoothIterations;++j)
-			planePoly.smoothMean ();
-		
-		//Scale to an approximate size of the real size of the original
-		float maxActualRadius = planePoly.computeRadius();
-		float destinyRadius = polyHole.computeProjectionRadius ();
-		planePoly.scale (destinyRadius / maxActualRadius);
-
-		return planePoly;
-	}
-
-	/** Checks if a generated hole has it's extrusion direction too high (from the parameters limits) **/
-	protected bool checkInvalidWalk(Polyline tunelStartPoly) {
-		bool invalidHole = false;
-		Vector3 normal = tunelStartPoly.calculateNormal ();
-		if (normal.y < 0) {
-			invalidHole = normal.y < -DecisionGenerator.Instance.directionYWalkLimit;
-		} else {
-			invalidHole = normal.y > DecisionGenerator.Instance.directionYWalkLimit;
-		}
-
-		return invalidHole;
-	}
-
-	protected bool checkArtifacts (Polyline polyHole) {
-		//TODO: IMprove this, maybe check directly with y coord is not good enough
-		Plane projection = ((InitialPolyline)polyHole).generateNormalPlane ();
-		//As its a hole polyline, first and second half are symmetric, there is need to just check one
-		//If one half projected does not has all vertices on descendant or ascendant order, it will sure generate an aritfact
-		if (Geometry.Utils.getPlaneProjection(projection, polyHole.getVertex (0).getPosition ()).y < 
-			Geometry.Utils.getPlaneProjection(projection, polyHole.getVertex (1).getPosition ()).y) { //ascendant
-			for (int i = 1; i < polyHole.getSize () / 2; ++i) {
-				if (Geometry.Utils.getPlaneProjection (projection, polyHole.getVertex (i).getPosition ()).y >
-				    Geometry.Utils.getPlaneProjection (projection, polyHole.getVertex (i + 1).getPosition ()).y)
-					return true;
-			}
-		} else { //descendent
-			for (int i = 1; i < polyHole.getSize () / 2; ++i) {
-				if (Geometry.Utils.getPlaneProjection (projection, polyHole.getVertex (i).getPosition ()).y <
-					Geometry.Utils.getPlaneProjection (projection, polyHole.getVertex (i + 1).getPosition ()).y)
-					return true;
-			}
-		}
-		return false;
 	}
 
 	private float maxDiffAngle = 30.0f;
@@ -302,6 +235,7 @@ abstract public class AbstractGenerator {
 				}
 			}
 			float maxStalgmSize = (originPoly.getVertex (counterpartVertex).getPosition () - stalgmBaricenter).magnitude;
+			//TODO: generate this random before, save it to operation and read it 
 			maxStalgmSize *= 0.75f; //final stalgmite size
 			float stalgmExtrusionDistance = 0.4f;
 			int numExtrusions = (int) (maxStalgmSize / stalgmExtrusionDistance);
