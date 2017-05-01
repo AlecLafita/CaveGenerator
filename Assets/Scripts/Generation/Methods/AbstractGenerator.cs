@@ -15,12 +15,14 @@ abstract public class AbstractGenerator {
 	protected int maxExtrudeTimes; //TODO: consider to deccrement this value as holes are created, or some random function that handles this
 	protected InitialPolyline gatePolyline; //Polyline where the cave starts from
 	protected int entranceSize; //Number of vertices of a tunnel entrance
+	protected GameObject lights; // GameObject that contains all the generated lights
 
 	/**Creates the instance without initializing anything **/
 	public AbstractGenerator() {
 		proceduralMesh = new List<Geometry.Mesh> ();
 		stalagmitesMesh = new Geometry.Mesh ();
 		proceduralMesh.Add (stalagmitesMesh);
+		lights = new GameObject ("Lights");
 	}
 
 	private int smoothIterations = 3;
@@ -336,5 +338,19 @@ abstract public class AbstractGenerator {
 
 			stalagmitesMesh.closePolylineOutside (actualStalagmite);
 		}
+	}
+
+	/**Creates a point light between the extrusion, on it's center **/
+	protected void makePointLight(Polyline originPoly, Polyline destinyPoly) {
+		GameObject newLight = new GameObject ();
+		Vector3 position = (originPoly.calculateBaricenter() + destinyPoly.calculateBaricenter())/2;
+		newLight.transform.position = position;
+		Light l = newLight.AddComponent<Light> ();
+		l.type = LightType.Point;
+		//TODO: generate this random before, save it to operation and read it 
+		l.intensity = 1.8f;
+		l.range = 30.0f;
+		newLight.transform.parent =  lights.transform;
+
 	}
 }

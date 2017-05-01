@@ -67,6 +67,11 @@ public class RecursiveGenerator : AbstractGenerator {
 				makeStalagmite (actualOperation.applyStalagmite(), originPoly, newPoly);
 				//actualOperation.forceStalagmiteOperation (false);
 			}
+			//Make light?
+			if (actualOperation.pointLightOperation()) {
+				actualOperation.applyPointLight ();
+				makePointLight(originPoly,newPoly);
+			}
 			//Set next operation and continue from the new polyline
 			originPoly = newPoly;
 			//Add actual polyline to the next intersection BB and get next operation

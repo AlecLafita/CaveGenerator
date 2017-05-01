@@ -78,6 +78,10 @@ abstract public class IterativeGenerator : AbstractGenerator {
 					makeStalagmite (operation.applyStalagmite(), originPoly, newPoly);
 					//operation.forceStalagmiteOperation (false);
 				}
+				if (operation.pointLightOperation()) {
+					operation.applyPointLight ();
+					makePointLight(originPoly,newPoly);
+				}
 				//Set next operation and continue from the new polyline
 				originPoly = newPoly;
 				//Add actual polyline to the next intersection BB ang get nexxt operation

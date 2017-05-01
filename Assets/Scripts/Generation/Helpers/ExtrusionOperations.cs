@@ -5,12 +5,11 @@ using UnityEngine;
 /** Represent all the operations to apply to a extrusion **/
 public class ExtrusionOperations  {
 
+	//TODO: do all the getvalue, apply operation, etc functions to Operaton and LerpOperation class better?
+
 	public enum stalgmOp {
 		Stalagmite, Stalactite, Pillar
 	}
-
-	//Number of different operations
-	private const int numOperations = 4;
 
 	//Different operations
 
@@ -27,7 +26,9 @@ public class ExtrusionOperations  {
 
 	//To make an stalgmite on this extrusion or not
 	private Operation<stalgmOp> stalagmite;
-	//private bool stalagmite;
+
+	//To create a point light on this extrusion or not
+	private Operation<bool> pointLight;
 
 	//Index of the BB this extrusion can intersect with
 	private int canIntersect;
@@ -39,6 +40,7 @@ public class ExtrusionOperations  {
 		scale = new Operation<float> ();
 		rotate = new Operation<float> ();
 		stalagmite = new Operation<stalgmOp> ();
+		pointLight = new Operation<bool> ();
 		canIntersect = -1;
 	}
 
@@ -50,14 +52,11 @@ public class ExtrusionOperations  {
 		rotate = new Operation<float> (original.rotate);
 		hole = original.hole;
 		stalagmite = new Operation<stalgmOp>(original.stalagmite);
+		pointLight = new Operation<bool> (original.pointLight);
 		canIntersect = original.canIntersect;
 	}
 
 	//*********Getters**********//
-	/**Returns how many different operations are **/
-	public int getNumOperations() {
-		return numOperations;
-	}
 
 	/** Returns if no operations need to be done, just the extrusion **/
 	public bool justExtrude() {
@@ -68,7 +67,7 @@ public class ExtrusionOperations  {
 	public bool generateDistance() {
 		return !distanceOperation() && (distance.getWait () <= 0);
 	} 
-	/** Returns if a distance change needs to be done **/
+	/** Returns if a distance change needs to be done on this extrusion**/
 	public bool distanceOperation() {
 		return distance.getCountdown()>0;
 	}
@@ -77,7 +76,7 @@ public class ExtrusionOperations  {
 	public bool generateDirection() {
 		return !directionOperation() && (direction.getWait () <= 0);
 	}
-	/** Returns if a direction change needs to be done **/
+	/** Returns if a direction change needs to be done on this extrusion**/
 	public bool directionOperation() {
 		return direction.getCountdown()>0;
 	}
@@ -86,7 +85,7 @@ public class ExtrusionOperations  {
 	public bool generateScale() {
 		return !scaleOperation() && (scale.getWait () <= 0);
 	}
-	/** Returns if a scale needs to be done **/
+	/** Returns if a scale needs to be done on this extrusion**/
 	public bool scaleOperation() {
 		return scale.getCountdown()>0;
 	}
@@ -95,12 +94,12 @@ public class ExtrusionOperations  {
 	public bool generateRotation() {
 		return !rotationOperation() && (rotate.getWait () <= 0);
 	}
-	/** Returns if a rotation needs to be done **/
+	/** Returns if a rotation needs to be done on this extrusion**/
 	public bool rotationOperation() {
 		return rotate.getCountdown()>0;
 	}
 
-	/** Returns if a hole needs to be done **/
+	/** Returns if a hole needs to be done on this extrusion**/
 	public bool holeOperation() {
 		return hole;
 	}
@@ -109,9 +108,18 @@ public class ExtrusionOperations  {
 	public bool generateStalagmite() {
 		return !stalagmiteOperation() && (stalagmite.getWait () <= 0);
 	}
-	/**Returns if a stalagmite needs to be done **/
+	/**Returns if a stalagmite needs to be done on this extrusion**/
 	public bool stalagmiteOperation() {
 		return stalagmite.getCountdown()>0;
+	}
+
+	/**Returns if a point light has to be generated  **/
+	public bool generatePointLight() {
+		return !pointLightOperation () && (pointLight.getWait () <= 0);
+	}
+	/**Returns if a point light nees to be done on this extrusion **/
+	public bool pointLightOperation() {
+		return pointLight.getCountdown () > 0;
 	}
 
 	public int getCanIntersect() {
@@ -126,6 +134,7 @@ public class ExtrusionOperations  {
 		scale.decreaseWait ();
 		rotate.decreaseWait ();
 		stalagmite.decreaseWait ();
+		pointLight.decreaseWait ();
 	}
 
 	/**Sets extrusion waits for distance operation **/
@@ -191,6 +200,17 @@ public class ExtrusionOperations  {
 		stalagmite.setValue(value);
 	}
 
+	/**Sets extrusion waits for point light operation **/
+	public void setPointLightWait(int waitExtr) {
+		pointLight.setWait (waitExtr);
+	}
+	/**Forces to make an point light operation **/
+	public void forcePointLightOperation(bool value) {
+		pointLight.setCountdown (1);
+		pointLight.setValue (value);
+	}
+
+	/** Sets new value for the BB the actual extrusion can intersect with **/
 	public void setCanIntersect(int newValue) {
 		canIntersect = newValue;
 	}
@@ -232,6 +252,9 @@ public class ExtrusionOperations  {
 		return stalagmite.getValue ();
 	}
 
-
+	public bool applyPointLight() {
+		pointLight.decreaseCountdown ();
+		return pointLight.getValue();
+	}
 
 }
