@@ -59,7 +59,7 @@ abstract public class AbstractGenerator {
 		return proceduralMesh;
 	}
 
-	public float UVfactor = 70.0f;
+	public float UVfactor = 50.0f;
 	/**It creates a new polyline from an exsiting one, applying the corresponding operations**/
 	protected Polyline extrude(ExtrusionOperations operation, Polyline originPoly) {
 		//Create the new polyline from the actual one
@@ -165,6 +165,7 @@ abstract public class AbstractGenerator {
 		float yCoord = (polyHole.getVertex(0).getUV().y + polyHole.getVertex(-1).getUV().y)/2;
 		//float projDistance = Vector3.Distance (polyHole.calculateBaricenter (), planePoly.calculateBaricenter ());
 		//yCoord += projDistance / UVfactor;
+
 		planePoly.generateUVs (yCoord);
 		//And put the corresponding indices
 		for (int j = 0; j < planePoly.getSize (); ++j) {
@@ -180,6 +181,8 @@ abstract public class AbstractGenerator {
 		return planePoly;
 	}
 
+
+	private float maxDiffAngle = 15.0f;
 	/** Makes a stalagmite between the two polylilnes (through the extrusion) **/
 	protected void makeStalagmite (ExtrusionOperations.stalgmOp stalgmType, Polyline originPoly, Polyline newPoly){
 		//TODO: add more than one stalagmite at a time
@@ -269,7 +272,6 @@ abstract public class AbstractGenerator {
 		}
 	}
 
-	private float maxDiffAngle = 20.0f;
 	/**From two extrusion polylines, get the polyline that is the start of a stalgmite, with the nearest objective direction **/
 	protected Polyline getStalagmiteIni(int stalgmSize, Polyline originPoly, Polyline newPoly, Vector3 objective) {
 		InitialPolyline stalgmPoly = new InitialPolyline (stalgmSize);

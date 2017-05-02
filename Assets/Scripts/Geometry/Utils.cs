@@ -25,11 +25,13 @@ namespace Geometry {
 			int incr = ((polyHole.getSize ()/2)-1)/ ((projectionSize / 2)-1);
 			for (int i = 0; i < projectionSize / 2; ++i) {
 				planePoly.addPosition (Geometry.Utils.getPlaneProjection (tunnelEntrance, polyHole.getVertex (holePos).getPosition ()));
+				//planePoly.getVertex(i).setUV(polyHole.getVertex (holePos).getUV());
 				holePos += incr;
 			}
 			holePos = polyHole.getSize () / 2;
 			for (int i = 0; i < projectionSize / 2; ++i) {
 				planePoly.addPosition (Geometry.Utils.getPlaneProjection (tunnelEntrance, polyHole.getVertex (holePos).getPosition ()));
+				//planePoly.getVertex(i+projectionSize / 2).setUV(polyHole.getVertex (holePos).getUV());
 				holePos += incr;
 			}
 

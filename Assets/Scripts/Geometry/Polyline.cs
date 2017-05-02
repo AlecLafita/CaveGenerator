@@ -132,6 +132,7 @@ namespace Geometry {
 			foreach (Vertex v in mVertices) {
 				baricenter += v.getUV ();
 			}
+			baricenter.y += 10.0f;
 			return baricenter/(float)mVertices.Length;
 		}
 
