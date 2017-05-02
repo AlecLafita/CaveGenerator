@@ -33,7 +33,7 @@ public class RecursiveGenerator : AbstractGenerator {
 			if (newPoly == null) { //Intersection produced
 				//TODO: improve this
 				//DecisionGenerator.Instance.generateNextOperation(originPoly, ref actualOperation,i,holeProb);
-				actualOperation = DecisionGenerator.Instance.generateNewOperation (originPoly);
+				//actualOperation = DecisionGenerator.Instance.generateNewOperation (originPoly);
 				continue;
 			}
 			//Make hole?

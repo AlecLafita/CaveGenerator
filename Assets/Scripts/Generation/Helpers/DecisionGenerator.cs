@@ -52,9 +52,11 @@ public class DecisionGenerator : MonoBehaviour {
 		op.scaleOperation().setWait(generateFromRange (scaleKBase, scaleKDesv));
 		op.rotateOperation().setWait (generateFromRange (rotationKBase, rotationKDesv));
 		op.stalagmiteOperation().setWait (generateFromRange (stalgmKBase, stalgmKDesv));
-		op.pointLightOperation().setWait (generateFromRange (pointLightKBase, pointLightKDesv));
+		op.pointLightOperation ().forceOperation (1, true);
+		op.pointLightOperation().setWait (1+generateFromRange (pointLightKBase, pointLightKDesv));
 		return op;
 	}
+
 
 	/**Decide which operations apply to the next extrusion **/
 	public void generateNextOperation (Polyline p, ExtrusionOperations op, int numExtrude, float tunnelProb, int holesCountdown) {
@@ -108,11 +110,13 @@ public class DecisionGenerator : MonoBehaviour {
 
 		if (!op.holeOperation() && op.stalagmiteOperation().needGenerate()) {
 			//TODO:Generate all types of stalagmites, add more than one stalagmite at a time
-			int type = Random.Range(0,10);
-			if (type < 6) 
+			int type = Random.Range(0,17);
+			if (type < 7) 
 				op.stalagmiteOperation().forceOperation(1,ExtrusionOperations.stalgmOp.Stalagmite);
-			else 
+			else if (type < 13)
 				op.stalagmiteOperation().forceOperation(1,ExtrusionOperations.stalgmOp.Stalactite);
+			else
+				op.stalagmiteOperation ().forceOperation (1, ExtrusionOperations.stalgmOp.Pillar);
 			op.stalagmiteOperation().setWait(1 + generateFromRange(stalgmKBase,stalgmKDesv));
 		}
 		if (op.pointLightOperation().needGenerate()) {

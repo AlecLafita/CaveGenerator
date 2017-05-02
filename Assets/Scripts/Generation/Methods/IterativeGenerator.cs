@@ -46,7 +46,7 @@ abstract public class IterativeGenerator : AbstractGenerator {
 				newPoly = extrude (operation, originPoly);
 				if (newPoly == null) {
 					//DecisionGenerator.Instance.generateNextOperation (ref operation, actualExtrusionTimes, holeProb);
-					operation = DecisionGenerator.Instance.generateNewOperation (originPoly);
+					//operation = DecisionGenerator.Instance.generateNewOperation (originPoly);
 					continue;
 				}
 				//Make hole?
