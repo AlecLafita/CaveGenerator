@@ -22,13 +22,13 @@ namespace Geometry {
 			//Generate the polyline by projecting to the plane
 			InitialPolyline planePoly = new InitialPolyline (projectionSize);
 			int holePos = 0;
-			int incr = ((polyHole.getSize ()/2)-1)/ ((projectionSize / 2)-1);
+			int incr = (((polyHole.getSize ()-1)/2)-1)/ ((projectionSize / 2)-1);
 			for (int i = 0; i < projectionSize / 2; ++i) {
 				planePoly.addPosition (Geometry.Utils.getPlaneProjection (tunnelEntrance, polyHole.getVertex (holePos).getPosition ()));
 				//planePoly.getVertex(i).setUV(polyHole.getVertex (holePos).getUV());
 				holePos += incr;
 			}
-			holePos = polyHole.getSize () / 2;
+			holePos = (polyHole.getSize () -1)/ 2;
 			for (int i = 0; i < projectionSize / 2; ++i) {
 				planePoly.addPosition (Geometry.Utils.getPlaneProjection (tunnelEntrance, polyHole.getVertex (holePos).getPosition ()));
 				//planePoly.getVertex(i+projectionSize / 2).setUV(polyHole.getVertex (holePos).getUV());
@@ -67,13 +67,13 @@ namespace Geometry {
 			//If one half projected does not has all vertices on descendant or ascendant order, it will sure generate an aritfact
 			if (Geometry.Utils.getPlaneProjection(projection, polyHole.getVertex (0).getPosition ()).y < 
 				Geometry.Utils.getPlaneProjection(projection, polyHole.getVertex (1).getPosition ()).y) { //ascendant
-				for (int i = 1; i < polyHole.getSize () / 2; ++i) {
+				for (int i = 1; i < (polyHole.getSize () -1)/ 2; ++i) {
 					if (Geometry.Utils.getPlaneProjection (projection, polyHole.getVertex (i).getPosition ()).y >
 						Geometry.Utils.getPlaneProjection (projection, polyHole.getVertex (i + 1).getPosition ()).y)
 						return true;
 				}
 			} else { //descendent
-				for (int i = 1; i < polyHole.getSize () / 2; ++i) {
+				for (int i = 1; i < (polyHole.getSize () -1)/ 2; ++i) {
 					if (Geometry.Utils.getPlaneProjection (projection, polyHole.getVertex (i).getPosition ()).y <
 						Geometry.Utils.getPlaneProjection (projection, polyHole.getVertex (i + 1).getPosition ()).y)
 						return true;

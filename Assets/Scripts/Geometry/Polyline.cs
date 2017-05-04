@@ -26,7 +26,7 @@ namespace Geometry {
 
 		public Polyline(Polyline original) {
 			mVertices = new Vertex[original.getSize ()];
-			for (int i = 0; i < mVertices.Length; ++i) {
+			for (int i = 0; i < getSize(); ++i) {
 				mVertices [i] = new Vertex (original.getVertex (i));
 			}
 			minRadius = original.minRadius;
@@ -45,8 +45,8 @@ namespace Geometry {
 		//******** Getters ********//
 		public Vertex getVertex(int i) {
 			if (i < 0)
-				i = mVertices.Length + i;
-			return mVertices [i % mVertices.Length];
+				i = getSize() + i;
+			return mVertices [i % getSize()];
 		}
 
 		public int getSize() {
@@ -63,7 +63,8 @@ namespace Geometry {
 		public float computeRadius() {
 			Vector3 b = calculateBaricenter ();
 			float radius = 0.0f;
-			foreach (Vertex v in mVertices) {
+			for(int i = 0; i < getSize()-1;++i) {
+				Vertex v = getVertex(i);
 				float distanceAux = Vector3.Distance (b, v.getPosition());
 				if (distanceAux > radius)
 					radius = distanceAux;
@@ -121,19 +122,28 @@ namespace Geometry {
 		/** Calculates the polyline center, which is the vertices mean position **/
 		public Vector3 calculateBaricenter() {
 			Vector3 baricenter = new Vector3 (0.0f,0.0f,0.0f);
-			foreach (Vertex v in mVertices) {
+			for(int i = 0; i < getSize()-1;++i) {
+				Vertex v = getVertex(i);
 				baricenter += v.getPosition ();
 			}
-			return baricenter/(float)mVertices.Length;
+			return baricenter/(float)(getSize()-1);
 		}
 
 		public Vector2 calculateBaricenterUV() {
-			Vector2 baricenter = new Vector2 (0.0f,0.0f);
-			foreach (Vertex v in mVertices) {
+			Vector2 baricenter = new Vector2 (0.5f,getVertex(0).getUV().y);
+			/* Vector2 baricenter = Vector2.zero;
+			 * for(int i = 0; i < getSize()-1;++i) {
+				Vertex v = getVertex(i);
 				baricenter += v.getUV ();
 			}
-			baricenter.y += 10.0f;
-			return baricenter/(float)mVertices.Length;
+			baricenter = baricenter/(float)(getSize()-1);*/
+
+			/*Vector2 UVincr = new Vector2(0.0f,1.0f);
+			UVincr.Normalize ();
+			UVincr *= (computeRadius()/AbstractGenerator.UVfactor);
+			baricenter += UVincr;*/
+			baricenter.y += (computeRadius () / AbstractGenerator.UVfactor);
+			return baricenter;
 		}
 
 		/** Computes the normal of the plane formed by the polyline's vertices. Each component is calculated from the 
@@ -141,7 +151,7 @@ namespace Geometry {
 		 * Pre: The polygon formed by the polyline must be simple **/
 		public Vector3 calculateNormal() {
 			Vector3 normal = new Vector3 (0.0f,0.0f,0.0f);
-			for (int i = 0; i < mVertices.Length; ++i) {
+			for (int i = 0; i < getSize(); ++i) {
 				normal.x += ((getVertex (i).getPosition ().z + getVertex (i + 1).getPosition ().z)* 
 							(getVertex (i).getPosition ().y - getVertex (i + 1).getPosition ().y));
 				normal.y += ((getVertex (i).getPosition ().x + getVertex (i + 1).getPosition ().x)* 

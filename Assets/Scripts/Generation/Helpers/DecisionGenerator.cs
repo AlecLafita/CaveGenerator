@@ -294,7 +294,7 @@ public class DecisionGenerator : MonoBehaviour {
 		int auxIndex = 0;
 		Vector3 auxDirection;
 
-		while (!found && auxIndex < p.getSize()) { //Get any vertex that is valid
+		while (!found && auxIndex < p.getSize()-1) { //Get any vertex that is valid
 			auxDirection = p.getVertex (auxIndex).getPosition () - baricenter;
 			if (Vector3.Angle (auxDirection, apprDir) < holesMaxAngleDirection)
 				found = true;
@@ -320,7 +320,7 @@ public class DecisionGenerator : MonoBehaviour {
 		sizeHole = 1;
 		while (!found) {
 			auxDirection = p.getVertex (auxIndex).getPosition () - baricenter;
-			if (Vector3.Angle (auxDirection, apprDir) < holesMaxAngleDirection)
+			if ( Vector3.Angle (auxDirection, apprDir) < holesMaxAngleDirection)
 				++sizeHole;
 			else
 				found = true;

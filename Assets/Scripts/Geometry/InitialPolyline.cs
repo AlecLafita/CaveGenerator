@@ -16,13 +16,13 @@ namespace Geometry {
 
 		//******** Setters ********//
 		public void initializeIndices() {
-			for (int i = 0; i < mVertices.Length; ++i) {
+			for (int i = 0; i < getSize(); ++i) {
 				mVertices [i].setIndex (i);
 			}
 		}
 
 		public void addPosition(Vector3 newPos) {
-			if (mActualPos >= mVertices.Length) { //TODO:exception
+			if (mActualPos >= getSize()) { //TODO:exception
 				Debug.Log ("Number of index bigger than size");
 				return;
 			}
@@ -31,7 +31,7 @@ namespace Geometry {
 		}
 
 		public void addVertex(Vertex newV) {
-			if (mActualPos >= mVertices.Length) { //TODO:exception
+			if (mActualPos >= getSize()) { //TODO:exception
 				Debug.Log ("Number of index bigger than size");
 				return;
 			}
@@ -39,6 +39,8 @@ namespace Geometry {
 			++mActualPos;
 		}
 
+		/**Duplicates first vertex and set it at last position with UV coord (1,y). This has to be called as the last
+		 * of all the polyline modifier functions **/
 		public void duplicateFirstVertex() {
 			InitialPolyline newPolyline = new InitialPolyline (getSize () + 1);
 			for (int i = 0; i < getSize (); ++i) {
@@ -55,13 +57,13 @@ namespace Geometry {
 		public void generateUVs () {
 			//Get the accumulate distance
 			float distance= 0.0f;
-			for (int i = 0; i < mVertices.Length; ++i) {
+			for (int i = 0; i < getSize(); ++i) {
 				distance += Vector3.Distance (getVertex (i).getPosition (), getVertex (i + 1).getPosition ());
 			}
 			//Set the UV proportional to the distance, as if the polyline was being mapped to x axis proportionally
 			//and between 0 and 1
 			mVertices [0].setUV (new Vector2 (0.0f, 0.0f));
-			for (int i = 1; i < mVertices.Length; ++i) {
+			for (int i = 1; i < getSize(); ++i) {
 				float distAux = Vector3.Distance (getVertex (i-1).getPosition (), getVertex (i).getPosition ());
 				Vector2 UV = getVertex(i-1).getUV() + new Vector2 (distAux / distance, 0.0f);
 				getVertex(i).setUV (UV);
@@ -71,13 +73,13 @@ namespace Geometry {
 		public void generateUVs (float yCoord) {
 			//Get the accumulate distance
 			float distance = 0.0f;
-			for (int i = 0; i < mVertices.Length; ++i) {
+			for (int i = 0; i < getSize(); ++i) {
 				distance += Vector3.Distance (getVertex (i).getPosition (), getVertex (i + 1).getPosition ());
 			}
 			//Set the UV proportional to the distance, as if the polyline was being mapped to x axis proportionally
 			//and between 0 and 1
 			mVertices [0].setUV (new Vector2 (0.0f, yCoord));
-			for (int i = 1; i < mVertices.Length; ++i) {
+			for (int i = 1; i < getSize(); ++i) {
 				float distAux = Vector3.Distance (getVertex (i-1).getPosition (), getVertex (i).getPosition ());
 				Vector2 UV = getVertex(i-1).getUV() + new Vector2 (distAux / distance, 0.0f);
 				getVertex(i).setUV (UV);
@@ -107,7 +109,8 @@ namespace Geometry {
 			Vector3 b = calculateBaricenter ();
 			b = Geometry.Utils.getPlaneProjection (p, b);
 			float radius = 0.0f;
-			foreach (Vertex v in mVertices) {
+			for(int i = 0; i < getSize()-1;++i) {
+				Vertex v = getVertex(i);
 				float distanceAux = Vector3.Distance (b, Geometry.Utils.getPlaneProjection(p,v.getPosition()));
 				if (distanceAux > radius)
 					radius = distanceAux;
@@ -118,9 +121,9 @@ namespace Geometry {
 		//******** Smooth ********//
 
 		public void smoothMean() {
-			InitialPolyline newPolyline = new InitialPolyline (mVertices.Length * 2);
+			InitialPolyline newPolyline = new InitialPolyline (getSize() * 2);
 			//Add new mid-points
-			for (int i = 0; i < mVertices.Length; ++i) {
+			for (int i = 0; i < getSize(); ++i) {
 				newPolyline.addPosition (getVertex(i).getPosition ());
 				newPolyline.addPosition(new Vector3());
 				newPolyline.getVertex (i * 2+1).Lerp (getVertex(i), getVertex(i + 1), 0.5f);

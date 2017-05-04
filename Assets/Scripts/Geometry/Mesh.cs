@@ -134,7 +134,7 @@ namespace Geometry {
 				Debug.Log ("The two polylines do not have the same length!");
 				return;
 			}
-			for (int i = 0; i < pol1.getSize()-1; ++i) { //don't triangulate between last and first bertex as have same position
+			for (int i = 0; i < pol1.getSize(); ++i) { //don't triangulate between last and first vertex as have same position
 				triangulateQuad(pol1.getVertex(i+1), pol1.getVertex(i), pol2.getVertex(i+1),pol2.getVertex(i));//Clockwise
 				//triangulateQuad(pol1.getVertex(i), pol1.getVertex(i+1), pol2.getVertex(i), pol2.getVertex(i+1));//COunter- Clockwise
 
@@ -199,7 +199,7 @@ namespace Geometry {
 			baricenter.setUV (poly.calculateBaricenterUV());
 			int baricenterIndex = getNumVertices();
 			addVertex (baricenter);
-			for (int i = 0; i < poly.getSize(); ++i) {
+			for (int i = 0; i < poly.getSize()-1; ++i) {
 				//Left-hand!!
 				addTriangle(poly.getVertex (i).getIndex(), poly.getVertex (i + 1).getIndex(), baricenterIndex);
 			}
@@ -211,7 +211,7 @@ namespace Geometry {
 			baricenter.setUV (poly.calculateBaricenterUV());
 			int baricenterIndex = getNumVertices();
 			addVertex (baricenter);
-			for (int i = 0; i < poly.getSize(); ++i) {
+			for (int i = 0; i < poly.getSize()-1; ++i) {
 				//Left-hand!!
 				addTriangle(poly.getVertex (i + 1).getIndex(),poly.getVertex (i).getIndex(),  baricenterIndex);
 			}

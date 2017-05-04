@@ -59,7 +59,7 @@ abstract public class AbstractGenerator {
 		return proceduralMesh;
 	}
 
-	public float UVfactor = 50.0f;
+	public static float UVfactor = 50.0f;
 	/**It creates a new polyline from an exsiting one, applying the corresponding operations**/
 	protected Polyline extrude(ExtrusionOperations operation, Polyline originPoly) {
 		//Create the new polyline from the actual one
@@ -142,7 +142,7 @@ abstract public class AbstractGenerator {
 		}
 
 		//FOURTH: Do the hole smooth: Project the polyline(3D) into a plane(2D) on the polyline normal direction, just n (not very big) vertices
-		InitialPolyline planePoly =Geometry.Utils.generateProjection(polyHole, entranceSize,smoothIterations);
+		InitialPolyline planePoly = Geometry.Utils.generateProjection(polyHole, entranceSize,smoothIterations);
 
 		//FIFTH: Last check if hole is really valid (intersection stuff)
 		if (IntersectionsController.Instance.doIntersect(polyHole,planePoly,-1)) {
@@ -214,7 +214,7 @@ abstract public class AbstractGenerator {
 			float minAngle = float.MaxValue;
 			int counterpartVertex = 0;
 			float auxAngle;
-			for (int i = 0; i < originPoly.getSize (); ++i) { //TODO: do some dicotomic search?
+			for (int i = 0; i < originPoly.getSize ()-1; ++i) { //TODO: do some dicotomic search?
 				auxAngle = Vector3.Angle (stalgmDirection, originPoly.getVertex (i).getPosition () - stalgmBaricenter);
 				if (auxAngle < minAngle) {
 					minAngle = auxAngle;
@@ -279,7 +279,7 @@ abstract public class AbstractGenerator {
 		InitialPolyline stalgmPoly = new InitialPolyline (stalgmSize);
 		float stalgmAngle = float.MaxValue;
 		float auxAngle;
-		for (int i = 0; i < originPoly.getSize (); ++i) {
+		for (int i = 0; i < originPoly.getSize ()-1; ++i) {
 			InitialPolyline auxPoly = new InitialPolyline (stalgmSize);
 			for (int j = (stalgmSize / 2) - 1; j >= 0; --j) {
 				auxPoly.addVertex (originPoly.getVertex (i + j));
@@ -296,6 +296,7 @@ abstract public class AbstractGenerator {
 		//If angle with up/down is very high, cancel stalgmite creation
 		if (stalgmAngle > maxDiffAngle)
 			return null;
+		stalgmPoly.duplicateFirstVertex ();
 		return stalgmPoly;
 	}
 
