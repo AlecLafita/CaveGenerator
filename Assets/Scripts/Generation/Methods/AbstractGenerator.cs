@@ -29,9 +29,9 @@ abstract public class AbstractGenerator {
 	/**Initialize, being the arguments the needed parameters for the generator **/
 	public void initialize(int gateSize, InitialPolyline iniPol, float initialTunelHoleProb, int maxHoles, int maxExtrudeTimes) {
 		for (int i = 0; i < smoothIterations;++i)
-			((InitialPolyline)iniPol).smoothMean ();
-		((InitialPolyline)iniPol).generateUVs ();
-
+			iniPol.smoothMean ();
+		iniPol.generateUVs ();
+		iniPol.duplicateFirstVertex ();
 		gatePolyline = iniPol;
 		this.initialTunelHoleProb = initialTunelHoleProb;
 		this.maxHoles = maxHoles;
@@ -167,6 +167,8 @@ abstract public class AbstractGenerator {
 		//yCoord += projDistance / UVfactor;
 
 		planePoly.generateUVs (yCoord);
+		//Duplicate the first vertex in order to have good texturization between last and first vertex
+		planePoly.duplicateFirstVertex ();
 		//And put the corresponding indices
 		for (int j = 0; j < planePoly.getSize (); ++j) {
 			planePoly.getVertex(j).setIndex(actualMesh.getNumVertices()+j);

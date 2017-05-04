@@ -19,8 +19,9 @@ public class DebugTunnel : MonoBehaviour {
 			Gizmos.color = Color.yellow;//For the first vertex
 			for (int i = 0; i < vertices.Length; ++i) {
 				if (i > 0)
-					Gizmos.color = Color.green;
-				Gizmos.DrawWireSphere (vertices [i], 0.1f);
+					Gizmos.DrawWireSphere (vertices [i], 0.1f);
+				else
+					Gizmos.DrawWireSphere (vertices [i], 0.4f);
 			}
 			//Draw triangles edges
 			int[] triangles = m.triangles;

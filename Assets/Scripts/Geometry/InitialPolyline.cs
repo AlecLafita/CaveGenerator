@@ -39,6 +39,19 @@ namespace Geometry {
 			++mActualPos;
 		}
 
+		public void duplicateFirstVertex() {
+			InitialPolyline newPolyline = new InitialPolyline (getSize () + 1);
+			for (int i = 0; i < getSize (); ++i) {
+				newPolyline.setVertex (i, getVertex (i));
+			}
+			Vertex lastV = new Vertex (getVertex (0));
+			newPolyline.setVertex (getSize (), lastV);
+			Vector2 newUV = lastV.getUV();
+			newUV.x = 1.0f;
+			lastV.setUV (newUV);
+			this.mVertices = newPolyline.mVertices;
+		}
+
 		public void generateUVs () {
 			//Get the accumulate distance
 			float distance= 0.0f;

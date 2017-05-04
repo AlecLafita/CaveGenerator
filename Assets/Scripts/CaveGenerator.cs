@@ -86,15 +86,6 @@ public class CaveGenerator : MonoBehaviour {
 
 	/** Function to be called in order to start generating the cave **/
 	public void startGeneration (InitialPolyline iniPol) {
-		/*for (int i = 0; i < 3;++i)
-			iniPol.smoothMean ();
-
-		//DEBUG smooth line
-		for (int i = 0; i < iniPol.getSize (); ++i) {
-			DrawLine (iniPol.getVertex (i).getPosition ()-new Vector3(0.0f,0.0f,1.0f), 
-				iniPol.getVertex (i + 1).getPosition () -new Vector3(0.0f,0.0f,1.0f), Color.black, 30.0f);
-		}*/
-
 		AbstractGenerator generator;
 		//Start the generation
 		switch (method) {
