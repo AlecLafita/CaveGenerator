@@ -91,20 +91,16 @@ public class CaveGenerator : MonoBehaviour {
 		//Start the generation
 		switch (method) {
 		case(generationMethod.Recursive): {
-				//generator = (RecursiveGenerator)generator;// new RecursiveGenerator ();
 				generator= gameObject.AddComponent<RecursiveGenerator> ();
 				break;
 			}
 		case(generationMethod.IterativeStack): {
-				//generator = (StackGenerator)generator;//new StackGenerator ();
 				generator= gameObject.AddComponent<StackGenerator> ();
 
 				break;
 			}
 		case(generationMethod.IterativeQueue): {
-				//generator = (QueueGenerator)generator;//new QueueGenerator ();
 				generator= gameObject.AddComponent<QueueGenerator> ();
-
 				break;
 			}
 		default:
@@ -156,7 +152,7 @@ public class CaveGenerator : MonoBehaviour {
 			mesh.SetVertices (m.getVertices ());
 			mesh.SetTriangles (m.getTriangles (), 0);
 			mesh.SetUVs (0, m.getUVs ());
-			//http://schemingdeveloper.com/2014/10/17/better-method-recalculate-normals-unity/
+			//TODO: http://schemingdeveloper.com/2014/10/17/better-method-recalculate-normals-unity/
 			mesh.RecalculateNormals ();
 			mesh.RecalculateBounds ();
 			//Assing it to the corresponding game object

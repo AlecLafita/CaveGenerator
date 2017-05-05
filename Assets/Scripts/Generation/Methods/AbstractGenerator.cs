@@ -19,14 +19,6 @@ abstract public class AbstractGenerator : MonoBehaviour{
 	public bool finished; //Check if the generation has beeen completed
 	protected bool showGeneration; //Use yield or not to show the generation
 
-	/**Creates the instance without initializing anything **/
-	/*public AbstractGenerator() {
-		proceduralMesh = new List<Geometry.Mesh> ();
-		stalagmitesMesh = new Geometry.Mesh ();
-		proceduralMesh.Add (stalagmitesMesh);
-		lights = new GameObject ("Lights");
-	}*/
-
 	public void Awake() {
 		proceduralMesh = new List<Geometry.Mesh> ();
 		stalagmitesMesh = new Geometry.Mesh ();
