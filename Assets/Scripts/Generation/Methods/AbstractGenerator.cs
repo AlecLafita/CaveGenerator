@@ -17,6 +17,7 @@ abstract public class AbstractGenerator : MonoBehaviour{
 	protected int entranceSize; //Number of vertices of a tunnel entrance
 	protected GameObject lights; // GameObject that contains all the generated lights
 	public bool finished; //Check if the generation has beeen completed
+	protected bool showGeneration; //Use yield or not to show the generation
 
 	/**Creates the instance without initializing anything **/
 	/*public AbstractGenerator() {
@@ -37,7 +38,7 @@ abstract public class AbstractGenerator : MonoBehaviour{
 	private int smoothIterations = 3;
 	/**Initialize, being the arguments the needed parameters for the generator **/
 	public void initialize(int gateSize, InitialPolyline iniPol, float initialTunelHoleProb, int maxHoles, int maxExtrudeTimes) {
-
+		showGeneration = gameObject.GetComponent<CaveGenerator> ().showGeneration;
 		for (int i = 0; i < smoothIterations;++i)
 			iniPol.smoothMean ();
 		iniPol.generateUVs ();

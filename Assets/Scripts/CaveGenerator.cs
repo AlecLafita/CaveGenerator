@@ -31,6 +31,7 @@ public class CaveGenerator : MonoBehaviour {
 	private List<Geometry.Mesh> proceduralMesh;
 	public Material caveMaterial;
 	private GameObject[] tunnelsArray;
+	public bool showGeneration = false;
 
 	void Start () {
 		initialPoints = new InitialPolyline(gateSize);
@@ -141,7 +142,6 @@ public class CaveGenerator : MonoBehaviour {
 	public void updateMeshes(AbstractGenerator generator) {
 		proceduralMesh = generator.getMesh ();
 		long verticesNum = 0, trianglesNum = 0;
-
 		int actTunel = 0;
 		foreach (Geometry.Mesh m in proceduralMesh) { //Attach the generated mesh to Unity stuff
 			verticesNum += m.getNumVertices ();

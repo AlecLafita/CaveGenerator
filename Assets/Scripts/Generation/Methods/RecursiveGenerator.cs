@@ -42,7 +42,10 @@ public class RecursiveGenerator : AbstractGenerator {
 					IntersectionsController.Instance.addPolyline(newPoly);
 					IntersectionsController.Instance.addActualBox ();
 					actualOperation.setCanIntersect (IntersectionsController.Instance.getLastBB ()); //Avoid intersection check with own extrusion BB
-					StartCoroutine(generate (polyHole, holeProb - 0.001f));
+					if (showGeneration)
+						yield return StartCoroutine(generate (polyHole, holeProb - 0.001f));
+					else 
+						StartCoroutine(generate (polyHole, holeProb - 0.001f));
 					//IntersectionsController.Instance.addPolyline (originPoly);
 					actualMesh = m;
 				} else { //No hole could be done, reextrude will smaller distance
@@ -75,7 +78,10 @@ public class RecursiveGenerator : AbstractGenerator {
 			//Add actual polyline to the next intersection BB and get next operation
 			IntersectionsController.Instance.addPolyline(originPoly);
 			DecisionGenerator.Instance.generateNextOperation(originPoly, actualOperation,i,holeProb, maxHoles);
-			//yield return null;
+			if (showGeneration) {
+				gameObject.GetComponent<CaveGenerator> ().updateMeshes (this);
+				yield return null;
+			} //else do nothing
 		}
 		//Finally, close the actual hallway/tunnel
 		IntersectionsController.Instance.addActualBox ();
@@ -83,10 +89,7 @@ public class RecursiveGenerator : AbstractGenerator {
 		if (m == proceduralMesh [1]) {
 			finished = true;
 			gameObject.GetComponent<CaveGenerator> ().updateMeshes (this);
-
 		}
-		yield return null;
-
 	}
 
 }

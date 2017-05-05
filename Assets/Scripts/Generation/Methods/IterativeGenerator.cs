@@ -25,6 +25,7 @@ abstract public class IterativeGenerator : AbstractGenerator {
 
 	public override IEnumerator generate(Polyline originPoly, float holeProb) {
 		createDataStructure (gatePolyline);
+		--maxHoles;
 		Polyline newPoly;
 		int actualExtrusionTimes, noIntersection;
 		noIntersection = -1;
@@ -77,7 +78,6 @@ abstract public class IterativeGenerator : AbstractGenerator {
 				//Make stalagmite?
 				if (operation.stalagmiteOperation ().needApply()) {
 					makeStalagmite (operation.stalagmiteOperation().apply(), originPoly, newPoly);
-					//actualOperation.forceStalagmiteOperation (false);
 				}
 				//Make light?
 				if (operation.pointLightOperation().needApply()) {
@@ -89,13 +89,16 @@ abstract public class IterativeGenerator : AbstractGenerator {
 				//Add actual polyline to the next intersection BB ang get nexxt operation
 				IntersectionsController.Instance.addPolyline(originPoly);
 				DecisionGenerator.Instance.generateNextOperation(originPoly, operation,actualExtrusionTimes,holeProb, maxHoles);
-				gameObject.GetComponent<CaveGenerator> ().updateMeshes (this);
-				yield return null;
+				if (showGeneration) {
+					gameObject.GetComponent<CaveGenerator> ().updateMeshes (this);
+					yield return null;
+				}
 			}
 			IntersectionsController.Instance.addActualBox ();
 			actualMesh.closePolyline(originPoly);
 			holeProb -= 0.001f;
 		}
 		finished = true;
+		gameObject.GetComponent<CaveGenerator> ().updateMeshes (this);
 	}
 }
