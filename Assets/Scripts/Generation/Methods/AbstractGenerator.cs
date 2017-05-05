@@ -62,7 +62,7 @@ abstract public class AbstractGenerator : MonoBehaviour{
 		return proceduralMesh;
 	}
 
-	public static float UVfactor = 50.0f;
+	public static float UVfactor = 30.0f;
 	/**It creates a new polyline from an exsiting one, applying the corresponding operations**/
 	protected Polyline extrude(ExtrusionOperations operation, Polyline originPoly) {
 		//Create the new polyline from the actual one
@@ -237,11 +237,11 @@ abstract public class AbstractGenerator : MonoBehaviour{
 			float scaleValue = Mathf.Pow (finalStalgmRadius / stalgmDiam, 1 / (float)numExtrusions);
 			Vector2 UVincr;
 			if (stalgmType == ExtrusionOperations.stalgmOp.Stalactite)
-				UVincr = new Vector2 (0.0f, 1.0f);
+				UVincr = new Vector2 (1.0f, -1.0f);
 			else
-				UVincr = new Vector2 (0.0f, -1.0f);
+				UVincr = new Vector2 (1.0f, 1.0f);
 			UVincr.Normalize ();
-			UVincr *= (stalgmExtrusionDistance / UVfactor);
+			UVincr *= (stalgmExtrusionDistance / (UVfactor/2));
 			//FOURTH: Now we have the start of the stalgmite and all it's generation parameters
 			extrudeStalagmite (numExtrusions, stalgmDirection, stalgmExtrusionDistance, scaleValue, UVincr, stalgmPoly);
 		} 
@@ -262,16 +262,16 @@ abstract public class AbstractGenerator : MonoBehaviour{
 			float stalgmDiam = stalgmPoly.computeRadius () * 2;
 			float finalStalgmRadius = 0.3f;
 			float scaleValue = Mathf.Pow (finalStalgmRadius / stalgmDiam, 1 / (float)numExtrusions);
-			Vector2 UVincr = new Vector2(0.0f, -1.0f);
+			Vector2 UVincr = new Vector2(1.0f, -1.0f);
 			UVincr.Normalize ();
-			UVincr *= (stalgmExtrusionDistance / UVfactor);
+			UVincr *= (stalgmExtrusionDistance / (UVfactor/2));
 			//Generate stalagmite part
 			extrudeStalagmite (numExtrusions, extrusionVector.normalized, stalgmExtrusionDistance, scaleValue, UVincr, stalgmPoly);
 
 			//Generate stalagtite part
 			initializeStalagmiteIni(ref stalagitePoly);
 			//Extrude it
-			UVincr *= -1;
+			UVincr.y *=-1.0f;
 			extrudeStalagmite (numExtrusions, -extrusionVector.normalized, stalgmExtrusionDistance, scaleValue, UVincr, stalagitePoly);
 
 		}
@@ -299,14 +299,14 @@ abstract public class AbstractGenerator : MonoBehaviour{
 		//If angle with up/down is very high, cancel stalgmite creation
 		if (stalgmAngle > maxDiffAngle)
 			return null;
-		stalgmPoly.duplicateFirstVertex ();
+		//stalgmPoly.duplicateFirstVertex ();
 		return stalgmPoly;
 	}
 
-	/**Initializes the first stalagmite polyline andadds it to the mesh **/
+	/**Initializes the first stalagmite polyline and adds it to the mesh **/
 	protected void initializeStalagmiteIni(ref Polyline stalgmPoly) {
 		InitialPolyline actualStalagmiteIni = new InitialPolyline (stalgmPoly);
-		actualStalagmiteIni.generateUVs (); //TODO: this not produce a nice visual results
+		//actualStalagmiteIni.generateUVs (); //TODO: this not produce a nice visual results
 		for (int i = 0; i < stalgmPoly.getSize(); ++i) {
 			actualStalagmiteIni.getVertex (i).setIndex (stalagmitesMesh.getNumVertices () + i);
 		}
