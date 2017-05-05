@@ -18,12 +18,13 @@ abstract public class IterativeGenerator : AbstractGenerator {
 	/** Add hole gate to the data structure **/
 	abstract protected void addElementToDataStructure (Polyline p, int canIntersect);
 
-	public override void generate() {
-		createDataStructure (gatePolyline);
-		generate (gatePolyline, initialTunelHoleProb);
+	void Awake() {
+		base.Awake ();
 	}
 
-	protected void generate(Polyline originPoly, float holeProb) {
+
+	public override IEnumerator generate(Polyline originPoly, float holeProb) {
+		createDataStructure (gatePolyline);
 		Polyline newPoly;
 		int actualExtrusionTimes, noIntersection;
 		noIntersection = -1;
@@ -88,10 +89,13 @@ abstract public class IterativeGenerator : AbstractGenerator {
 				//Add actual polyline to the next intersection BB ang get nexxt operation
 				IntersectionsController.Instance.addPolyline(originPoly);
 				DecisionGenerator.Instance.generateNextOperation(originPoly, operation,actualExtrusionTimes,holeProb, maxHoles);
+				gameObject.GetComponent<CaveGenerator> ().updateMeshes (this);
+				yield return null;
 			}
 			IntersectionsController.Instance.addActualBox ();
 			actualMesh.closePolyline(originPoly);
 			holeProb -= 0.001f;
 		}
+		finished = true;
 	}
 }

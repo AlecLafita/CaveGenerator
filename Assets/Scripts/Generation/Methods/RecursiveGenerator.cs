@@ -6,12 +6,11 @@ using Geometry;
 /** Generates the cave by recursive calls each time a hole is done **/
 public class RecursiveGenerator : AbstractGenerator {
 
-	public override void generate() {
-		generate (gatePolyline, initialTunelHoleProb);
+	void Awake() {
+		base.Awake ();
 	}
-
-
-	private void generate(Polyline originPoly, float holeProb) {
+		
+	public override IEnumerator generate(Polyline originPoly, float holeProb) {
 		//Hole is done, update the counter
 		--maxHoles;
 
@@ -43,7 +42,7 @@ public class RecursiveGenerator : AbstractGenerator {
 					IntersectionsController.Instance.addPolyline(newPoly);
 					IntersectionsController.Instance.addActualBox ();
 					actualOperation.setCanIntersect (IntersectionsController.Instance.getLastBB ()); //Avoid intersection check with own extrusion BB
-					generate (polyHole, holeProb - 0.001f);
+					StartCoroutine(generate (polyHole, holeProb - 0.001f));
 					//IntersectionsController.Instance.addPolyline (originPoly);
 					actualMesh = m;
 				} else { //No hole could be done, reextrude will smaller distance
@@ -76,10 +75,18 @@ public class RecursiveGenerator : AbstractGenerator {
 			//Add actual polyline to the next intersection BB and get next operation
 			IntersectionsController.Instance.addPolyline(originPoly);
 			DecisionGenerator.Instance.generateNextOperation(originPoly, actualOperation,i,holeProb, maxHoles);
+			//yield return null;
 		}
 		//Finally, close the actual hallway/tunnel
 		IntersectionsController.Instance.addActualBox ();
 		actualMesh.closePolyline(originPoly);
+		if (m == proceduralMesh [1]) {
+			finished = true;
+			gameObject.GetComponent<CaveGenerator> ().updateMeshes (this);
+
+		}
+		yield return null;
+
 	}
 
 }

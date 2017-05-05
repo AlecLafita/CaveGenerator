@@ -5,7 +5,7 @@ using Geometry;
 
 
 /** Abstract class that manages the cave generation. The differents subclasses differ on the why the holes/tunnels are extruded **/
-abstract public class AbstractGenerator {
+abstract public class AbstractGenerator : MonoBehaviour{
 
 	protected List<Geometry.Mesh> proceduralMesh; //Mesh that will be modified during the cave generation
 	protected Geometry.Mesh actualMesh; //Mesh coresponding to the actual tunnel being generated
@@ -16,18 +16,28 @@ abstract public class AbstractGenerator {
 	protected InitialPolyline gatePolyline; //Polyline where the cave starts from
 	protected int entranceSize; //Number of vertices of a tunnel entrance
 	protected GameObject lights; // GameObject that contains all the generated lights
+	public bool finished; //Check if the generation has beeen completed
 
 	/**Creates the instance without initializing anything **/
-	public AbstractGenerator() {
+	/*public AbstractGenerator() {
 		proceduralMesh = new List<Geometry.Mesh> ();
 		stalagmitesMesh = new Geometry.Mesh ();
 		proceduralMesh.Add (stalagmitesMesh);
 		lights = new GameObject ("Lights");
+	}*/
+
+	public void Awake() {
+		proceduralMesh = new List<Geometry.Mesh> ();
+		stalagmitesMesh = new Geometry.Mesh ();
+		proceduralMesh.Add (stalagmitesMesh);
+		lights = new GameObject ("Lights");
+		finished = false;
 	}
 
 	private int smoothIterations = 3;
 	/**Initialize, being the arguments the needed parameters for the generator **/
 	public void initialize(int gateSize, InitialPolyline iniPol, float initialTunelHoleProb, int maxHoles, int maxExtrudeTimes) {
+
 		for (int i = 0; i < smoothIterations;++i)
 			iniPol.smoothMean ();
 		iniPol.generateUVs ();
@@ -52,7 +62,7 @@ abstract public class AbstractGenerator {
 	}
 
 	/**Generates the cave **/
-	abstract public void generate ();
+	abstract public IEnumerator generate (Polyline originPoly, float holeProb);
 
 	/**Returns the generated mesh **/
 	public List<Geometry.Mesh> getMesh() {
