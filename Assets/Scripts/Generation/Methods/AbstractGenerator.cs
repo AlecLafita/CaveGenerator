@@ -7,9 +7,9 @@ using Geometry;
 /** Abstract class that manages the cave generation. The differents subclasses differ on the why the holes/tunnels are extruded **/
 abstract public class AbstractGenerator : MonoBehaviour{
 
-	protected List<Geometry.Mesh> proceduralMesh; //Mesh that will be modified during the cave generation
+	protected List<Geometry.Mesh> proceduralMeshes; //Mesh that will be modified during the cave generation
 	protected Geometry.Mesh actualMesh; //Mesh coresponding to the actual tunnel being generated
-	protected Geometry.Mesh stalagmitesMesh; //Mesh corresponding to the stalagmites and so TODO:MAke more than one mesh in case there are lot of estalamgites!
+	protected List<Geometry.Mesh> stalagmitesMeshes; //Mesh corresponding to the stalagmites and so TODO:MAke more than one mesh in case there are lot of estalamgites!
 	protected float initialTunelHoleProb; //holes can be created depending on this probability [0-1]
 	protected int maxHoles; //How many times a hole can be extruded and behave like a tunnel, acts as a countdown
 	protected int maxExtrudeTimes; //TODO: consider to deccrement this value as holes are created, or some random function that handles this
@@ -23,9 +23,9 @@ abstract public class AbstractGenerator : MonoBehaviour{
 	protected const float holeTime = 1.0f;
 
 	public void Awake() {
-		proceduralMesh = new List<Geometry.Mesh> ();
-		stalagmitesMesh = new Geometry.Mesh ();
-		proceduralMesh.Add (stalagmitesMesh);
+		proceduralMeshes = new List<Geometry.Mesh> ();
+		stalagmitesMeshes = new List<Geometry.Mesh> ();
+		stalagmitesMeshes.Add (new Geometry.Mesh ());
 		lights = new GameObject ("Lights");
 		finished = false;
 	}
@@ -52,7 +52,7 @@ abstract public class AbstractGenerator : MonoBehaviour{
 		((InitialPolyline)iniPol).initializeIndices();
 		//Create the new mesh with the hole polyline
 		Geometry.Mesh m = new Geometry.Mesh (iniPol);
-		proceduralMesh.Add (m);
+		proceduralMeshes.Add (m);
 		actualMesh = m;
 		return m;
 	}
@@ -60,9 +60,13 @@ abstract public class AbstractGenerator : MonoBehaviour{
 	/**Generates the cave **/
 	abstract public IEnumerator generate (Polyline originPoly, float holeProb);
 
-	/**Returns the generated mesh **/
+	/**Returns the generated list of meshes **/
 	public List<Geometry.Mesh> getMesh() {
-		return proceduralMesh;
+		return proceduralMeshes;
+	}
+	/** Returns the meshes od the stalagmites **/
+	public List<Geometry.Mesh> getStalagmitesMesh() {
+		return stalagmitesMeshes;
 	}
 
 	public static float UVfactor = 25.0f;
@@ -194,6 +198,9 @@ abstract public class AbstractGenerator : MonoBehaviour{
 	private const float maxDiffAnglePillar = 10.0f;
 	/** Makes a stalagmite between the two polylilnes (through the extrusion) **/
 	protected void makeStalagmite (ExtrusionOperations.stalgmOp stalgmType, Polyline originPoly, Polyline newPoly){
+		//Create a new stalgmite mesh if needed
+		if (stalagmitesMeshes [stalagmitesMeshes.Count - 1].getNumVertices () > 65000)
+			stalagmitesMeshes.Add (new Geometry.Mesh ());
 		int numStalgm = 3;
 		//Common part for stalgmites/stalgitates and pillars
 		//Get the mean distance between vertices to know how many vertices take per stalgmite
@@ -342,10 +349,10 @@ abstract public class AbstractGenerator : MonoBehaviour{
 	protected void initializeStalagmiteIni(ref Polyline stalgmPoly) {
 		InitialPolyline actualStalagmiteIni = new InitialPolyline (stalgmPoly);
 		for (int i = 0; i < stalgmPoly.getSize(); ++i) {
-			actualStalagmiteIni.getVertex (i).setIndex (stalagmitesMesh.getNumVertices () + i);
+			actualStalagmiteIni.getVertex (i).setIndex (stalagmitesMeshes[stalagmitesMeshes.Count-1].getNumVertices () + i);
 		}
 		stalgmPoly = actualStalagmiteIni;
-		stalagmitesMesh.addPolyline (stalgmPoly);
+		stalagmitesMeshes[stalagmitesMeshes.Count-1].addPolyline (stalgmPoly);
 	}
 	/**Creates an stalagmite/stalagite by the parameters value **/
 	protected void extrudeStalagmite(int numExtrusions, Vector3 stalgmDirection, float stalgmExtrusionDistance, float scaleValue, Vector2 UVincr, Polyline actualStalagmite) {
@@ -363,11 +370,11 @@ abstract public class AbstractGenerator : MonoBehaviour{
 			newStalgPoly.setMinRadius (0.0f);
 			newStalgPoly.scale (scaleValue);
 			//Triangulate the new stalgmite part
-			stalagmitesMesh.addPolyline (newStalgPoly);
-			stalagmitesMesh.triangulatePolylinesOutside (actualStalagmite, newStalgPoly);
+			stalagmitesMeshes[stalagmitesMeshes.Count-1].addPolyline (newStalgPoly);
+			stalagmitesMeshes[stalagmitesMeshes.Count-1].triangulatePolylinesOutside (actualStalagmite, newStalgPoly);
 			actualStalagmite = newStalgPoly;
 		}
-		stalagmitesMesh.closePolylineOutside (actualStalagmite);
+		stalagmitesMeshes[stalagmitesMeshes.Count-1].closePolylineOutside (actualStalagmite);
 	}
 
 	/**Creates a point light between the extrusion, on it's center **/

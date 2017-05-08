@@ -96,7 +96,7 @@ public class RecursiveGenerator : AbstractGenerator {
 		//Finally, close the actual hallway/tunnel
 		IntersectionsController.Instance.addActualBox ();
 		actualMesh.closePolyline(originPoly);
-		if (m == proceduralMesh [1]) {
+		if (m == proceduralMeshes [0]) {
 			finished = true;
 		}
 		gameObject.GetComponent<CaveGenerator> ().updateMeshes (this);

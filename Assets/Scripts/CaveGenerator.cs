@@ -28,9 +28,11 @@ public class CaveGenerator : MonoBehaviour {
 	public GameObject player;
 
 	private GameObject lines; //In order to have the lines classified on same group
-	private List<Geometry.Mesh> proceduralMesh;
 	public Material caveMaterial;
-	private GameObject[] tunnelsArray;
+	private GameObject tunnels;
+	private List<GameObject> tunnelsList;
+	private GameObject stalagmites;
+	private List<GameObject> stalgmList;
 	public bool showGeneration = false;
 	private Vector3 actualPolylineDirection; //Polyline direction to focus, for showGEneration=True
 	private Vector3 actualPolylineCenter; //Polyline center to focus, for showGEneration=True
@@ -115,25 +117,11 @@ public class CaveGenerator : MonoBehaviour {
 
 		float tunnelHoleProb = 0.8f;
 		generator.initialize (gateSize, iniPol, tunnelHoleProb, maxHoles, maxExtrudeTimes);
-		//First create as many game objects as the number of tunnels and initialize them 
-		GameObject tunnels = new GameObject ("Tunnels");
-		tunnelsArray = new GameObject[maxHoles + 1];
-		for (int i = 0; i < maxHoles + 1; ++i) {
-			//Add the new game object(tunnel)
-			GameObject tunnel = new GameObject ("Tunnel " + i);
-			if (i == 0)
-				tunnel.name = "Stalagmites";
-			tunnel.transform.parent = tunnels.transform;
-			//Debug script
-			tunnel.AddComponent<DebugTunnel> ();
-			//Generate the needed components for the rendering and collision, and attach them to the tunnel
-			MeshFilter filter = tunnel.AddComponent <MeshFilter> ();
-			MeshCollider collider = tunnel.AddComponent <MeshCollider> ();
-			MeshRenderer renderer = tunnel.AddComponent<MeshRenderer> ();
-			renderer.material = new Material (caveMaterial);
-			renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-			tunnelsArray [i] = tunnel;
-		}
+		//Create the main game objects for meshes
+		tunnelsList= new List<GameObject>();
+		stalgmList = new List<GameObject>();
+		tunnels = new GameObject ("Tunnels");
+		stalagmites = new GameObject ("Stalagmites");
 			
 		//Use coroutines to show the generation steps
 		StartCoroutine (generator.generate (iniPol, tunnelHoleProb));
@@ -142,41 +130,97 @@ public class CaveGenerator : MonoBehaviour {
 
 	/**Updates the tunnel meshes with the generated ones **/
 	public void updateMeshes(AbstractGenerator generator) {
-		proceduralMesh = generator.getMesh ();
+		List<Geometry.Mesh> proceduralMesh = generator.getMesh ();
 		long verticesNum = 0, trianglesNum = 0;
 		int actTunel = 0;
-		foreach (Geometry.Mesh m in proceduralMesh) { //Attach the generated mesh to Unity stuff
+		//Tunnels
+		foreach (Geometry.Mesh m in proceduralMesh) { //Attach the generated tunnels to Unity stuff
+			//Check if a new tunnel has produced from last call
+			if (actTunel >= tunnelsList.Count)
+				createNewMeshGameObject (actTunel, "Tunnel");
+			//Update count
 			verticesNum += m.getNumVertices ();
 			trianglesNum += m.getNumTriangles ();
-
 			//Smooth the mesh
 			if (generator.finished) 
 				m.smooth (smoothIterations);
-
-			//Generation finished, assign the vertices and triangles created to a Unity mesh
-			UnityEngine.Mesh mesh = new UnityEngine.Mesh ();
-			mesh.SetVertices (m.getVertices ());
-			mesh.SetTriangles (m.getTriangles (), 0);
-			mesh.SetUVs (0, m.getUVs ());
-			//TODO: http://schemingdeveloper.com/2014/10/17/better-method-recalculate-normals-unity/
-			mesh.RecalculateNormals ();
-			mesh.RecalculateBounds ();
+			//Attach it to game object
+			UnityEngine.Mesh mesh = getUnityMesh (m);
 			//Assing it to the corresponding game object
-			GameObject tunnel = tunnelsArray [actTunel];
+			GameObject tunnel = tunnelsList [actTunel];
 			tunnel.GetComponent<MeshFilter> ().mesh = mesh;
 			tunnel.GetComponent<MeshCollider>().sharedMesh = mesh;
 			++actTunel;
 		}
-			
+		//Stalagmites 
+		List<Geometry.Mesh> stalgmMesh = generator.getStalagmitesMesh ();
+		long verticesStalNum = 0, trianglesStalNum = 0;
+		int actStalgm = 0;
+		foreach (Geometry.Mesh m in stalgmMesh) { //Attach the generated tunnels to Unity stuff
+			//Check if a new tunnel has produced from last call
+			if (actStalgm >= stalgmList.Count)
+				createNewMeshGameObject (actStalgm, "Stalagmites");
+			//Update count
+			verticesStalNum += m.getNumVertices ();
+			trianglesStalNum += m.getNumTriangles ();
+			//Smooth the mesh
+			if (generator.finished) 
+				m.smooth (smoothIterations);
+			//Attach it to game object
+			UnityEngine.Mesh mesh = getUnityMesh (m);
+			//Assing it to the corresponding game object
+			GameObject stalgm = stalgmList[actStalgm];
+			stalgm.GetComponent<MeshFilter> ().mesh = mesh;
+			stalgm.GetComponent<MeshCollider>().sharedMesh = mesh;
+			++actStalgm;
+		}
 		//Mesh size
 		if (generator.finished) {
-			Debug.Log ("Vertices generated: " + verticesNum);
-			Debug.Log ("Triangles generated: " + trianglesNum);
-
+			Debug.Log ("Vertices generated from tunnels: " + verticesNum);
+			Debug.Log ("Triangles generated from tunnels: " + trianglesNum);
+			Debug.Log ("Vertices generated from stalagmites: " + verticesStalNum);
+			Debug.Log ("Triangles generated from stalagmites: " + trianglesStalNum);
 			//Put the player on scene
 			preparePlayer (initialPoints);
 			Debug.Log ("Cave generated");
 		}
+	}
+
+	/** Creates a new game object to assing it a mesh representing a tunnel or a stalgmites set mesh **/
+	private void createNewMeshGameObject(int i, string type) {
+		//Add the new game object(tunnel)
+		GameObject meshGO = new GameObject (type + i);
+		if ( type == "Tunnel")  {
+			meshGO.transform.parent = tunnels.transform;
+			tunnelsList.Add (meshGO);
+		}
+		else if (type == "Stalagmites") {
+			meshGO.transform.parent = stalagmites.transform;
+			stalgmList.Add (meshGO);
+		}
+		else 
+			return;//TODO: return error
+		//Add different components
+		//Debug script
+		meshGO.AddComponent<DebugTunnel> ();
+		//Generate the needed components for the rendering and collision, and attach them to the tunnel
+		MeshFilter filter = meshGO.AddComponent <MeshFilter> ();
+		meshGO.AddComponent <MeshCollider> ();
+		MeshRenderer renderer = meshGO.AddComponent<MeshRenderer> ();
+		renderer.material = new Material (caveMaterial);
+		renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+	}
+	/**Transforms Geometry mesh into Unity mesh **/
+	private UnityEngine.Mesh getUnityMesh (Geometry.Mesh m) {
+		//Generation finished, assign the vertices and triangles created to a Unity mesh
+		UnityEngine.Mesh mesh = new UnityEngine.Mesh ();
+		mesh.SetVertices (m.getVertices ());
+		mesh.SetTriangles (m.getTriangles (), 0);
+		mesh.SetUVs (0, m.getUVs ());
+		//TODO: http://schemingdeveloper.com/2014/10/17/better-method-recalculate-normals-unity/
+		mesh.RecalculateNormals ();
+		mesh.RecalculateBounds ();
+		return mesh;
 	}
 
 	/**Updates the actual polyline to focus **/
@@ -199,7 +243,6 @@ public class CaveGenerator : MonoBehaviour {
 		Destroy (aux);
 
 	}
-
 	/** Updates the camera position and rotation from the actual polyline position and extrusion direction **/
 	void updateCamera() {
 		if ( actualPolylineDirection != Vector3.zero) {
