@@ -74,7 +74,7 @@ public class RecursiveGenerator : AbstractGenerator {
 			//Triangulate from origin to new polyline as a tube/cave shape
 			actualMesh.triangulatePolylines (originPoly, newPoly);
 			//Make stalagmite?
-			if (actualOperation.stalagmiteOperation ().needApply()) {
+			if (!actualOpBackTrack.holeOperation() && actualOperation.stalagmiteOperation ().needApply()) {
 				makeStalagmite (actualOperation.stalagmiteOperation().apply(), originPoly, newPoly);
 			}
 			//Make light?

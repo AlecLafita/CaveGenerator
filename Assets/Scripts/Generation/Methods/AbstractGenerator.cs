@@ -190,13 +190,24 @@ abstract public class AbstractGenerator : MonoBehaviour{
 	}
 
 
-	private float maxDiffAngle = 15.0f;
+	private const float maxDiffAngle = 15.0f;
+	private const float maxDiffAnglePillar = 10.0f;
 	/** Makes a stalagmite between the two polylilnes (through the extrusion) **/
 	protected void makeStalagmite (ExtrusionOperations.stalgmOp stalgmType, Polyline originPoly, Polyline newPoly){
 		//TODO: add more than one stalagmite at a time
-		//Common part for stalgmites/stalgitates and pillars: find candidates
-		const int stalgmSize = 4;
+		//Common part for stalgmites/stalgitates and pillars
+		//Get the mean distance between vertices to know how many vertices take per stalgmite
+		float dist = 0;
+		for (int i = 0; i < originPoly.getSize (); ++i) {
+			dist += Vector3.Distance (originPoly.getVertex (i).getPosition (), originPoly.getVertex (i + 1).getPosition ());
+		}
+		dist /= originPoly.getSize ();
+		dist = Vector3.Distance(newPoly.calculateBaricenter(),originPoly.calculateBaricenter())/dist;
+		int stalgmSize = 2*(int)dist;
+		stalgmSize = Mathf.Min(Mathf.Max (stalgmSize, 4),10);
+		//Find first vertex candidates
 		Polyline stalgmPoly;
+		int numExtrusions = Random.Range(4,10);//For last part
 		//FIRST: Check each group of stalgmSize adjacent vertices and get the best candidate (normal distance nearer to +-up)
 		if (stalgmType == ExtrusionOperations.stalgmOp.Stalactite)
 			stalgmPoly = getStalagmiteIni (stalgmSize, originPoly, newPoly, Vector3.up);
@@ -215,6 +226,10 @@ abstract public class AbstractGenerator : MonoBehaviour{
 			}
 			stalgmBaricenter /= (stalgmSize / 2);
 			Vector3 stalgmDirection = stalgmPoly.calculateNormal ();
+			if (stalgmType == ExtrusionOperations.stalgmOp.Stalactite)
+				stalgmDirection = Vector3.up;
+			else
+				stalgmDirection = Vector3.down;
 			//Find the "counterpart vertex", this is the vertex nearer to the intersection between the from baricenter
 			//ray intersection on the stalgmite direction. Will be usefull to avoid corssings by knowing the max size of the stalgmite
 			float minAngle = float.MaxValue;
@@ -228,12 +243,8 @@ abstract public class AbstractGenerator : MonoBehaviour{
 				}
 			}
 			float maxStalgmSize = (originPoly.getVertex (counterpartVertex).getPosition () - stalgmBaricenter).magnitude;
-			//TODO: generate this random before, save it to operation and read it 
-			maxStalgmSize *= Random.Range (0.45f, 0.75f); //final stalgmite size
-			int numExtrusions = Random.Range(4,10);
+			maxStalgmSize *= Random.Range (0.30f, 0.75f); //final stalgmite size
 			float stalgmExtrusionDistance = maxStalgmSize / (float)numExtrusions;
-			//float stalgmExtrusionDistance = 0.4f;
-			//int numExtrusions = (int) (maxStalgmSize / stalgmExtrusionDistance);
 			//Scale value from stalgmite size and #extrusions
 			float stalgmDiam = stalgmPoly.computeRadius () * 2;
 			float finalStalgmRadius = 0.1f;
@@ -254,12 +265,11 @@ abstract public class AbstractGenerator : MonoBehaviour{
 			if (stalagitePoly == null)
 				return;
 			Vector3 extrusionVector = stalagitePoly.calculateBaricenter () - stalgmPoly.calculateBaricenter ();
-			if (Vector3.Angle (extrusionVector.normalized, Vector3.down) > maxDiffAngle) //Check is not too horizontal
+			if (Vector3.Angle (extrusionVector.normalized, Vector3.down) > maxDiffAnglePillar) //Check is not too horizontal
 				return;
 			initializeStalagmiteIni(ref stalgmPoly);
 			//Common extrusion parameters
 			float maxStalgmSize = extrusionVector.magnitude/2;
-			int numExtrusions = Random.Range(4,10);
 			float stalgmExtrusionDistance = maxStalgmSize / (float)numExtrusions;
 			//Scale value from stalgmite size and #extrusions
 			float stalgmDiam = stalgmPoly.computeRadius () * 2;
@@ -279,7 +289,6 @@ abstract public class AbstractGenerator : MonoBehaviour{
 
 		}
 	}
-
 	/**From two extrusion polylines, get the polyline that is the start of a stalgmite, with the nearest objective direction **/
 	protected Polyline getStalagmiteIni(int stalgmSize, Polyline originPoly, Polyline newPoly, Vector3 objective) {
 		InitialPolyline stalgmPoly = new InitialPolyline (stalgmSize);
@@ -305,19 +314,15 @@ abstract public class AbstractGenerator : MonoBehaviour{
 		//stalgmPoly.duplicateFirstVertex ();
 		return stalgmPoly;
 	}
-
 	/**Initializes the first stalagmite polyline and adds it to the mesh **/
 	protected void initializeStalagmiteIni(ref Polyline stalgmPoly) {
 		InitialPolyline actualStalagmiteIni = new InitialPolyline (stalgmPoly);
-		//actualStalagmiteIni.generateUVs (); //TODO: this not produce a nice visual results
 		for (int i = 0; i < stalgmPoly.getSize(); ++i) {
 			actualStalagmiteIni.getVertex (i).setIndex (stalagmitesMesh.getNumVertices () + i);
 		}
 		stalgmPoly = actualStalagmiteIni;
 		stalagmitesMesh.addPolyline (stalgmPoly);
-		//return stalgmPoly;
 	}
-
 	/**Creates an stalagmite/stalagite by the parameters value **/
 	protected void extrudeStalagmite(int numExtrusions, Vector3 stalgmDirection, float stalgmExtrusionDistance, float scaleValue, Vector2 UVincr, Polyline actualStalagmite) {
 		//It needs to be extruded, scaled, extruded,scaled... until very small polyline is produced
@@ -328,7 +333,7 @@ abstract public class AbstractGenerator : MonoBehaviour{
 				newStalgPoly.extrudeVertex (i, actualStalagmite.getVertex (i).getPosition (), stalgmDirection, stalgmExtrusionDistance);
 				//Add the index to vertex
 				newStalgPoly.getVertex (i).setIndex (actualStalagmite.getVertex (i).getIndex () + actualStalagmite.getSize());
-				//TODO: stalgmite UV -> maybe use another mesh for all the stalgmites, with another material
+				//stalgmite UV -> maybe use another mesh for all the stalgmites, with another material
 				newStalgPoly.getVertex (i).setUV (actualStalagmite.getVertex (i).getUV () + UVincr);
 			}
 			newStalgPoly.setMinRadius (0.0f);
@@ -343,6 +348,8 @@ abstract public class AbstractGenerator : MonoBehaviour{
 
 	/**Creates a point light between the extrusion, on it's center **/
 	protected void makePointLight(Polyline originPoly, Polyline destinyPoly) {
+		//TODO: Avoid creating and checking light operations
+		/*
 		GameObject newLight = new GameObject ();
 		Vector3 position = (originPoly.calculateBaricenter() + destinyPoly.calculateBaricenter())/2;
 		newLight.transform.position = position;
@@ -352,6 +359,6 @@ abstract public class AbstractGenerator : MonoBehaviour{
 		l.intensity = 2.3f;
 		l.range = 10.0f;
 		newLight.transform.parent =  lights.transform;
-
+		*/
 	}
 }

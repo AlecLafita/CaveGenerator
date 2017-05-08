@@ -81,7 +81,7 @@ abstract public class IterativeGenerator : AbstractGenerator {
 				//Triangulate from origin to new polyline as a tube/cave shape
 				actualMesh.triangulatePolylines (originPoly, newPoly);
 				//Make stalagmite?
-				if (operation.stalagmiteOperation ().needApply()) {
+				if (!actualOpBackTrack.holeOperation() && operation.stalagmiteOperation ().needApply()) {
 					makeStalagmite (operation.stalagmiteOperation().apply(), originPoly, newPoly);
 				}
 				//Make light?
