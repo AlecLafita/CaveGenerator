@@ -17,7 +17,10 @@ abstract public class AbstractGenerator : MonoBehaviour{
 	protected int entranceSize; //Number of vertices of a tunnel entrance
 	protected GameObject lights; // GameObject that contains all the generated lights
 	public bool finished; //Check if the generation has beeen completed
+
 	protected bool showGeneration; //Use yield or not to show the generation
+	protected const float extrusionTime = 0.1f;
+	protected const float holeTime = 1.0f;
 
 	public void Awake() {
 		proceduralMesh = new List<Geometry.Mesh> ();

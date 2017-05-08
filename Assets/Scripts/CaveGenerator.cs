@@ -32,12 +32,15 @@ public class CaveGenerator : MonoBehaviour {
 	public Material caveMaterial;
 	private GameObject[] tunnelsArray;
 	public bool showGeneration = false;
+	private Vector3 actualPolylineDirection; //Polyline direction to focus, for showGEneration=True
+	private Vector3 actualPolylineCenter; //Polyline center to focus, for showGEneration=True
 
 	void Start () {
 		initialPoints = new InitialPolyline(gateSize);
 		pointsSelected = 0;
 		generatorCalled = false;
 		lines = new GameObject ("Start Lines");
+		actualPolylineDirection = Vector3.zero;
 	}
 
 	/** Draw a line between start and end **/
@@ -83,6 +86,9 @@ public class CaveGenerator : MonoBehaviour {
 			startGeneration(initialPoints);
 			generatorCalled = true;
 		}
+
+		if (showGeneration)
+			updateCamera ();
 	}
 
 	/** Function to be called in order to start generating the cave **/
@@ -161,7 +167,7 @@ public class CaveGenerator : MonoBehaviour {
 			tunnel.GetComponent<MeshCollider>().sharedMesh = mesh;
 			++actTunel;
 		}
-
+			
 		//Mesh size
 		if (generator.finished) {
 			Debug.Log ("Vertices generated: " + verticesNum);
@@ -170,6 +176,42 @@ public class CaveGenerator : MonoBehaviour {
 			//Put the player on scene
 			preparePlayer (initialPoints);
 			Debug.Log ("Cave generated");
+		}
+	}
+
+	/**Updates the actual polyline to focus **/
+	public void updateActualPolyline(Vector3 bar, Vector3 dir) {
+		actualPolylineDirection = dir;
+		//Auxiliar game object to be able to do trnasofmration between world and new direction space
+		Quaternion rot = cam.transform.rotation;
+		rot.SetLookRotation (actualPolylineDirection,Vector3.up);
+		GameObject aux = new GameObject ();
+		aux.transform.rotation = rot;
+
+		//Modify the position a bit to be always behind the actual extrusion and over it
+		actualPolylineCenter = bar;
+		actualPolylineCenter.y += 5.0f;
+		actualPolylineCenter = aux.transform.InverseTransformPoint (actualPolylineCenter);
+		actualPolylineCenter += new Vector3 (0.0f, 0.0f, -20.0f);
+		actualPolylineCenter = aux.transform.TransformPoint (actualPolylineCenter);
+
+		Destroy (aux);
+
+	}
+
+	/** Updates the camera position and rotation from the actual polyline position and extrusion direction **/
+	void updateCamera() {
+		if ( actualPolylineDirection != Vector3.zero) {
+			//rotation
+			Quaternion rot = cam.transform.rotation;
+			rot.SetLookRotation (actualPolylineDirection,Vector3.up);
+			rot = Quaternion.Slerp (cam.transform.rotation, rot, 0.1f);
+			cam.transform.rotation = rot;
+
+			//Position
+			Vector3 pos = cam.transform.position;
+			pos = Vector3.Slerp(pos, actualPolylineCenter, 0.1f);
+			cam.transform.position = pos;
 		}
 	}
 

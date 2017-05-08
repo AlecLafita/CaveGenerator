@@ -13,8 +13,13 @@ public class RecursiveGenerator : AbstractGenerator {
 	public override IEnumerator generate(Polyline originPoly, float holeProb) {
 		//Hole is done, update the counter
 		--maxHoles;
-
 		//Case base is implicit, as the operation generation takes into account the maxHoles variables in order to stop generating holes
+
+		if (showGeneration) {
+			//New hole, wait a bit to see the change
+			gameObject.GetComponent<CaveGenerator> ().updateActualPolyline (originPoly.calculateBaricenter (), originPoly.calculateNormal ());
+			yield return new WaitForSeconds (holeTime);
+		}
 
 		//TODO: change maxExtrudeTimes as holes are done (eg, random number between a rank)
 
@@ -42,8 +47,12 @@ public class RecursiveGenerator : AbstractGenerator {
 					IntersectionsController.Instance.addPolyline(newPoly);
 					IntersectionsController.Instance.addActualBox ();
 					actualOperation.setCanIntersect (IntersectionsController.Instance.getLastBB ()); //Avoid intersection check with own extrusion BB
-					if (showGeneration)
-						yield return StartCoroutine(generate (polyHole, holeProb - 0.001f));
+					if (showGeneration) {
+						yield return StartCoroutine (generate (polyHole, holeProb - 0.001f));
+						//Wait a bit to let the camera return the actual tunnel
+						gameObject.GetComponent<CaveGenerator> ().updateActualPolyline(originPoly.calculateBaricenter(), originPoly.calculateNormal());
+						yield return new WaitForSeconds(holeTime);
+					}
 					else 
 						StartCoroutine(generate (polyHole, holeProb - 0.001f));
 					//IntersectionsController.Instance.addPolyline (originPoly);
@@ -80,7 +89,8 @@ public class RecursiveGenerator : AbstractGenerator {
 			DecisionGenerator.Instance.generateNextOperation(originPoly, actualOperation,i,holeProb, maxHoles);
 			if (showGeneration) {
 				gameObject.GetComponent<CaveGenerator> ().updateMeshes (this);
-				yield return null;
+				gameObject.GetComponent<CaveGenerator> ().updateActualPolyline(originPoly.calculateBaricenter(), originPoly.calculateNormal());
+				yield return new WaitForSeconds (extrusionTime);
 			} //else do nothing
 		}
 		//Finally, close the actual hallway/tunnel
@@ -89,6 +99,7 @@ public class RecursiveGenerator : AbstractGenerator {
 		if (m == proceduralMesh [1]) {
 			finished = true;
 			gameObject.GetComponent<CaveGenerator> ().updateMeshes (this);
+			gameObject.GetComponent<CaveGenerator> ().updateActualPolyline(originPoly.calculateBaricenter(), originPoly.calculateNormal());
 		}
 	}
 

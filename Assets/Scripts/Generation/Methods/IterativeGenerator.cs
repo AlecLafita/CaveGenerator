@@ -39,6 +39,11 @@ abstract public class IterativeGenerator : AbstractGenerator {
 			operation.setCanIntersect (noIntersection);
 			//Add first polyline to the intersection BB
 			IntersectionsController.Instance.addPolyline (originPoly);
+			if (showGeneration) {
+				gameObject.GetComponent<CaveGenerator> ().updateMeshes (this);
+				gameObject.GetComponent<CaveGenerator> ().updateActualPolyline(originPoly.calculateBaricenter(), originPoly.calculateNormal());
+				yield return new WaitForSeconds(holeTime);
+			}
 			//Generate the tunnel
 			while (actualExtrusionTimes <= maxExtrudeTimes) {
 				++actualExtrusionTimes;
@@ -91,7 +96,8 @@ abstract public class IterativeGenerator : AbstractGenerator {
 				DecisionGenerator.Instance.generateNextOperation(originPoly, operation,actualExtrusionTimes,holeProb, maxHoles);
 				if (showGeneration) {
 					gameObject.GetComponent<CaveGenerator> ().updateMeshes (this);
-					yield return null;
+					gameObject.GetComponent<CaveGenerator> ().updateActualPolyline(originPoly.calculateBaricenter(), originPoly.calculateNormal());
+					yield return new WaitForSeconds(extrusionTime);
 				}
 			}
 			IntersectionsController.Instance.addActualBox ();
