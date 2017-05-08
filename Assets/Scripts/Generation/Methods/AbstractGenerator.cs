@@ -9,7 +9,7 @@ abstract public class AbstractGenerator : MonoBehaviour{
 
 	protected List<Geometry.Mesh> proceduralMesh; //Mesh that will be modified during the cave generation
 	protected Geometry.Mesh actualMesh; //Mesh coresponding to the actual tunnel being generated
-	protected Geometry.Mesh stalagmitesMesh; //Mesh corresponding to the stalagmites and so 
+	protected Geometry.Mesh stalagmitesMesh; //Mesh corresponding to the stalagmites and so TODO:MAke more than one mesh in case there are lot of estalamgites!
 	protected float initialTunelHoleProb; //holes can be created depending on this probability [0-1]
 	protected int maxHoles; //How many times a hole can be extruded and behave like a tunnel, acts as a countdown
 	protected int maxExtrudeTimes; //TODO: consider to deccrement this value as holes are created, or some random function that handles this
@@ -190,11 +190,11 @@ abstract public class AbstractGenerator : MonoBehaviour{
 	}
 
 
-	private const float maxDiffAngle = 15.0f;
+	private const float maxDiffAngle = 35.0f;
 	private const float maxDiffAnglePillar = 10.0f;
 	/** Makes a stalagmite between the two polylilnes (through the extrusion) **/
 	protected void makeStalagmite (ExtrusionOperations.stalgmOp stalgmType, Polyline originPoly, Polyline newPoly){
-		//TODO: add more than one stalagmite at a time
+		int numStalgm = 3;
 		//Common part for stalgmites/stalgitates and pillars
 		//Get the mean distance between vertices to know how many vertices take per stalgmite
 		float dist = 0;
@@ -205,114 +205,138 @@ abstract public class AbstractGenerator : MonoBehaviour{
 		dist = Vector3.Distance(newPoly.calculateBaricenter(),originPoly.calculateBaricenter())/dist;
 		int stalgmSize = 2*(int)dist;
 		stalgmSize = Mathf.Min(Mathf.Max (stalgmSize, 4),10);
-		//Find first vertex candidates
-		Polyline stalgmPoly;
-		int numExtrusions = Random.Range(4,10);//For last part
+		//Find first vertices candidates
 		//FIRST: Check each group of stalgmSize adjacent vertices and get the best candidate (normal distance nearer to +-up)
+		Polyline[] stalgmPolys;
+
 		if (stalgmType == ExtrusionOperations.stalgmOp.Stalactite)
-			stalgmPoly = getStalagmiteIni (stalgmSize, originPoly, newPoly, Vector3.up);
+			stalgmPolys = getStalagmiteIni (numStalgm,stalgmSize, originPoly, newPoly, Vector3.up);
 		else
-			stalgmPoly = getStalagmiteIni (stalgmSize, originPoly, newPoly, Vector3.down);
-		if (stalgmPoly == null)
+			stalgmPolys = getStalagmiteIni (numStalgm,stalgmSize, originPoly, newPoly, Vector3.down);
+		if (stalgmPolys == null)
 			return;
-
-		if (stalgmType == ExtrusionOperations.stalgmOp.Stalactite || stalgmType == ExtrusionOperations.stalgmOp.Stalagmite) {
-			initializeStalagmiteIni(ref stalgmPoly);
-			//THIRD: Prepare generation variables: #extrusion, scale value,.. We need to find this values in
-			//order the stalagmite does not intersect with the extrusion(cross it) and don't look too ugly
-			Vector3 stalgmBaricenter = Vector3.zero;
-			for (int i = 0; i < stalgmSize / 2; ++i) {
-				stalgmBaricenter += stalgmPoly.getVertex (i).getPosition ();
-			}
-			stalgmBaricenter /= (stalgmSize / 2);
-			Vector3 stalgmDirection = stalgmPoly.calculateNormal ();
-			if (stalgmType == ExtrusionOperations.stalgmOp.Stalactite)
-				stalgmDirection = Vector3.up;
-			else
-				stalgmDirection = Vector3.down;
-			//Find the "counterpart vertex", this is the vertex nearer to the intersection between the from baricenter
-			//ray intersection on the stalgmite direction. Will be usefull to avoid corssings by knowing the max size of the stalgmite
-			float minAngle = float.MaxValue;
-			int counterpartVertex = 0;
-			float auxAngle;
-			for (int i = 0; i < originPoly.getSize ()-1; ++i) { //TODO: do some dicotomic search?
-				auxAngle = Vector3.Angle (stalgmDirection, originPoly.getVertex (i).getPosition () - stalgmBaricenter);
-				if (auxAngle < minAngle) {
-					minAngle = auxAngle;
-					counterpartVertex = i;
+		for(int p = 0; p <numStalgm;++p) {
+			int numExtrusions = Random.Range(4,10);//For last part
+			Polyline stalgmPoly = stalgmPolys [p];
+			if (stalgmPoly == null)
+				continue;
+			if (stalgmType == ExtrusionOperations.stalgmOp.Stalactite || stalgmType == ExtrusionOperations.stalgmOp.Stalagmite) {
+				initializeStalagmiteIni (ref stalgmPoly);
+				//THIRD: Prepare generation variables: #extrusion, scale value,.. We need to find this values in
+				//order the stalagmite does not intersect with the extrusion(cross it) and don't look too ugly
+				Vector3 stalgmBaricenter = Vector3.zero;
+				for (int i = 0; i < stalgmSize / 2; ++i) {
+					stalgmBaricenter += stalgmPoly.getVertex (i).getPosition ();
 				}
+				stalgmBaricenter /= (stalgmSize / 2);
+				Vector3 stalgmDirection = stalgmPoly.calculateNormal ();
+				if (stalgmType == ExtrusionOperations.stalgmOp.Stalactite)
+					stalgmDirection = Vector3.up;
+				else
+					stalgmDirection = Vector3.down;
+				//Find the "counterpart vertex", this is the vertex nearer to the intersection between the from baricenter
+				//ray intersection on the stalgmite direction. Will be usefull to avoid corssings by knowing the max size of the stalgmite
+				float minAngle = float.MaxValue;
+				int counterpartVertex = 0;
+				float auxAngle;
+				for (int i = 0; i < originPoly.getSize () - 1; ++i) { //TODO: do some dicotomic search?
+					auxAngle = Vector3.Angle (stalgmDirection, originPoly.getVertex (i).getPosition () - stalgmBaricenter);
+					if (auxAngle < minAngle) {
+						minAngle = auxAngle;
+						counterpartVertex = i;
+					}
+				}
+				float maxStalgmSize = (originPoly.getVertex (counterpartVertex).getPosition () - stalgmBaricenter).magnitude;
+				maxStalgmSize *= Random.Range (0.30f, 0.75f); //final stalgmite size
+				float stalgmExtrusionDistance = maxStalgmSize / (float)numExtrusions;
+				//Scale value from stalgmite size and #extrusions
+				float stalgmDiam = stalgmPoly.computeRadius () * 2;
+				float finalStalgmRadius = 0.1f;
+				float scaleValue = Mathf.Pow (finalStalgmRadius / stalgmDiam, 1 / (float)numExtrusions);
+				Vector2 UVincr;
+				if (stalgmType == ExtrusionOperations.stalgmOp.Stalactite)
+					UVincr = new Vector2 (1.0f, -1.0f);
+				else
+					UVincr = new Vector2 (1.0f, 1.0f);
+				UVincr.Normalize ();
+				UVincr *= (stalgmExtrusionDistance / (UVfactor / 2));
+				//FOURTH: Now we have the start of the stalgmite and all it's generation parameters
+				extrudeStalagmite (numExtrusions, stalgmDirection, stalgmExtrusionDistance, scaleValue, UVincr, stalgmPoly);
+			} else if (stalgmType == ExtrusionOperations.stalgmOp.Pillar) {
+				//We have the stalagmite beggining, we now need to find the stalagtite one
+				Polyline stalagitePoly = (getStalagmiteIni (1,stalgmSize, originPoly, newPoly, -stalgmPoly.calculateNormal ()))[0];
+				if (stalagitePoly == null)
+					return;
+				Vector3 extrusionVector = stalagitePoly.calculateBaricenter () - stalgmPoly.calculateBaricenter ();
+				if (Vector3.Angle (extrusionVector.normalized, Vector3.down) > maxDiffAnglePillar) //Check is not too horizontal
+				return;
+				initializeStalagmiteIni (ref stalgmPoly);
+				//Common extrusion parameters
+				float maxStalgmSize = extrusionVector.magnitude / 2;
+				float stalgmExtrusionDistance = maxStalgmSize / (float)numExtrusions;
+				//Scale value from stalgmite size and #extrusions
+				float stalgmDiam = stalgmPoly.computeRadius () * 2;
+				float finalStalgmRadius = 0.3f;
+				float scaleValue = Mathf.Pow (finalStalgmRadius / stalgmDiam, 1 / (float)numExtrusions);
+				Vector2 UVincr = new Vector2 (1.0f, -1.0f);
+				UVincr.Normalize ();
+				UVincr *= (stalgmExtrusionDistance / (UVfactor / 2));
+				//Generate stalagmite part
+				extrudeStalagmite (numExtrusions, extrusionVector.normalized, stalgmExtrusionDistance, scaleValue, UVincr, stalgmPoly);
+				//Generate stalagtite part
+				initializeStalagmiteIni (ref stalagitePoly);
+				UVincr.y *= -1.0f;
+				extrudeStalagmite (numExtrusions, -extrusionVector.normalized, stalgmExtrusionDistance, scaleValue, UVincr, stalagitePoly);
 			}
-			float maxStalgmSize = (originPoly.getVertex (counterpartVertex).getPosition () - stalgmBaricenter).magnitude;
-			maxStalgmSize *= Random.Range (0.30f, 0.75f); //final stalgmite size
-			float stalgmExtrusionDistance = maxStalgmSize / (float)numExtrusions;
-			//Scale value from stalgmite size and #extrusions
-			float stalgmDiam = stalgmPoly.computeRadius () * 2;
-			float finalStalgmRadius = 0.1f;
-			float scaleValue = Mathf.Pow (finalStalgmRadius / stalgmDiam, 1 / (float)numExtrusions);
-			Vector2 UVincr;
-			if (stalgmType == ExtrusionOperations.stalgmOp.Stalactite)
-				UVincr = new Vector2 (1.0f, -1.0f);
-			else
-				UVincr = new Vector2 (1.0f, 1.0f);
-			UVincr.Normalize ();
-			UVincr *= (stalgmExtrusionDistance / (UVfactor/2));
-			//FOURTH: Now we have the start of the stalgmite and all it's generation parameters
-			extrudeStalagmite (numExtrusions, stalgmDirection, stalgmExtrusionDistance, scaleValue, UVincr, stalgmPoly);
-		} 
-		else if (stalgmType == ExtrusionOperations.stalgmOp.Pillar) {
-			//We have the stalagmite beggining, we now need to find the stalagtite one
-			Polyline stalagitePoly = getStalagmiteIni (stalgmSize, originPoly, newPoly, -stalgmPoly.calculateNormal());
-			if (stalagitePoly == null)
-				return;
-			Vector3 extrusionVector = stalagitePoly.calculateBaricenter () - stalgmPoly.calculateBaricenter ();
-			if (Vector3.Angle (extrusionVector.normalized, Vector3.down) > maxDiffAnglePillar) //Check is not too horizontal
-				return;
-			initializeStalagmiteIni(ref stalgmPoly);
-			//Common extrusion parameters
-			float maxStalgmSize = extrusionVector.magnitude/2;
-			float stalgmExtrusionDistance = maxStalgmSize / (float)numExtrusions;
-			//Scale value from stalgmite size and #extrusions
-			float stalgmDiam = stalgmPoly.computeRadius () * 2;
-			float finalStalgmRadius = 0.3f;
-			float scaleValue = Mathf.Pow (finalStalgmRadius / stalgmDiam, 1 / (float)numExtrusions);
-			Vector2 UVincr = new Vector2(1.0f, -1.0f);
-			UVincr.Normalize ();
-			UVincr *= (stalgmExtrusionDistance / (UVfactor/2));
-			//Generate stalagmite part
-			extrudeStalagmite (numExtrusions, extrusionVector.normalized, stalgmExtrusionDistance, scaleValue, UVincr, stalgmPoly);
-
-			//Generate stalagtite part
-			initializeStalagmiteIni(ref stalagitePoly);
-			//Extrude it
-			UVincr.y *=-1.0f;
-			extrudeStalagmite (numExtrusions, -extrusionVector.normalized, stalgmExtrusionDistance, scaleValue, UVincr, stalagitePoly);
-
 		}
 	}
-	/**From two extrusion polylines, get the polyline that is the start of a stalgmite, with the nearest objective direction **/
-	protected Polyline getStalagmiteIni(int stalgmSize, Polyline originPoly, Polyline newPoly, Vector3 objective) {
-		InitialPolyline stalgmPoly = new InitialPolyline (stalgmSize);
-		float stalgmAngle = float.MaxValue;
-		float auxAngle;
-		for (int i = 0; i < originPoly.getSize ()-1; ++i) {
-			InitialPolyline auxPoly = new InitialPolyline (stalgmSize);
-			for (int j = (stalgmSize / 2) - 1; j >= 0; --j) {
-				auxPoly.addVertex (originPoly.getVertex (i + j));
+	/**From two extrusion polylines, get the polylines that are the start of a stalgmite, with the nearest objective direction **/
+	protected Polyline[] getStalagmiteIni(int numStalgm, int stalgmSize, Polyline originPoly, Polyline newPoly, Vector3 objective) {
+		InitialPolyline[] result = new InitialPolyline[numStalgm];
+		List<int> startIndex = new List<int>(); //Indices of the first vertices used for each polyline
+		for (int p = 0; p < numStalgm; ++p) {
+			InitialPolyline stalgmPoly = new InitialPolyline (stalgmSize);
+			float stalgmAngle = float.MaxValue;
+			float auxAngle;
+			int finalIndex = -1;
+			for (int i = 0; i < originPoly.getSize () - 1; ++i) {
+				bool invalidIndex = false;
+				int aux = 0;
+				//Check it's vertices don't intersect with any of the stalgmites of the same extrusion
+				for (int j = 0; j < startIndex.Count && !invalidIndex; ++j) { 
+					aux = startIndex [j];
+					//Check i is not any of the vertices corresponding to jth estalgmite
+					invalidIndex = ( i >= aux && i < aux+stalgmSize/2-1) || ( aux >=i && aux < i + stalgmSize/2-1);
+				}
+				if (invalidIndex) { 
+					i = aux + stalgmSize/2-1; //Jump the next index not corresponding to the intersected stalagmite
+					continue;
+				}
+				//Construct the stalgmite polyline
+				InitialPolyline auxPoly = new InitialPolyline (stalgmSize);
+				for (int j = (stalgmSize / 2) - 1; j >= 0; --j) {
+					auxPoly.addVertex (originPoly.getVertex (i + j));
+				}
+				for (int j = 0; j < (stalgmSize / 2); ++j) {
+					auxPoly.addVertex (newPoly.getVertex (i + j));
+				}
+				auxAngle = Vector3.Angle (auxPoly.calculateNormal (), objective);
+				//Get the one with minimum angle
+				if (auxAngle < stalgmAngle) {
+					stalgmPoly = auxPoly;
+					stalgmAngle = auxAngle;
+					finalIndex = i;
+				}
 			}
-			for (int j = 0; j < (stalgmSize / 2); ++j) {
-				auxPoly.addVertex (newPoly.getVertex (i + j));
-			}
-			auxAngle = Vector3.Angle (auxPoly.calculateNormal (), objective);
-			if (auxAngle < stalgmAngle) {
-				stalgmPoly = auxPoly;
-				stalgmAngle = auxAngle;
-			}
+			//Add obtained polyline avoid intersection with another one on same extrusion
+			startIndex.Add(finalIndex);
+			//If angle with objective direction is very high, cancel its creation
+			if (stalgmAngle > maxDiffAngle)
+				stalgmPoly = null;
+			//Add stalgmite initial polyline to result
+			result[p] = stalgmPoly;
 		}
-		//If angle with up/down is very high, cancel stalgmite creation
-		if (stalgmAngle > maxDiffAngle)
-			return null;
-		//stalgmPoly.duplicateFirstVertex ();
-		return stalgmPoly;
+		return result;
 	}
 	/**Initializes the first stalagmite polyline and adds it to the mesh **/
 	protected void initializeStalagmiteIni(ref Polyline stalgmPoly) {
