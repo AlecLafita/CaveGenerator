@@ -145,12 +145,12 @@ public class DecisionGenerator : MonoBehaviour {
 	}
 
 	//******** Direction ********//
-	public float directionMinChange = 0.2f;
-	public float directionMaxChange = 0.5f;
+	private float directionMinChange = 0.2f;
+	private float directionMaxChange = 0.5f;
 	[Range (0.0f,1.0f)] public float directionYWalkLimit = 0.35f;
 	[Range (0.0f,40.0f)] public float directionMaxAngle = 40.0f;
 
-	private const int directionGenerationTries = 3;
+	private const int directionGenerationTries = 5;
 	/** Generates a new extrusion direction for a polylilne. It check it's not too far from it's normal **/
 	public Vector3 generateDirection(Polyline p) {
 		//This does not change the normal! The normal is always the same as all the points of a polyline are generated at 
