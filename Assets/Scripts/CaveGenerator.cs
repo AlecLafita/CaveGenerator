@@ -190,11 +190,12 @@ public class CaveGenerator : MonoBehaviour {
 
 		//Modify the position a bit to be always behind the actual extrusion and over it
 		actualPolylineCenter = bar;
-		actualPolylineCenter.y += 5.0f;
+		actualPolylineCenter.y += 10.0f;
 		actualPolylineCenter = aux.transform.InverseTransformPoint (actualPolylineCenter);
-		actualPolylineCenter += new Vector3 (0.0f, 0.0f, -20.0f);
+		actualPolylineCenter += new Vector3 (-5.0f, 0.0f, -35.0f);
 		actualPolylineCenter = aux.transform.TransformPoint (actualPolylineCenter);
 
+		actualPolylineDirection = bar - actualPolylineCenter;
 		Destroy (aux);
 
 	}
@@ -205,12 +206,12 @@ public class CaveGenerator : MonoBehaviour {
 			//rotation
 			Quaternion rot = cam.transform.rotation;
 			rot.SetLookRotation (actualPolylineDirection,Vector3.up);
-			rot = Quaternion.Slerp (cam.transform.rotation, rot, 0.1f);
+			rot = Quaternion.Slerp (cam.transform.rotation, rot, Time.deltaTime);
 			cam.transform.rotation = rot;
 
 			//Position
 			Vector3 pos = cam.transform.position;
-			pos = Vector3.Slerp(pos, actualPolylineCenter, 0.1f);
+			pos = Vector3.Slerp(pos, actualPolylineCenter, Time.deltaTime);
 			cam.transform.position = pos;
 		}
 	}

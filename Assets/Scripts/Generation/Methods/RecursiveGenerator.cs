@@ -98,9 +98,8 @@ public class RecursiveGenerator : AbstractGenerator {
 		actualMesh.closePolyline(originPoly);
 		if (m == proceduralMesh [1]) {
 			finished = true;
-			gameObject.GetComponent<CaveGenerator> ().updateMeshes (this);
-			gameObject.GetComponent<CaveGenerator> ().updateActualPolyline(originPoly.calculateBaricenter(), originPoly.calculateNormal());
 		}
+		gameObject.GetComponent<CaveGenerator> ().updateMeshes (this);
 	}
 
 }
