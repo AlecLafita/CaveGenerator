@@ -196,16 +196,19 @@ namespace Geometry {
 		}
 
 		/** Checks the polyline is convex. Pre: All polyline points must on same plane **/
-		public bool isConvex() {
+		public bool isConvex() { //Is convex => is simple
+			//http://stackoverflow.com/questions/471962/how-do-determine-if-a-polygon-is-complex-convex-nonconvex
 			//O(n), check all three consecutive vertices are clockwise. If some are counter-clock, is not convex
 			Plane p = new Plane(getVertex(0).getPosition(),getVertex(1).getPosition(),getVertex(2).getPosition());
 			for (int i = 0; i < getSize (); ++i) {
 				Vector3 first = getVertex (i + 1).getPosition() - getVertex (i).getPosition();
 				Vector3 second = getVertex (i + 2).getPosition() - getVertex (i + 1).getPosition ();
+				if (Vector3.Angle (first, second) <= 3.0f) //Very small angle for diferent segments that almost form a rect and are problematic
+					continue;
 				Vector3 cross = Vector3.Cross (first.normalized, second.normalized);
 				cross.Normalize();
 				Vector3 planePoint = getVertex (i).getPosition () + cross;
-				if (cross != Vector3.zero && !p.GetSide (planePoint) && !Mathf.Approximately(p.GetDistanceToPoint(planePoint),0.0f)) {
+				if (cross != Vector3.zero && !p.GetSide (planePoint)) {
 					//Debug.Log (i);
 					//Debug.Log (getVertex (i).getPosition () + "   " + planePoint);
 					return false;

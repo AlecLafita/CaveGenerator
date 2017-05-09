@@ -117,9 +117,9 @@ abstract public class AbstractGenerator : MonoBehaviour{
 		int sizeHole; int firstIndex;
 		//DecisionGenerator.Instance.whereToDig (originPoly.getSize(), out sizeHole, out firstIndex);
 		DecisionGenerator.Instance.whereToDig (originPoly, out sizeHole, out firstIndex);
-		if (sizeHole < DecisionGenerator.Instance.holeMinVertices)
+		if (sizeHole < DecisionGenerator.Instance.holeMinVertices) {
 			return null;
-		
+		}
 		//SECOND: Create the hole polyline by marking and adding the hole vertices (from old a new polylines)
 		InitialPolyline polyHole = new InitialPolyline (sizeHole);
 		//Increasing order for the origin and decreasing for the destiny polyline in order to 
@@ -137,25 +137,30 @@ abstract public class AbstractGenerator : MonoBehaviour{
 			polyHole.addVertex (destinyPoly.getVertex (firstIndex+i));
 		}
 
-		//THIRD: Check is a valid hole: no artifacts will be produced, 
+		/*//THIRD: Check is a valid hole: no artifacts will be produced, 
 		bool invalidHole = false;
 		//invalidHole = Geometry.Utils.checkArtifacts (polyHole);
 		//and in the walking case, check if the hole is not too upwards or downwards(y component)
-		invalidHole = invalidHole || Geometry.Utils.checkInvalidWalk(polyHole);
+		//invalidHole = invalidHole || Geometry.Utils.checkInvalidWalk(polyHole);
 		//Undo hole if invalid
 		if (invalidHole) {
+			Debug.Log ("Invalid walk");
 			for (int j = 0; j < sizeHole/2; ++j) {
 				originPoly.getVertex (firstIndex + j).setInHole (false);
 				destinyPoly.getVertex (firstIndex + j).setInHole (false);
 			}
 			return null;
-		}
+		}*/
 
 		//FOURTH: Do the hole smooth: Project the polyline(3D) into a plane(2D) on the polyline normal direction, just n (not very big) vertices
 		InitialPolyline planePoly = Geometry.Utils.generateProjection(polyHole, entranceSize,smoothIterations);
 
 		//FIFTH: Last check if hole is really valid (intersection stuff and simple polyline check)
-		if (!planePoly.isConvex () || !planePoly.isSimple () || IntersectionsController.Instance.doIntersect(polyHole,planePoly,-1)) {
+		if (!planePoly.isConvex () || IntersectionsController.Instance.doIntersect(polyHole,planePoly,-1)) {
+			/*if (!planePoly.isConvex ())
+				Debug.Log ("Not Convex");
+			else
+				Debug.Log ("Intersection");*/
 			for (int j = 0; j < sizeHole/2; ++j) {
 				originPoly.getVertex (firstIndex + j).setInHole (false);
 				destinyPoly.getVertex (firstIndex + j).setInHole (false);

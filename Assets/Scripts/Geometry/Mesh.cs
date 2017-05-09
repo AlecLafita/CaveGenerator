@@ -145,11 +145,12 @@ namespace Geometry {
 		 * (Gift wrapping idea) from 3D Convex hull theory. Used for a tunnel start **/
 		public void triangulateTunnelStart(Polyline originPoly, Polyline destinyPoly) {
 			//Start from a line between the first one of each polyline, by construction one is generated from the projection of the other=>NO as it has changed(smooth)
-			//For getting the starting line, using minimum distance points
 			Vertex a = originPoly.getVertex(0);
 			Vertex b = destinyPoly.getVertex (0);
 			int aIndex = 1;
 			int bIndex = 1;
+			/*//For getting the starting line, using minimum distance points
+			//int j = 0;
 			float minDistance = Vector3.Distance (a.getPosition(), b.getPosition());
 			for (int j = 0; j < originPoly.getSize (); ++j) {
 				for (int i = 0; i < destinyPoly.getSize (); ++i) {
@@ -162,7 +163,24 @@ namespace Geometry {
 						aIndex = j + 1;
 					}
 				}
+			}*/
+			//Find lowerest tangent
+			//The lower point of origin will be either the first or last vertex(by construction)
+			/*if (a.getPosition ().y > originPoly.getVertex (-1).getPosition ().y) {
+				a = originPoly.getVertex (-1);
+				aIndex = 0;
 			}
+			int j = 0;
+			float minPos = float.MaxValue;
+			for (int i = 0; i < destinyPoly.getSize (); ++i) {
+				float auxPos = destinyPoly.getVertex (i).getPosition ().y;
+				if (auxPos < minPos) {
+					b = destinyPoly.getVertex (i);
+					minPos = auxPos;
+					bIndex = i + 1;
+				}
+			}*/
+				
 			int bIter = 0, aIter = 0;
 			while (aIter < originPoly.getSize () && bIter < destinyPoly.getSize()) {
 				//This line ab will be triangulated with a point c either from one polyliline or the other, depending the one that has 
@@ -174,8 +192,8 @@ namespace Geometry {
 				//Check the A polylilne candidate
 				Vertex aWinner = originPoly.getVertex(aIndex);
 				float aAngle = Vector3.Angle (ab, aWinner.getPosition()-a.getPosition());
-				aAngle = Vector3.Distance (aWinner.getPosition (), b.getPosition ());
-				bAngle = Vector3.Distance (bWinner.getPosition (), a.getPosition ());
+				//aAngle = Vector3.Distance (aWinner.getPosition (), b.getPosition ());
+				//bAngle = Vector3.Distance (bWinner.getPosition (), a.getPosition ());
 
 				//If it's A-winner(from first poly) a=c, if it's from b-Winner b = c
 				if (aAngle < bAngle) { //A wins!

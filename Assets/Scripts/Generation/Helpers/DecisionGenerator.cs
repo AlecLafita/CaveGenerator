@@ -148,8 +148,8 @@ public class DecisionGenerator : MonoBehaviour {
 	}
 
 	//******** Direction ********//
-	private float directionMinChange = 0.2f;
-	private float directionMaxChange = 0.5f;
+	private float directionMinChange = 0.1f;
+	private float directionMaxChange = 0.25f;
 	[Range (0.0f,1.0f)] public float directionYWalkLimit = 0.35f;
 	[Range (0.0f,40.0f)] public float directionMaxAngle = 40.0f;
 
@@ -184,9 +184,9 @@ public class DecisionGenerator : MonoBehaviour {
 			yChange*Random.Range(directionMinChange,directionMaxChange),
 			zChange*Random.Range(directionMinChange,directionMaxChange));
 		if (dir.y < 0)
-			dir.y = Mathf.Max (dir.y, -directionYWalkLimit);
+			dir.y = Mathf.Max (dir.y, -directionYWalkLimit/2.0f);
 		else if (dir.y > 0)
-			dir.y = Mathf.Min (dir.y, directionYWalkLimit);
+			dir.y = Mathf.Min (dir.y, directionYWalkLimit/2.0f);
 		return dir.normalized;
 	}
 
@@ -201,7 +201,7 @@ public class DecisionGenerator : MonoBehaviour {
 	//******** Scale ********//
 	[Range (0.0f,0.99f)] public float scaleLimit = 0.5f;
 	public float generateScale() {
-		return Random.Range (1.0f-scaleLimit, 1.0f + scaleLimit);
+		return Random.Range (1.15f-scaleLimit, 1.15f + scaleLimit);
 	}
 
 	//******** Rotation ********//
@@ -284,13 +284,18 @@ public class DecisionGenerator : MonoBehaviour {
 	public void whereToDig(Polyline p, out int sizeHole, out int firstIndex) {
 		sizeHole = 0;
 		firstIndex = 0;
+		//Generate the new direction either to the right or left of the extrusion direction, and then change it a little
+		Vector3 apprDir;
+		if (Random.Range (0, 2) == 1) {
+			apprDir = Vector3.Cross (p.calculateNormal(), Vector3.up);
+		} else {
+			apprDir = Vector3.Cross (Vector3.up,p.calculateNormal());
+		}
+		apprDir.Normalize ();
 		//Generate the approximate direction of the hole
-		Vector3 apprDir = generateDirection();
-		if (apprDir == Vector3.zero) //No random direction could be found
-			return;
+		apprDir = changeDirection(apprDir);
 
 		Vector3 baricenter = p.calculateBaricenter ();
-
 		//valid <=> close to the approximate direction)
 		//Auxiliar variables
 		bool found = false;
@@ -304,9 +309,9 @@ public class DecisionGenerator : MonoBehaviour {
 			else
 				++auxIndex;
 		}
-		if (!found) //None of the vertex are valid
+		if (!found) {//None of the vertex are valid
 			return;
-
+		}
 		found = false;
 		while (!found) { //Get the first vertex to be valid to make the hole (clockwise!)
 			--auxIndex;
@@ -330,7 +335,7 @@ public class DecisionGenerator : MonoBehaviour {
 			++auxIndex;
 		}//This should not be an infinite loop as there will be always some vertex direction not too close to the approximate one
 		sizeHole *= 2; //Same vertices on the two polylines
-		sizeHole = Mathf.Min (sizeHole, holeMaxVertices);
+		//sizeHole = Mathf.Min (sizeHole, holeMaxVertices);
 	}
 
 }
