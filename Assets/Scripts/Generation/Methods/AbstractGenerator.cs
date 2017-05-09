@@ -154,8 +154,8 @@ abstract public class AbstractGenerator : MonoBehaviour{
 		//FOURTH: Do the hole smooth: Project the polyline(3D) into a plane(2D) on the polyline normal direction, just n (not very big) vertices
 		InitialPolyline planePoly = Geometry.Utils.generateProjection(polyHole, entranceSize,smoothIterations);
 
-		//FIFTH: Last check if hole is really valid (intersection stuff)
-		if (IntersectionsController.Instance.doIntersect(polyHole,planePoly,-1)) {
+		//FIFTH: Last check if hole is really valid (intersection stuff and simple polyline check)
+		if (!planePoly.isSimple () || IntersectionsController.Instance.doIntersect(polyHole,planePoly,-1)) {
 			for (int j = 0; j < sizeHole/2; ++j) {
 				originPoly.getVertex (firstIndex + j).setInHole (false);
 				destinyPoly.getVertex (firstIndex + j).setInHole (false);

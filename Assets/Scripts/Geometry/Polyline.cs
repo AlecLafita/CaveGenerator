@@ -165,10 +165,35 @@ namespace Geometry {
 			return normal;
 		}
 
-		/** Checks the polyline is simple (no intersections are produced) **/
-		/*public bool isSimple() {
-			//TODO
-		}*/
+		/** Checks the polyline is simple (no intersections between vertices are produced) **/
+		public bool isSimple() {
+			//TODO http://geomalgorithms.com/a09-_intersect-3.html
+			// Bentley-Ottmann algorithm -> says where are intersection points ->no need for this O((N + L)log N), N intersection point, l lines
+			// Shamos-Hoey -> just says if intersection is produced or not -> this is what we want! O(n) space, O(nlogn) time, n points
+
+			//O(n^2)
+			Plane p = new Plane(getVertex(0).getPosition(),getVertex(1).getPosition(),getVertex(2).getPosition());
+			for (int i = 0; i < getSize();++i) {
+				for (int j = i+2; j < getSize (); ++j) {
+					if (segmentsIntersect (p, getVertex (i).getPosition (), getVertex (i + 1).getPosition (), 
+						    getVertex (j).getPosition (), getVertex (j + 1).getPosition ())) {
+						return false;
+					}
+				}
+			}
+			return true;
+		}
+
+		private bool segmentsIntersect(Plane p, Vector3 a1, Vector3 a2, Vector3 b1, Vector3 b2) {
+			//Just simple intersection (cross)
+			Vector3 p1First = a1 + Vector3.Cross(a2 - a1, b1 - a1);
+			Vector3 p2First = a1 + Vector3.Cross (a2 - a1, b2 - a1);
+			bool firstC = !p.SameSide (p1First, p2First);
+			Vector3 p1Second = b1 + Vector3.Cross (b2 - b1, a1 - b1);
+			Vector3 p2Second = b1 + Vector3.Cross (b2 - b1, a2 - b1);
+			bool secondC = !p.SameSide (p1Second, p2Second);
+			return firstC && secondC;
+		}
 
 		/** Checks the polyline is convex **/
 		/*public bool isConvex() {

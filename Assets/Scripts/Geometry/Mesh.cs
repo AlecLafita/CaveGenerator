@@ -144,12 +144,23 @@ namespace Geometry {
 		/** Triangulate between two polylines as if they where convex hulls, very similar to D&C merge 
 		 * (Gift wrapping idea) from 3D Convex hull theory. Used for a tunnel start **/
 		public void triangulateTunnelStart(Polyline originPoly, Polyline destinyPoly) {
-			//Start from a line between the first one of each polyline, by construction one is generated from the projection of the other
+			//Start from a line between the first one of each polyline, by construction one is generated from the projection of the other=>NO as it has changed(smooth)
+			//For getting the starting line, using one fixed point for origin, and finding the nearer one for destiny
 			Vertex a = originPoly.getVertex(0);
 			Vertex b = destinyPoly.getVertex (0);
 			int aIndex = 1;
 			int bIndex = 1;
-			while (aIndex <= originPoly.getSize () && bIndex <= destinyPoly.getSize ()) {
+			float minDistance = Vector3.Distance (a.getPosition(), b.getPosition());
+			for (int i = 1; i < destinyPoly.getSize();++i) {
+				float auxDistance = Vector3.Distance(a.getPosition(),destinyPoly.getVertex(i).getPosition());
+				if (auxDistance < minDistance) {
+					b = destinyPoly.getVertex (i);
+					minDistance = auxDistance;
+					bIndex = i + 1;
+				}
+			}
+			int bIter = 0;
+			while (aIndex <= originPoly.getSize () && bIter < destinyPoly.getSize()) {
 				//This line ab will be triangulated with a point c either from one polyliline or the other, depending the one that has 
 				//smallest angle with ab line(A-winner or B-winner).c It's always an adjacent vertex, we can use they are clockwise sorted(lucky!)
 				Vector3 ab = b.getPosition() - a.getPosition();
@@ -169,17 +180,19 @@ namespace Geometry {
 					addTriangle(a.getIndex(), bWinner.getIndex(), b.getIndex());
 					b = bWinner;
 					++bIndex;
+					++bIter;
 				}
 			}//Repeat until ab we arrive to some of the polylines start, then triangulate with a or b constant(depends on polyline)
 
 			if (aIndex > originPoly.getSize ()) {
-				while (bIndex <= destinyPoly.getSize ()) {
+				while (bIter < destinyPoly.getSize()) {
 					Vertex bWinner = destinyPoly.getVertex(bIndex);
 					addTriangle(a.getIndex(), bWinner.getIndex(), b.getIndex());
 					b = bWinner;
 					++bIndex;
+					++bIter;
 				}
-			} else if (bIndex > destinyPoly.getSize ()) {
+			} else if (bIter >= destinyPoly.getSize()) {
 				while (aIndex <= originPoly.getSize()){
 					Vertex aWinner = originPoly.getVertex(aIndex);
 					addTriangle(a.getIndex(), aWinner.getIndex(), b.getIndex());
@@ -251,7 +264,7 @@ namespace Geometry {
 				finalList.Add(l,new HashSet<int> ());
 			}
 			//Transform to array in order to have a direct index (for have const. time)
-			int[] trianglesArray = mTriangles.ToArray(); //O(T)
+			int[] trianglesArray = mTriangles.ToArray(); //O(T) (maybe no ned for this)
 			//Generate the adjacent list
 			for (int i = 0; i < trianglesArray.Length; i += 3) { //O(T)
 				addAdjacents (finalList, trianglesArray[i],trianglesArray[i+1],trianglesArray[i+2]);
