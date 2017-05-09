@@ -145,7 +145,7 @@ public class CaveGenerator : MonoBehaviour {
 			if (generator.finished) 
 				m.smooth (smoothIterations);
 			//Attach it to game object
-			UnityEngine.Mesh mesh = getUnityMesh (m);
+			UnityEngine.Mesh mesh = getUnityMesh (m,generator.finished);
 			//Assing it to the corresponding game object
 			GameObject tunnel = tunnelsList [actTunel];
 			tunnel.GetComponent<MeshFilter> ().mesh = mesh;
@@ -163,11 +163,8 @@ public class CaveGenerator : MonoBehaviour {
 			//Update count
 			verticesStalNum += m.getNumVertices ();
 			trianglesStalNum += m.getNumTriangles ();
-			//Smooth the mesh
-			if (generator.finished) 
-				m.smooth (smoothIterations);
 			//Attach it to game object
-			UnityEngine.Mesh mesh = getUnityMesh (m);
+			UnityEngine.Mesh mesh = getUnityMesh (m,generator.finished);
 			//Assing it to the corresponding game object
 			GameObject stalgm = stalgmList[actStalgm];
 			stalgm.GetComponent<MeshFilter> ().mesh = mesh;
@@ -211,7 +208,7 @@ public class CaveGenerator : MonoBehaviour {
 		renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
 	}
 	/**Transforms Geometry mesh into Unity mesh **/
-	private UnityEngine.Mesh getUnityMesh (Geometry.Mesh m) {
+	private UnityEngine.Mesh getUnityMesh (Geometry.Mesh m, bool finished) {
 		//Generation finished, assign the vertices and triangles created to a Unity mesh
 		UnityEngine.Mesh mesh = new UnityEngine.Mesh ();
 		mesh.SetVertices (m.getVertices ());
@@ -219,7 +216,9 @@ public class CaveGenerator : MonoBehaviour {
 		mesh.SetUVs (0, m.getUVs ());
 		//TODO: http://schemingdeveloper.com/2014/10/17/better-method-recalculate-normals-unity/
 		mesh.RecalculateNormals ();
-		mesh.RecalculateBounds ();
+		if (finished) {
+			mesh.RecalculateBounds ();
+		}
 		return mesh;
 	}
 

@@ -14,7 +14,6 @@ public class RecursiveGenerator : AbstractGenerator {
 		//Hole is done, update the counter
 		--maxHoles;
 		//Case base is implicit, as the operation generation takes into account the maxHoles variables in order to stop generating holes
-
 		if (showGeneration) {
 			//New hole, wait a bit to see the change
 			gameObject.GetComponent<CaveGenerator> ().updateActualPolyline (originPoly.calculateBaricenter (), originPoly.calculateNormal ());
@@ -50,11 +49,12 @@ public class RecursiveGenerator : AbstractGenerator {
 					if (showGeneration) {
 						yield return StartCoroutine (generate (polyHole, holeProb - 0.001f));
 						//Wait a bit to let the camera return the actual tunnel
-						gameObject.GetComponent<CaveGenerator> ().updateActualPolyline(originPoly.calculateBaricenter(), originPoly.calculateNormal());
-						yield return new WaitForSeconds(holeTime);
+						gameObject.GetComponent<CaveGenerator> ().updateActualPolyline (originPoly.calculateBaricenter (), originPoly.calculateNormal ());
+						yield return new WaitForSeconds (holeTime);
+					} else {
+						IEnumerator asd =  generate (polyHole, holeProb - 0.001f);
+						asd.MoveNext ();
 					}
-					else 
-						StartCoroutine(generate (polyHole, holeProb - 0.001f));
 					//IntersectionsController.Instance.addPolyline (originPoly);
 					actualMesh = m;
 				} else { //No hole could be done, reextrude will smaller distance
