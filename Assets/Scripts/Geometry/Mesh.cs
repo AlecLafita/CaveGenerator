@@ -239,7 +239,7 @@ namespace Geometry {
 			baricenter.setUV (poly.calculateBaricenterUV());
 			int baricenterIndex = getNumVertices();
 			addVertex (baricenter);
-			for (int i = 0; i < poly.getSize()-1; ++i) {
+			for (int i = 0; i < poly.getSize(); ++i) {
 				//Left-hand!!
 				addTriangle(poly.getVertex (i).getIndex(), poly.getVertex (i + 1).getIndex(), baricenterIndex);
 			}
@@ -251,7 +251,7 @@ namespace Geometry {
 			baricenter.setUV (poly.calculateBaricenterUV());
 			int baricenterIndex = getNumVertices();
 			addVertex (baricenter);
-			for (int i = 0; i < poly.getSize()-1; ++i) {
+			for (int i = 0; i < poly.getSize(); ++i) {
 				//Left-hand!!
 				addTriangle(poly.getVertex (i + 1).getIndex(),poly.getVertex (i).getIndex(),  baricenterIndex);
 			}

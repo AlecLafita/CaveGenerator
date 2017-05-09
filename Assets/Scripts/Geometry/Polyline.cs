@@ -10,8 +10,8 @@ namespace Geometry {
 	public class Polyline {
 
 		protected Vertex[] mVertices; //Vertices that form the polyline
-		protected float minRadius = 30.0f; //Minimum radius when the scale is applied
-		protected float maxRadius = 100.0f;//Maximum radius when the scale is applied
+		protected float minRadius = 2.5f; //Minimum radius when the scale is applied
+		protected float maxRadius = 40.0f;//Maximum radius when the scale is applied
 		//******** Constructors ********//
 		public Polyline() {
 			mVertices = new Vertex[0];
@@ -53,6 +53,10 @@ namespace Geometry {
 			return mVertices.Length;
 		}
 
+		public float getMinRadius() {
+			return minRadius;
+		}
+
 		//******** Other functions ********//
 		/** Generates the position of some vertex at the direction and distance from some other position **/
 		public void extrudeVertex(int v, Vector3 originPos, Vector3 direction, float distance) {
@@ -67,6 +71,19 @@ namespace Geometry {
 				Vertex v = getVertex(i);
 				float distanceAux = Vector3.Distance (b, v.getPosition());
 				if (distanceAux > radius)
+					radius = distanceAux;
+			}
+			return radius;
+		}
+
+		/**Gets the minimum distance between baricenter and some vertex, in 3D**/
+		public float computeMinimumRadius() {
+			Vector3 b = calculateBaricenter ();
+			float radius = float.MaxValue;
+			for(int i = 0; i < getSize()-1;++i) {
+				Vertex v = getVertex(i);
+				float distanceAux = Vector3.Distance (b, v.getPosition());
+				if (distanceAux < radius)
 					radius = distanceAux;
 			}
 			return radius;
