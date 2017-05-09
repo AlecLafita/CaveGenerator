@@ -176,11 +176,8 @@ abstract public class AbstractGenerator : MonoBehaviour{
 		}
 
 		//SIXTH: Final propoerties of the projection
-		//Generate new UVs coordinates of the projection, from y coord of the hole
+		//Generate new UVs coordinates of the projection, from y coord of the hole (not works very well)
 		float yCoord = (polyHole.getVertex(0).getUV().y + polyHole.getVertex(-1).getUV().y)/2;
-		//float projDistance = Vector3.Distance (polyHole.calculateBaricenter (), planePoly.calculateBaricenter ());
-		//yCoord += projDistance / UVfactor;
-
 		planePoly.generateUVs (yCoord);
 		//Duplicate the first vertex in order to have good texturization between last and first vertex
 		planePoly.duplicateFirstVertex ();

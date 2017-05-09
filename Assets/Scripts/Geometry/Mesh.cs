@@ -143,7 +143,7 @@ namespace Geometry {
 
 		/** Triangulate between two polylines as if they where convex hulls, very similar to D&C merge 
 		 * (Gift wrapping idea) from 3D Convex hull theory. Used for a tunnel start **/
-		public void triangulateTunnelStart(Polyline originPoly, Polyline destinyPoly) {
+		public void triangulateTunnelStart(Polyline originPoly, Polyline destinyPoly) { //TODO:some times does not triangulate correctly!
 			//Start from a line between the first one of each polyline, by construction one is generated from the projection of the other=>NO as it has changed(smooth)
 			Vertex a = originPoly.getVertex(0);
 			Vertex b = destinyPoly.getVertex (0);
@@ -267,19 +267,19 @@ namespace Geometry {
 		public void smooth(int it) {
 
 			//Transform to array in order to have a direct index (const. time)
-			Vector3[] verticesArray = mVertices.ToArray (); //O(V)
+			//Vector3[] verticesArray = mVertices.ToArray (); //O(V)
 
 			//Get the adjacent vertices set list
 			Dictionary<int, HashSet<int>> adjacentList = computeAdjacents();
 
 			//Apply the corresponding smooth techniques as many times as required
 			for (int i = 0; i < it; ++i) {
-				//smoothLaplacian (verticesArray, adjacentList);
-				smoothLaplacianIncrement (verticesArray, adjacentList);
+				//smoothLaplacian ( adjacentList);
+				smoothLaplacianIncrement (adjacentList);
 			}
 
 			//Set the new vertices
-			mVertices = verticesArray.ToList();//O(V)
+			//mVertices = verticesArray.ToList();//O(V)
 		}
 
 		/**Get the list of the adjacent vertices(by index) of each vertex that belongs to a hole. O(V+T)**/
@@ -291,12 +291,12 @@ namespace Geometry {
 				finalList.Add(l,new HashSet<int> ());
 			}
 			//Transform to array in order to have a direct index (for have const. time)
-			int[] trianglesArray = mTriangles.ToArray(); //O(T) (maybe no ned for this)
+			//int[] trianglesArray = mTriangles.ToArray(); //O(T) (maybe no ned for this)
 			//Generate the adjacent list
-			for (int i = 0; i < trianglesArray.Length; i += 3) { //O(T)
-				addAdjacents (finalList, trianglesArray[i],trianglesArray[i+1],trianglesArray[i+2]);
-				addAdjacents (finalList, trianglesArray[i+1],trianglesArray[i+2],trianglesArray[i]);
-				addAdjacents (finalList, trianglesArray[i+2],trianglesArray[i],trianglesArray[i+1]);
+			for (int i = 0; i < mTriangles.Count; i += 3) { //O(T)
+				addAdjacents (finalList, mTriangles[i],mTriangles[i+1],mTriangles[i+2]);
+				addAdjacents (finalList, mTriangles[i+1],mTriangles[i+2],mTriangles[i]);
+				addAdjacents (finalList, mTriangles[i+2],mTriangles[i],mTriangles[i+1]);
 			}
 			return finalList;
 		}
@@ -309,31 +309,39 @@ namespace Geometry {
 		}
 
 		/**Sets the new position of each vertex by taking the mean of its adjacent vertices. O(V*Adj) **/
-		private void smoothLaplacian(Vector3[] v, Dictionary<int, HashSet<int>> adjacentV) {
+		private void smoothLaplacian(Dictionary<int, HashSet<int>> adjacentV) {
 			foreach (int holeV in adjacentV.Keys) {
 				Vector3 newV = Vector3.zero;
+				Vector2 newUV = Vector2.zero;
 				HashSet<int> actualAdj = adjacentV [holeV];
 				//Calculate the adjacents mean 
 				foreach(int adj in actualAdj ) {
-					newV += v [adj];
+					newV +=mVertices [adj];
+					newUV += mUVs [adj];
 				}
-				v [holeV] = newV / actualAdj.Count;
+				mVertices [holeV] = newV / actualAdj.Count;
+				mUVs [holeV] = newUV / actualAdj.Count;
 			}
 		}
 
 		/**Sets the new position of each vertex by taking the difference with the weighted 
 		 * increment of the vertex and its adjacent vertices. O(V*Adj) **/
 		private float lambdaLaplacian = 0.1f;
-		private void smoothLaplacianIncrement(Vector3[] v, Dictionary<int, HashSet<int>> adjacentV) {
+		private void smoothLaplacianIncrement( Dictionary<int, HashSet<int>> adjacentV) {
 			foreach (int holeV in adjacentV.Keys) {
 				Vector3 newV = Vector3.zero;
+				Vector2 newUV = Vector2.zero;
 				HashSet<int> actualAdj = adjacentV [holeV];
 				//Calculate the adjacents mean 
 				foreach(int adj in actualAdj ) {
-					newV += v [adj];
+					newV += mVertices [adj];
+					newUV += mUVs [adj];
 				}
 				newV /= actualAdj.Count;
-				v [holeV] = v[holeV] + lambdaLaplacian * (newV - v[holeV]);
+				newUV /= actualAdj.Count;
+				mVertices [holeV] = mVertices[holeV] + lambdaLaplacian * (newV - mVertices[holeV]);
+				mUVs [holeV] = mUVs[holeV] + lambdaLaplacian * (newUV - mUVs[holeV]);
+
 			}
 		}
 
