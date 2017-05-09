@@ -155,7 +155,7 @@ abstract public class AbstractGenerator : MonoBehaviour{
 		InitialPolyline planePoly = Geometry.Utils.generateProjection(polyHole, entranceSize,smoothIterations);
 
 		//FIFTH: Last check if hole is really valid (intersection stuff and simple polyline check)
-		if (!planePoly.isSimple () || IntersectionsController.Instance.doIntersect(polyHole,planePoly,-1)) {
+		if (!planePoly.isConvex () || !planePoly.isSimple () || IntersectionsController.Instance.doIntersect(polyHole,planePoly,-1)) {
 			for (int j = 0; j < sizeHole/2; ++j) {
 				originPoly.getVertex (firstIndex + j).setInHole (false);
 				destinyPoly.getVertex (firstIndex + j).setInHole (false);

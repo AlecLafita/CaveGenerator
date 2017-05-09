@@ -145,22 +145,26 @@ namespace Geometry {
 		 * (Gift wrapping idea) from 3D Convex hull theory. Used for a tunnel start **/
 		public void triangulateTunnelStart(Polyline originPoly, Polyline destinyPoly) {
 			//Start from a line between the first one of each polyline, by construction one is generated from the projection of the other=>NO as it has changed(smooth)
-			//For getting the starting line, using one fixed point for origin, and finding the nearer one for destiny
+			//For getting the starting line, using minimum distance points
 			Vertex a = originPoly.getVertex(0);
 			Vertex b = destinyPoly.getVertex (0);
 			int aIndex = 1;
 			int bIndex = 1;
 			float minDistance = Vector3.Distance (a.getPosition(), b.getPosition());
-			for (int i = 1; i < destinyPoly.getSize();++i) {
-				float auxDistance = Vector3.Distance(a.getPosition(),destinyPoly.getVertex(i).getPosition());
-				if (auxDistance < minDistance) {
-					b = destinyPoly.getVertex (i);
-					minDistance = auxDistance;
-					bIndex = i + 1;
+			for (int j = 0; j < originPoly.getSize (); ++j) {
+				for (int i = 0; i < destinyPoly.getSize (); ++i) {
+					float auxDistance = Vector3.Distance (originPoly.getVertex(j).getPosition (), destinyPoly.getVertex (i).getPosition ());
+					if (auxDistance < minDistance) {
+						a = originPoly.getVertex (j);
+						b = destinyPoly.getVertex (i);
+						minDistance = auxDistance;
+						bIndex = i + 1;
+						aIndex = j + 1;
+					}
 				}
 			}
-			int bIter = 0;
-			while (aIndex <= originPoly.getSize () && bIter < destinyPoly.getSize()) {
+			int bIter = 0, aIter = 0;
+			while (aIter < originPoly.getSize () && bIter < destinyPoly.getSize()) {
 				//This line ab will be triangulated with a point c either from one polyliline or the other, depending the one that has 
 				//smallest angle with ab line(A-winner or B-winner).c It's always an adjacent vertex, we can use they are clockwise sorted(lucky!)
 				Vector3 ab = b.getPosition() - a.getPosition();
@@ -170,11 +174,15 @@ namespace Geometry {
 				//Check the A polylilne candidate
 				Vertex aWinner = originPoly.getVertex(aIndex);
 				float aAngle = Vector3.Angle (ab, aWinner.getPosition()-a.getPosition());
+				aAngle = Vector3.Distance (aWinner.getPosition (), b.getPosition ());
+				bAngle = Vector3.Distance (bWinner.getPosition (), a.getPosition ());
+
 				//If it's A-winner(from first poly) a=c, if it's from b-Winner b = c
 				if (aAngle < bAngle) { //A wins!
 					addTriangle(a.getIndex(), aWinner.getIndex(), b.getIndex());
 					a = aWinner;
 					++aIndex;
+					++aIter;
 				}
 				else { //B wins!
 					addTriangle(a.getIndex(), bWinner.getIndex(), b.getIndex());
@@ -184,7 +192,7 @@ namespace Geometry {
 				}
 			}//Repeat until ab we arrive to some of the polylines start, then triangulate with a or b constant(depends on polyline)
 
-			if (aIndex > originPoly.getSize ()) {
+			if (aIter >= originPoly.getSize ()) {
 				while (bIter < destinyPoly.getSize()) {
 					Vertex bWinner = destinyPoly.getVertex(bIndex);
 					addTriangle(a.getIndex(), bWinner.getIndex(), b.getIndex());
@@ -193,11 +201,12 @@ namespace Geometry {
 					++bIter;
 				}
 			} else if (bIter >= destinyPoly.getSize()) {
-				while (aIndex <= originPoly.getSize()){
+				while (aIter < originPoly.getSize()){
 					Vertex aWinner = originPoly.getVertex(aIndex);
 					addTriangle(a.getIndex(), aWinner.getIndex(), b.getIndex());
 					a = aWinner;
 					++aIndex;
+					++aIter;
 				}
 			} 
 
