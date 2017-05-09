@@ -69,7 +69,7 @@ abstract public class AbstractGenerator : MonoBehaviour{
 		return stalagmitesMeshes;
 	}
 
-	public static float UVfactor = 25.0f;
+	public static float UVfactor = 30.0f;
 	/**It creates a new polyline from an exsiting one, applying the corresponding operations**/
 	protected Polyline extrude(ExtrusionOperations operation, Polyline originPoly) {
 		//Create the new polyline from the actual one

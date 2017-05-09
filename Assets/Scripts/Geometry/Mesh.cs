@@ -239,6 +239,7 @@ namespace Geometry {
 			baricenter.setUV (poly.calculateBaricenterUV());
 			int baricenterIndex = getNumVertices();
 			addVertex (baricenter);
+			addHoleIndex (baricenterIndex);//Special case when closing after a hole, helps to disimulate triangulation
 			for (int i = 0; i < poly.getSize(); ++i) {
 				//Left-hand!!
 				addTriangle(poly.getVertex (i).getIndex(), poly.getVertex (i + 1).getIndex(), baricenterIndex);
@@ -251,6 +252,7 @@ namespace Geometry {
 			baricenter.setUV (poly.calculateBaricenterUV());
 			int baricenterIndex = getNumVertices();
 			addVertex (baricenter);
+			addHoleIndex (baricenterIndex); //Special case when closing after a hole, helps to disimulate triangulation
 			for (int i = 0; i < poly.getSize(); ++i) {
 				//Left-hand!!
 				addTriangle(poly.getVertex (i + 1).getIndex(),poly.getVertex (i).getIndex(),  baricenterIndex);
@@ -265,10 +267,6 @@ namespace Geometry {
 		/** Smooths the mesh by using the selected techique or filter. It must be called
 		 * after all the mesh is completely generated **/
 		public void smooth(int it) {
-
-			//Transform to array in order to have a direct index (const. time)
-			//Vector3[] verticesArray = mVertices.ToArray (); //O(V)
-
 			//Get the adjacent vertices set list
 			Dictionary<int, HashSet<int>> adjacentList = computeAdjacents();
 
@@ -277,21 +275,15 @@ namespace Geometry {
 				//smoothLaplacian ( adjacentList);
 				smoothLaplacianIncrement (adjacentList);
 			}
-
-			//Set the new vertices
-			//mVertices = verticesArray.ToList();//O(V)
 		}
 
 		/**Get the list of the adjacent vertices(by index) of each vertex that belongs to a hole. O(V+T)**/
 		private Dictionary<int, HashSet<int>> computeAdjacents() {
 			//Create the adjacent list 
-			//TODO: Could change HashSet to a simple List¿ (check element insert complexity)
 			Dictionary<int, HashSet<int>> finalList = new Dictionary<int,HashSet<int>>(mholeIndices.Count); 
 			foreach (int l in mholeIndices) { //O(V)
 				finalList.Add(l,new HashSet<int> ());
 			}
-			//Transform to array in order to have a direct index (for have const. time)
-			//int[] trianglesArray = mTriangles.ToArray(); //O(T) (maybe no ned for this)
 			//Generate the adjacent list
 			for (int i = 0; i < mTriangles.Count; i += 3) { //O(T)
 				addAdjacents (finalList, mTriangles[i],mTriangles[i+1],mTriangles[i+2]);
@@ -320,7 +312,8 @@ namespace Geometry {
 					newUV += mUVs [adj];
 				}
 				mVertices [holeV] = newV / actualAdj.Count;
-				mUVs [holeV] = newUV / actualAdj.Count;
+				if (holeV != getNumVertices()-1) //don't do UV mean for closing vertex
+					mUVs [holeV] = newUV / actualAdj.Count;
 			}
 		}
 
@@ -340,7 +333,8 @@ namespace Geometry {
 				newV /= actualAdj.Count;
 				newUV /= actualAdj.Count;
 				mVertices [holeV] = mVertices[holeV] + lambdaLaplacian * (newV - mVertices[holeV]);
-				mUVs [holeV] = mUVs[holeV] + lambdaLaplacian * (newUV - mUVs[holeV]);
+				if (holeV != getNumVertices()-1) //don't do UV mean for closing vertex
+					mUVs [holeV] = mUVs[holeV] + lambdaLaplacian * (newUV - mUVs[holeV]);
 
 			}
 		}
