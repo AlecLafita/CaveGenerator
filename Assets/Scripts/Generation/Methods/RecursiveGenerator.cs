@@ -52,8 +52,7 @@ public class RecursiveGenerator : AbstractGenerator {
 						gameObject.GetComponent<CaveGenerator> ().updateActualPolyline (originPoly.calculateBaricenter (), originPoly.calculateNormal ());
 						yield return new WaitForSeconds (holeTime);
 					} else {
-						IEnumerator asd =  generate (polyHole, holeProb - 0.001f);
-						asd.MoveNext ();
+						StartCoroutine (generate (polyHole, holeProb - 0.001f));
 					}
 					//IntersectionsController.Instance.addPolyline (originPoly);
 					actualMesh = m;
@@ -98,8 +97,10 @@ public class RecursiveGenerator : AbstractGenerator {
 		actualMesh.closePolyline(originPoly);
 		if (m == proceduralMeshes [0]) {
 			finished = true;
+			gameObject.GetComponent<CaveGenerator> ().updateMeshes (this);
 		}
-		gameObject.GetComponent<CaveGenerator> ().updateMeshes (this);
+		else if (showGeneration)
+			gameObject.GetComponent<CaveGenerator> ().updateMeshes (this);
 	}
 
 }

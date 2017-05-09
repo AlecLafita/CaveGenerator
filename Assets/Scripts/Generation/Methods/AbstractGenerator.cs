@@ -201,7 +201,7 @@ abstract public class AbstractGenerator : MonoBehaviour{
 		//Create a new stalgmite mesh if needed
 		if (stalagmitesMeshes [stalagmitesMeshes.Count - 1].getNumVertices () > 65000)
 			stalagmitesMeshes.Add (new Geometry.Mesh ());
-		int numStalgm = 1;
+		int numStalgm = 2;
 		//Common part for stalgmites/stalgitates and pillars
 		//Get the mean distance between vertices to know how many vertices take per stalgmite
 		float dist = 0;
