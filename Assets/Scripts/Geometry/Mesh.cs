@@ -234,7 +234,7 @@ namespace Geometry {
 
 		/** Closes a polyline by triangulating all it's vertices with it's baricenter, visualizing it as a polygon FROM INSIDE**/
 		public void closePolyline(Polyline poly) {
-			Vertex baricenter = new Vertex ();
+			/*Vertex baricenter = new Vertex ();
 			baricenter.setPosition (poly.calculateBaricenter ());
 			baricenter.setUV (poly.calculateBaricenterUV());
 			int baricenterIndex = getNumVertices();
@@ -243,7 +243,23 @@ namespace Geometry {
 			for (int i = 0; i < poly.getSize(); ++i) {
 				//Left-hand!!
 				addTriangle(poly.getVertex (i).getIndex(), poly.getVertex (i + 1).getIndex(), baricenterIndex);
+			}*/
+
+			Polyline closePoly = new Polyline(poly.getSize());
+
+			Vector3 baricenterPos = poly.calculateBaricenter ();
+			float baricenterUVY = poly.getVertex(0).getUV().y + (poly.computeRadius () / AbstractGenerator.UVfactor); //Same y for all by construction
+
+			for (int i = 0; i < poly.getSize(); ++i) { //Generate the new vertices
+				//Add vertex to polyline
+				closePoly.getVertex(i).setPosition(baricenterPos);
+				//Add the index to vertex
+				closePoly.getVertex(i).setIndex(getNumVertices() + i);
+				//Add UV
+				closePoly.getVertex(i).setUV(new Vector2(poly.getVertex(i).getUV().x,baricenterUVY));
 			}
+			addPolyline (closePoly);
+			triangulatePolylines (poly, closePoly); //Could improve this to generate the half number of triangles, due to closePoly has vertices on same position
 		}
 		/** Closes a polyline by triangulating all it's vertices with it's baricenter, visualizing it as a polygon FROM OUTSIDE**/
 		public void closePolylineOutside(Polyline poly) {
