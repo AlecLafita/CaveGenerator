@@ -90,7 +90,11 @@ namespace Geometry {
 		public Plane generateNormalPlane() {
 			//First get maximum "radius" on normal direction to know the distance to project
 			//As it's polyline formed from an extrusion, they will always form two symmetric semicircles. Its enough then
-			//to check the first (or last) half of vertice
+			//to check the first (or last) half of vertices
+			// Create a line between start and end of the semicircle, and check all perpendicular(shortest) distances
+			//with all the other vertices. Get the bigger one as the radius
+			Vector3 lineStart = getVertex(0).getPosition();
+			Vector3 lineEnd = getVertex (getSize () / 2).getPosition ();
 			/*float radius = 0.0f;
 
 					//TODO GET RADIUS
