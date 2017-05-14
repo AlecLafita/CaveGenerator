@@ -17,6 +17,7 @@ abstract public class AbstractGenerator : MonoBehaviour{
 	protected int entranceSize; //Number of vertices of a tunnel entrance
 	protected GameObject lights; // GameObject that contains all the generated lights
 	public bool finished; //Check if the generation has beeen completed
+	private int smoothIterations; //Number of iterations of polyline smooth
 
 	protected bool showGeneration; //Use yield or not to show the generation
 	protected const float extrusionTime = 0.1f;
@@ -30,10 +31,10 @@ abstract public class AbstractGenerator : MonoBehaviour{
 		finished = false;
 	}
 
-	private int smoothIterations = 3;
 	/**Initialize, being the arguments the needed parameters for the generator **/
 	public void initialize(int gateSize, InitialPolyline iniPol, float initialTunelHoleProb, int maxHoles, int maxExtrudeTimes) {
 		showGeneration = gameObject.GetComponent<CaveGenerator> ().showGeneration;
+		smoothIterations = gameObject.GetComponent<CaveGenerator> ().smoothItIniTunel;
 		for (int i = 0; i < smoothIterations;++i)
 			iniPol.smoothMean ();
 		iniPol.generateUVs ();
@@ -203,7 +204,7 @@ abstract public class AbstractGenerator : MonoBehaviour{
 		//Create a new stalgmite mesh if needed
 		if (stalagmitesMeshes [stalagmitesMeshes.Count - 1].getNumVertices () > 65000)
 			stalagmitesMeshes.Add (new Geometry.Mesh ());
-		int numStalgm = 2;
+		int numStalgm = Random.Range(1,5);
 		//Common part for stalgmites/stalgitates and pillars
 		//Get the mean distance between vertices to know how many vertices take per stalgmite
 		float dist = 0;
@@ -225,6 +226,13 @@ abstract public class AbstractGenerator : MonoBehaviour{
 		if (stalgmPolys == null)
 			return;
 		for(int p = 0; p <numStalgm;++p) {
+			if (p == 1 && (stalgmType == ExtrusionOperations.stalgmOp.Pillar)) {
+				int randAux = Random.Range (1, 11);
+				if (randAux < 5)
+					stalgmType = ExtrusionOperations.stalgmOp.Stalactite;
+				else
+					stalgmType = ExtrusionOperations.stalgmOp.Stalagmite;
+			}
 			int numExtrusions = Random.Range(4,10);//For last part
 			Polyline stalgmPoly = stalgmPolys [p];
 			if (stalgmPoly == null)
@@ -256,7 +264,7 @@ abstract public class AbstractGenerator : MonoBehaviour{
 					}
 				}
 				float maxStalgmSize = (originPoly.getVertex (counterpartVertex).getPosition () - stalgmBaricenter).magnitude;
-				maxStalgmSize *= Random.Range (0.30f, 0.75f); //final stalgmite size
+				maxStalgmSize *= Random.Range (0.15f, 0.75f); //final stalgmite size
 				float stalgmExtrusionDistance = maxStalgmSize / (float)numExtrusions;
 				//Scale value from stalgmite size and #extrusions
 				float stalgmDiam = stalgmPoly.computeRadius () * 2;
@@ -278,7 +286,7 @@ abstract public class AbstractGenerator : MonoBehaviour{
 					return;
 				Vector3 extrusionVector = stalagitePoly.calculateBaricenter () - stalgmPoly.calculateBaricenter ();
 				if (Vector3.Angle (extrusionVector.normalized, Vector3.down) > maxDiffAnglePillar) //Check is not too horizontal
-				return;
+					return;
 				initializeStalagmiteIni (ref stalgmPoly);
 				//Common extrusion parameters
 				float maxStalgmSize = extrusionVector.magnitude / 2;
