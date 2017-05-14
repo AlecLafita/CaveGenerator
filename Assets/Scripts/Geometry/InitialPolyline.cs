@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor;
 
 namespace Geometry {
 
@@ -94,13 +95,15 @@ namespace Geometry {
 			// Create a line between start and end of the semicircle, and check all perpendicular(shortest) distances
 			//with all the other vertices. Get the bigger one as the radius
 			Vector3 lineStart = getVertex(0).getPosition();
-			Vector3 lineEnd = getVertex (getSize () / 2).getPosition ();
-			/*float radius = 0.0f;
-
-					//TODO GET RADIUS
-			*/
-
-			float distance = 5.0f;
+			Vector3 lineEnd = getVertex ((getSize () / 2)-1).getPosition ();
+			float distance = 0.0f;
+			for (int i = 1; i < getSize () / 2 - 1; ++i) {
+				float auxDistance = HandleUtility.DistancePointLine (getVertex (i).getPosition (), lineStart, lineEnd);
+				if (auxDistance > distance)
+					distance = auxDistance;
+			}
+			//distance *= 1.5f;
+			//distance = 5.0f;
 			Vector3 planeNormal = calculateNormal ();
 			Vector3 b = calculateBaricenter ();
 			Plane result = new Plane (-planeNormal, b + planeNormal * distance);
