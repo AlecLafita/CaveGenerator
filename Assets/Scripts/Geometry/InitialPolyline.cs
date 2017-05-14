@@ -102,7 +102,7 @@ namespace Geometry {
 				if (auxDistance > distance)
 					distance = auxDistance;
 			}
-			//distance *= 1.5f;
+			//distance *= 1.05f;
 			//distance = 5.0f;
 			Vector3 planeNormal = calculateNormal ();
 			Vector3 b = calculateBaricenter ();

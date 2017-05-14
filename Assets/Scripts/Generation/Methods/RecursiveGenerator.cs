@@ -92,6 +92,8 @@ public class RecursiveGenerator : AbstractGenerator {
 				yield return new WaitForSeconds (extrusionTime);
 			} //else do nothing
 		}
+		//Duplicate last polyline, in order to avoid ugly results when smoothing a closed tunnel after hole
+		originPoly = actualMesh.duplicatePoly (originPoly);
 		//Finally, close the actual hallway/tunnel
 		IntersectionsController.Instance.addActualBox ();
 		actualMesh.closePolyline(originPoly);

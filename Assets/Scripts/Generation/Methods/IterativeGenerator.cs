@@ -100,6 +100,8 @@ abstract public class IterativeGenerator : AbstractGenerator {
 					yield return new WaitForSeconds(extrusionTime);
 				}
 			}
+			//Duplicate last polyline, in order to avoid ugly results when smoothing a closed tunnel after hole
+			originPoly = actualMesh.duplicatePoly (originPoly);
 			IntersectionsController.Instance.addActualBox ();
 			actualMesh.closePolyline(originPoly);
 			holeProb -= 0.001f;

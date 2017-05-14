@@ -257,6 +257,7 @@ namespace Geometry {
 				closePoly.getVertex(i).setIndex(getNumVertices() + i);
 				//Add UV
 				closePoly.getVertex(i).setUV(new Vector2(poly.getVertex(i).getUV().x,baricenterUVY));
+				//addHoleIndex (getNumVertices () + i);
 			}
 			addPolyline (closePoly);
 			triangulatePolylines (poly, closePoly); //Could improve this to generate the half number of triangles, due to closePoly has vertices on same position
@@ -268,7 +269,7 @@ namespace Geometry {
 			baricenter.setUV (poly.calculateBaricenterUV());
 			int baricenterIndex = getNumVertices();
 			addVertex (baricenter);
-			addHoleIndex (baricenterIndex); //Special case when closing after a hole, helps to disimulate triangulation
+			//addHoleIndex (baricenterIndex); //Special case when closing after a hole, helps to disimulate triangulation
 			for (int i = 0; i < poly.getSize(); ++i) {
 				//Left-hand!!
 				addTriangle(poly.getVertex (i + 1).getIndex(),poly.getVertex (i).getIndex(),  baricenterIndex);
@@ -278,6 +279,19 @@ namespace Geometry {
 		/** Adds a new vertex hole **/
 		public void addHoleIndex(int index) {
 			mholeIndices.Add (index);
+		}
+
+		/**Duplicates a polyline and triangulate between the original and the copy **/
+		public Polyline duplicatePoly(Polyline originPoly) {
+			Polyline newPoly = new Polyline (originPoly);
+
+			for (int i = 0; i < originPoly.getSize (); ++i) {
+				newPoly.getVertex (i).setIndex (getNumVertices() + i);
+				newPoly.getVertex (i).setInHole (false);
+			}
+			addPolyline (newPoly);
+			triangulatePolylines (originPoly, newPoly);
+			return newPoly;
 		}
 
 		/** Smooths the mesh by using the selected techique or filter. It must be called
