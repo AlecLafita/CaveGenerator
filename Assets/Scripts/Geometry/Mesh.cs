@@ -180,8 +180,10 @@ namespace Geometry {
 					bIndex = i + 1;
 				}
 			}*/
-				
+			const int maxFoll = 5;
+			int bFoll = 0, aFoll = 0; //To controll not the same sida is always the winner, as it produces artifacts some cases
 			int bIter = 0, aIter = 0;
+			bool aWins = false;
 			while (aIter < originPoly.getSize () && bIter < destinyPoly.getSize()) {
 				//This line ab will be triangulated with a point c either from one polyliline or the other, depending the one that has 
 				//smallest angle with ab line(A-winner or B-winner).c It's always an adjacent vertex, we can use they are clockwise sorted(lucky!)
@@ -195,18 +197,31 @@ namespace Geometry {
 				//aAngle = Vector3.Distance (aWinner.getPosition (), b.getPosition ());
 				//bAngle = Vector3.Distance (bWinner.getPosition (), a.getPosition ());
 
+				//Check not same polyine accumulates too much wins
+				if (aFoll > maxFoll) {
+					aWins = false;
+					aFoll = 0;
+				} else if (bFoll > maxFoll) {
+					aWins = true;
+					bFoll = 0;
+				} else {
+					aWins = aAngle < bAngle;
+				}
+
 				//If it's A-winner(from first poly) a=c, if it's from b-Winner b = c
-				if (aAngle < bAngle) { //A wins!
+				if (aWins) { //A wins!
 					addTriangle(a.getIndex(), aWinner.getIndex(), b.getIndex());
 					a = aWinner;
 					++aIndex;
 					++aIter;
+					++aFoll;
 				}
 				else { //B wins!
 					addTriangle(a.getIndex(), bWinner.getIndex(), b.getIndex());
 					b = bWinner;
 					++bIndex;
 					++bIter;
+					++bFoll;
 				}
 			}//Repeat until ab we arrive to some of the polylines start, then triangulate with a or b constant(depends on polyline)
 
