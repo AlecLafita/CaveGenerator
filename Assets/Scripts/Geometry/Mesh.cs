@@ -261,7 +261,8 @@ namespace Geometry {
 			}
 			addPolyline (closePoly);
 			triangulatePolylines (poly, closePoly); //Could improve this to generate the half number of triangles, due to closePoly has vertices on same position
-		}
+	
+}
 		/** Closes a polyline by triangulating all it's vertices with it's baricenter, visualizing it as a polygon FROM OUTSIDE**/
 		public void closePolylineOutside(Polyline poly) {
 			Vertex baricenter = new Vertex ();
