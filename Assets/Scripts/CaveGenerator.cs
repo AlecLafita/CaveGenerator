@@ -202,7 +202,7 @@ public class CaveGenerator : MonoBehaviour {
 		//Debug script
 		meshGO.AddComponent<DebugTunnel> ();
 		//Generate the needed components for the rendering and collision, and attach them to the tunnel
-		MeshFilter filter = meshGO.AddComponent <MeshFilter> ();
+		meshGO.AddComponent <MeshFilter> ();
 		meshGO.AddComponent <MeshCollider> ();
 		MeshRenderer renderer = meshGO.AddComponent<MeshRenderer> ();
 		renderer.material = new Material (caveMaterial);

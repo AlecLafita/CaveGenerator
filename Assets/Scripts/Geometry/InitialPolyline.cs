@@ -149,10 +149,10 @@ namespace Geometry {
 		 * Close curve -> repeat the degree + 1 first control points at the end
 		 *  De Bor: O(p^2) + O(p + n)
 		 **/
-		private const int smoothDegree = 3;
+		//private const int smoothDegree = 3;
 
 		/** Smoothes the polyline by applying a B-spline, and multiplying the number of vertices as the parameter says **/
-		public void smoothBspline() {
+		/*public void smoothBspline() {
 			int controlLength = mVertices.Length;
 			int knotLength = controlLength + smoothDegree + 1;
 			//Generate the knot vector
@@ -160,6 +160,6 @@ namespace Geometry {
 			//Vector3[] controlPoints = mVertices;
 			//TODO
 
-		}
+		}*/
 	}
 }
