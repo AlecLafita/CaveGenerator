@@ -39,8 +39,8 @@ public class DecisionGenerator : MonoBehaviour {
 	public int rotationKDesv = 2;
 	public int stalgmKBase = 5;
 	public int stalgmKDesv = 4;
-	public int pointLightKBase = 12;
-	public int pointLightKDesv = 5;
+	//public int pointLightKBase = 12;
+	//public int pointLightKDesv = 5;
 
 	/** Generates a new operation instance, as it was the beggining of a tunnel **/
 	public ExtrusionOperations generateNewOperation(Polyline p) {
@@ -54,8 +54,8 @@ public class DecisionGenerator : MonoBehaviour {
 		op.scaleOperation().setWait(generateFromRange (scaleKBase, scaleKDesv));
 		op.rotateOperation().setWait (generateFromRange (rotationKBase, rotationKDesv));
 		op.stalagmiteOperation().setWait (generateFromRange (stalgmKBase, stalgmKDesv));
-		op.pointLightOperation ().forceOperation (1, true);
-		op.pointLightOperation().setWait (1+generateFromRange (pointLightKBase, pointLightKDesv));
+		//op.pointLightOperation ().forceOperation (1, true);
+		//op.pointLightOperation().setWait (1+generateFromRange (pointLightKBase, pointLightKDesv));
 		return op;
 	}
 
@@ -122,10 +122,10 @@ public class DecisionGenerator : MonoBehaviour {
 				op.stalagmiteOperation ().forceOperation (duration, ExtrusionOperations.stalgmOp.Pillar);
 			op.stalagmiteOperation().setWait(duration + generateFromRange(stalgmKBase,stalgmKDesv));
 		}
-		if (op.pointLightOperation().needGenerate()) {
+		/*if (op.pointLightOperation().needGenerate()) {
 			op.pointLightOperation().forceOperation(1,true);
 			op.pointLightOperation().setWait(1 + generateFromRange (pointLightKBase, pointLightKDesv));
-		}
+		}*/
 		//TODO: add stones, grass,...
 	}
 

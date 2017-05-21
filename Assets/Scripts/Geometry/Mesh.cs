@@ -197,7 +197,7 @@ namespace Geometry {
 				//aAngle = Vector3.Distance (aWinner.getPosition (), b.getPosition ());
 				//bAngle = Vector3.Distance (bWinner.getPosition (), a.getPosition ());
 
-				//Check not same polyine accumulates too much wins
+				//Check not same polyline accumulates too much wins
 				if (aFoll > maxFoll) {
 					aWins = false;
 					aFoll = 0;

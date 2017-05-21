@@ -15,7 +15,7 @@ abstract public class AbstractGenerator : MonoBehaviour{
 	protected int maxExtrudeTimes; //TODO: consider to deccrement this value as holes are created, or some random function that handles this
 	protected InitialPolyline gatePolyline; //Polyline where the cave starts from
 	protected int entranceSize; //Number of vertices of a tunnel entrance
-	protected GameObject lights; // GameObject that contains all the generated lights
+	//protected GameObject lights; // GameObject that contains all the generated lights
 	public bool finished; //Check if the generation has beeen completed
 	private int smoothIterations; //Number of iterations of polyline smooth
 
@@ -27,7 +27,7 @@ abstract public class AbstractGenerator : MonoBehaviour{
 		proceduralMeshes = new List<Geometry.Mesh> ();
 		stalagmitesMeshes = new List<Geometry.Mesh> ();
 		stalagmitesMeshes.Add (new Geometry.Mesh ());
-		lights = new GameObject ("Lights");
+		//lights = new GameObject ("Lights");
 		finished = false;
 	}
 
@@ -388,9 +388,7 @@ abstract public class AbstractGenerator : MonoBehaviour{
 	}
 
 	/**Creates a point light between the extrusion, on it's center **/
-	protected void makePointLight(Polyline originPoly, Polyline destinyPoly) {
-		//TODO: Avoid creating and checking light operations
-		/*
+	/*protected void makePointLight(Polyline originPoly, Polyline destinyPoly) {
 		GameObject newLight = new GameObject ();
 		Vector3 position = (originPoly.calculateBaricenter() + destinyPoly.calculateBaricenter())/2;
 		newLight.transform.position = position;
@@ -400,6 +398,6 @@ abstract public class AbstractGenerator : MonoBehaviour{
 		l.intensity = 2.3f;
 		l.range = 10.0f;
 		newLight.transform.parent =  lights.transform;
-		*/
-	}
+
+	}*/
 }

@@ -16,7 +16,7 @@ public class ExtrusionOperations  {
 	private Operation<float> rotate;
 	private bool hole; //To make a hole on this extrusion or not
 	private Operation<stalgmOp> stalagmite;	//To make an stalgmite on this extrusion or not
-	private Operation<bool> pointLight;	//To create a point light on this extrusion or not
+	//private Operation<bool> pointLight;	//To create a point light on this extrusion or not
 	private int canIntersect;//Index of the BB this extrusion can intersect with
 
 	/** Creator, makes a just extrusion operation**/
@@ -26,7 +26,7 @@ public class ExtrusionOperations  {
 		scale = new Operation<float> ();
 		rotate = new Operation<float> ();
 		stalagmite = new Operation<stalgmOp> ();
-		pointLight = new Operation<bool> ();
+		//pointLight = new Operation<bool> ();
 		canIntersect = -1;
 	}
 
@@ -38,7 +38,7 @@ public class ExtrusionOperations  {
 		rotate = new Operation<float> (original.rotate);
 		hole = original.hole;
 		stalagmite = new Operation<stalgmOp>(original.stalagmite);
-		pointLight = new Operation<bool> (original.pointLight);
+		//pointLight = new Operation<bool> (original.pointLight);
 		canIntersect = original.canIntersect;
 	}
 
@@ -46,7 +46,7 @@ public class ExtrusionOperations  {
 	/** Returns if no operations need to be done, just the extrusion **/
 	public bool justExtrude() {
 		return (distance.needApply() || direction.needApply() || scale.needApply() ||
-			 rotate.needApply() || stalagmite.needApply() || holeOperation() || pointLight.needApply());
+			 rotate.needApply() || stalagmite.needApply() || holeOperation() /*|| pointLight.needApply()*/);
 	}
 
 	/** Returns the distance operation **/
@@ -75,9 +75,9 @@ public class ExtrusionOperations  {
 	}
 
 	/** Returns the point light operation **/
-	public Operation<bool> pointLightOperation() {
+	/*public Operation<bool> pointLightOperation() {
 		return pointLight;
-	}
+	}*/
 
 	/** Returns if a hole needs to be done on this extrusion**/
 	public bool holeOperation() {
@@ -97,7 +97,7 @@ public class ExtrusionOperations  {
 		scale.decreaseWait ();
 		rotate.decreaseWait ();
 		stalagmite.decreaseWait ();
-		pointLight.decreaseWait ();
+		//pointLight.decreaseWait ();
 	}
 
 	/** Forces to make a hole or cancel it **/
