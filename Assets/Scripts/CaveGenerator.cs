@@ -9,7 +9,7 @@ public class CaveGenerator : MonoBehaviour {
 
 	public Camera cam;
 	public int gateSize = 3; //Number of points the cave'gate will have
-	public float caveDistance = 10.0f; //Depth(z) where the cave will start on, from the camera
+	private float caveDistance = 10.0f; //Depth(z) where the cave will start on, from the camera
 	private int pointsSelected; //Number of points the user has selected
 	private bool generatorCalled; //In order to generate the cave just once
 	InitialPolyline initialPoints;
