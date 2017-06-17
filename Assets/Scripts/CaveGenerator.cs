@@ -86,6 +86,11 @@ public class CaveGenerator : MonoBehaviour {
 			cam.ResetProjectionMatrix();
 			Debug.Log("Starting generation");
 			//TODO:check it's clockwise. Otherwise, transform it
+			/*initialPoints = new InitialPolyline(4);
+			initialPoints.addPosition (new Vector3 (-7.7f, -3.9f, 0.0f));
+			initialPoints.addPosition (new Vector3 (-6.5f, 6.2f, 0.0f));
+			initialPoints.addPosition (new Vector3 (7.5f, 6.3f, 0.0f));
+			initialPoints.addPosition (new Vector3 (7.1f, -4.0f, 0.0f));*/
 			startGeneration(initialPoints);
 			generatorCalled = true;
 		}

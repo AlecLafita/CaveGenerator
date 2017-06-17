@@ -12,7 +12,7 @@ public class DecisionGenerator : MonoBehaviour {
 	private static DecisionGenerator mInstace; 
 	public void Awake() {
 		mInstace = this;
-		//Random.seed = 5; //With this setted the result will always be the same
+		//Random.InitState(5); //With this setted the result will always be the same
 	}
 	public static DecisionGenerator Instance {
 		get {
